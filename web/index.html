@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="vi">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sửa clip — Mắt Bão</title>
+<link rel="stylesheet" href="/app.css">
+
+<div id="app">
+  <header class="thanh-tren">
+    <div class="hieu">Sửa clip</div>
+    <select id="chon-clip" class="chon" aria-label="Chọn clip"></select>
+    <span id="dang-clip" class="phu"></span>
+
+    <div class="day"></div>
+
+    <button id="nut-lui" class="nut nho" type="button" title="Ctrl+Z">↩</button>
+    <button id="nut-toi" class="nut nho" type="button" title="Ctrl+Shift+Z">↪</button>
+    <span id="dau-ban" class="dau-ban an">chưa lưu</span>
+    <button id="nut-luu" class="nut chinh" type="button" title="Ctrl+S">Lưu</button>
+  </header>
+
+  <div class="than">
+    <aside class="cot-trai">
+      <div class="tieu-de-cot">
+        Các cảnh
+        <span class="cot-nut">
+          <button id="canh-them" class="nut-ti" type="button" title="Thêm cảnh mới"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3.5v9M3.5 8h9"/></svg></button>
+          <button id="canh-nhan" class="nut-ti" type="button" title="Nhân bản cảnh này"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 5.5v-2a1.5 1.5 0 0 0-1.5-1.5H4a1.5 1.5 0 0 0-1.5 1.5V9A1.5 1.5 0 0 0 4 10.5h2"/></svg></button>
+          <button id="canh-xoa" class="nut-ti" type="button" title="Xoá cảnh này"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
+        </span>
+      </div>
+      <ol id="ds-canh" class="ds-canh"></ol>
+
+      <div class="tieu-de-cot">
+        Thành phần trong cảnh
+        <span class="cot-nut">
+          <button id="mon-them" class="nut-ti" type="button" title="Thêm thành phần"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3.5v9M3.5 8h9"/></svg></button>
+          <button id="mon-nhan" class="nut-ti" type="button" title="Nhân bản thành phần đang chọn"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 5.5v-2a1.5 1.5 0 0 0-1.5-1.5H4a1.5 1.5 0 0 0-1.5 1.5V9A1.5 1.5 0 0 0 4 10.5h2"/></svg></button>
+          <button id="mon-xoa" class="nut-ti" type="button" title="Xoá thành phần đang chọn"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
+        </span>
+      </div>
+      <div id="ds-lop" class="ds-lop"></div>
+      <div id="menu-them" class="menu-them an"></div>
+    </aside>
+
+    <main class="giua">
+      <div id="bang-doi-cu" class="bang-bao an">
+        <b>Clip đời cũ.</b> Xem và xuất video được, nhưng chưa sửa trực tiếp được —
+        clip này viết bằng code, vị trí do code tính lúc chạy.
+      </div>
+
+      <div id="san-khung" class="san-khau an"></div>
+
+      <div id="san-clip" class="san-khau">
+        <div id="boc-khung" class="boc-khung">
+          <iframe id="khung" title="Khung xem clip" referrerpolicy="no-referrer"></iframe>
+          <!-- Lớp bắt sự kiện: iframe nuốt hết chuột nên trang cha phải phủ lên
+               rồi tự dò xuống. Nằm khít iframe nên toạ độ khớp 1-1. -->
+          <div id="lop-bat" class="lop-bat"></div>
+          <!-- Lớp vẽ: chỉ để nhìn, không ăn chuột, KHÔNG BAO GIỜ chèn vào iframe. -->
+          <div id="lop-phu" class="lop-phu"></div>
+        </div>
+      </div>
+
+      <div class="dieu-khien">
+        <button id="nut-chay" class="nut chinh" type="button">▶ Chạy</button>
+        <input id="thanh-tua" class="thanh-tua" type="range" min="0" max="1000" value="0"
+               step="1" aria-label="Tua clip">
+        <span id="dong-ho" class="dong-ho">0,0 / 0,0 giây</span>
+      </div>
+    </main>
+
+    <aside class="cot-phai">
+      <div class="the-hang" role="tablist">
+        <button id="the-tt" class="the" type="button" role="tab" aria-selected="true">Thuộc tính</button>
+        <button id="the-xuat" class="the" type="button" role="tab" aria-selected="false">Xuất video</button>
+        <button id="the-khung" class="the an" type="button" role="tab" aria-selected="false">Khung nhấn</button>
+      </div>
+      <div id="bang-thuoc-tinh" class="bang-tt"></div>
+      <div id="bang-xuat" class="bang-tt an"></div>
+      <div id="bang-khung" class="bang-tt an"></div>
+    </aside>
+  </div>
+
+  <div id="bao" class="bao an" role="status" aria-live="polite"></div>
+</div>
+
+<script type="module" src="/app.js"></script>
+</html>

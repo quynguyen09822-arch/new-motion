@@ -1,0 +1,11 @@
+{
+  "name": "matbao-hub-video",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Trình sửa clip trực quan cho clipVibe — bấm vào thành phần trên khung hình rồi sửa thẳng.",
+  "scripts": {
+    "dev": "node server/main.js",
+    "start": "node server/main.js"
+  }
+}

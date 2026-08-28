@@ -1,0 +1,16 @@
+node_modules/
+
+# Bản nháp đang sửa dở và kho sao lưu — dữ liệu chạy, không phải mã nguồn.
+.drafts/
+.hub-video-backups/
+
+# Do skill /port sinh ra.
+.port
+.port.pid
+.port.log
+
+# Clip 15 giây đã giao: file mp4 8 MB, không đưa vào git.
+clip-15s/*.mp4
+
+# Ảnh do máy kiểm chụp.
+.kiem/
