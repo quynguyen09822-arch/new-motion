@@ -20,7 +20,8 @@ const el = (the, lop, chu) => {
 const TAY = ['tt', 'tg', 'tp', 'gt', 'gp', 'dt', 'dg', 'dp']; // trên/giữa/dưới × trái/giữa/phải
 
 export function taoKhung({ bocGiua, bocBang, bao }) {
-  let dulieu = null;      // { slug, rong, cao, lop[] }
+  let dulieu = null;      // { slug, ban:[{ten, rong, cao, lop[]}] }
+  let banI = 0;           // bản đang xem (ngang / dọc)
   let dangChon = -1;
   let box = null;         // [x0,y0,x1,y1] đang sửa, theo pixel mockup
   let goc = null;         // bản lúc mở, để biết có đổi gì chưa
@@ -39,6 +40,10 @@ export function taoKhung({ bocGiua, bocBang, bao }) {
 
   const dsBoc = el('div', 'khung-ds');
   const oSo = el('div', 'khung-so');
+  const chonBan = el('div', 'doan');
+  const bocBan = el('div', 'num');
+  bocBan.append(el('label', 'num-nhan', 'Bản đang chỉnh'), chonBan);
+
   const khoaBao = el('p', 'nhac');
   khoaBao.style.display = 'none';
   const nutLuu = el('button', 'nut chinh rong', 'Lưu khung này');
@@ -47,8 +52,9 @@ export function taoKhung({ bocGiua, bocBang, bao }) {
   nutLuu.disabled = nutVe.disabled = true;
 
   /* ---------- vẽ ---------- */
+  const banNay = () => dulieu?.ban[banI] || null;
   function tyLe() {
-    return anh.clientWidth / (dulieu?.rong || 941);
+    return anh.clientWidth / (banNay()?.rong || 941);
   }
 
   function veHop() {
@@ -60,7 +66,7 @@ export function taoKhung({ bocGiua, bocBang, bao }) {
     hop.style.width = `${(box[2] - box[0]) * t}px`;
     hop.style.height = `${(box[3] - box[1]) * t}px`;
     veSo();
-    const l = dulieu?.lop[dangChon];
+    const l = banNay()?.lop[dangChon];
     const doi = goc && String(box) !== String(goc);
     nutLuu.disabled = !doi || !l?.suaDuoc;
     nutVe.disabled = !doi;
@@ -92,10 +98,28 @@ export function taoKhung({ bocGiua, bocBang, bao }) {
     });
   }
 
+  function veChonBan() {
+    chonBan.innerHTML = '';
+    // Một clip có thể có bản ngang và bản dọc, mỗi bản một bộ mockup và một bộ
+    // toạ độ riêng — sửa bản này KHÔNG ảnh hưởng bản kia.
+    bocBan.style.display = (dulieu?.ban.length || 0) > 1 ? '' : 'none';
+    (dulieu?.ban || []).forEach((b, i) => {
+      const o = el('button', 'doan-o', `${b.ten} · ${b.rong}×${b.cao}`);
+      o.type = 'button';
+      o.setAttribute('aria-pressed', String(i === banI));
+      o.onclick = () => {
+        banI = i; dangChon = -1; box = goc = null;
+        hop.style.display = 'none'; san.style.display = 'none'; trong.style.display = '';
+        veChonBan(); veDanhSach();
+      };
+      chonBan.appendChild(o);
+    });
+  }
+
   function veDanhSach() {
     dsBoc.innerHTML = '';
     let canhCu = null;
-    dulieu.lop.forEach((l, i) => {
+    (banNay()?.lop || []).forEach((l, i) => {
       if (l.canh !== canhCu) {
         canhCu = l.canh;
         dsBoc.appendChild(el('div', 'khung-canh', `Cảnh ${l.canh + 1}`));
@@ -118,7 +142,7 @@ export function taoKhung({ bocGiua, bocBang, bao }) {
 
   function chonLop(i) {
     dangChon = i;
-    const l = dulieu.lop[i];
+    const l = banNay().lop[i];
     box = [...l.box];
     goc = [...l.box];
     anh.src = `/clip/${l.anh}`;
@@ -133,7 +157,7 @@ export function taoKhung({ bocGiua, bocBang, bao }) {
   /* ---------- kéo ---------- */
   let phien = null;
   san.addEventListener('pointerdown', (ev) => {
-    if (!box || !dulieu?.lop[dangChon]?.suaDuoc) return;
+    if (!box || !banNay()?.lop[dangChon]?.suaDuoc) return;
     const tay = ev.target.dataset?.tay || null;
     if (!tay && ev.target !== hop) return;
     phien = { tay, x: ev.clientX, y: ev.clientY, dau: [...box], t: tyLe() };
@@ -173,7 +197,7 @@ export function taoKhung({ bocGiua, bocBang, bao }) {
 
   /* ---------- lưu ---------- */
   nutLuu.onclick = async () => {
-    const l = dulieu.lop[dangChon];
+    const l = banNay().lop[dangChon];
     nutLuu.disabled = true;
     const r = await fetch(`/api/khung/${dulieu.slug}`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -189,6 +213,27 @@ export function taoKhung({ bocGiua, bocBang, bao }) {
 
   nutVe.onclick = () => { box = [...goc]; veHop(); };
 
+  /** Clip không hợp quy ước: bày lý do ra giữa màn hình. */
+  function veLyDo(d) {
+    dulieu = null;
+    san.style.display = 'none';
+    trong.style.display = '';
+    trong.innerHTML = '';
+    const h = el('div', 'ly-do');
+    h.appendChild(el('h4', null, 'Clip này chưa chỉnh khung được'));
+    const ul = el('ul');
+    for (const t of d.thieu || [d.loi]) ul.appendChild(el('li', null, t));
+    h.appendChild(ul);
+    h.appendChild(el('p', 'num-goi',
+      `Quy ước đầy đủ ở ${d.quyUoc || 'docs/QUY-UOC-CLIP.md'} — có sẵn khối để dán vào prompt dựng clip.`));
+    trong.appendChild(h);
+    dsBoc.innerHTML = '';
+    bocBan.style.display = 'none';
+    oSo.style.display = 'none';
+    khoaBao.style.display = 'none';
+    nutLuu.style.display = nutVe.style.display = 'none';
+  }
+
   /* ---------- dựng cột phải ---------- */
   const muc = el('section', 'muc');
   muc.appendChild(el('h3', 'muc-ten', 'Khung nhấn'));
@@ -196,22 +241,31 @@ export function taoKhung({ bocGiua, bocBang, bao }) {
     'Bốn số là pixel trên ảnh mockup 941×1672. Kéo thẳng trên ảnh cho khớp, khỏi phải đo tay.'));
   const capSo = el('div', 'cap');
   capSo.appendChild(oSo);
-  muc.append(oSo, khoaBao, nutLuu, nutVe);
+  muc.append(bocBan, oSo, khoaBao, nutLuu, nutVe);
   bocBang.append(muc, el('h3', 'muc-ten khung-dau', 'Các khung trong clip'), dsBoc);
   dungOSo();
 
   return {
     async mo(slug) {
       const d = await (await fetch(`/api/khung/${slug}`)).json();
-      if (!d.ok) { bao(d.loi, true); return false; }
+      if (!d.ok) {
+        // Không chỉnh được thì NÓI RÕ thiếu cái gì, đừng chỉ im lặng ẩn thẻ đi.
+        veLyDo(d);
+        return { ok: false, thieu: d.thieu || [] };
+      }
       dulieu = d;
+      banI = 0;
       dangChon = -1;
       box = goc = null;
       hop.style.display = 'none';
       san.style.display = 'none';
+      trong.textContent = 'Chọn một khung ở cột bên phải để chỉnh.';
+      oSo.style.display = '';
+      nutLuu.style.display = nutVe.style.display = '';
       trong.style.display = '';
+      veChonBan();
       veDanhSach();
-      return true;
+      return { ok: true };
     },
     co: (slug) => Boolean(dulieu && dulieu.slug === slug),
   };

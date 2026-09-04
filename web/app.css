@@ -379,3 +379,40 @@ body {
   padding: 10px 8px 4px; font-size: 11px; font-weight: 600;
   text-transform: uppercase; letter-spacing: .06em; color: var(--chu-mo);
 }
+
+/* ============ VIDEO ĐÃ XUẤT ============ */
+.video-boc { display: flex; flex-direction: column; gap: 10px;
+  max-width: 100%; max-height: 100%; align-items: center; }
+.video-xem { max-width: 100%; max-height: calc(100vh - 210px);
+  border-radius: var(--bo); background: #000; display: block;
+  box-shadow: 0 14px 46px rgba(0, 0, 0, .6); }
+.video-nhan { margin: 0; font-size: 12px; color: var(--chu-mo); text-align: center; }
+
+.video-ds { padding: 0 6px 20px; }
+.video-hang {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  background: none; border: 0; color: var(--chu); font: inherit;
+  padding: 7px 8px; border-radius: 7px; cursor: pointer; text-align: left;
+}
+.video-hang:hover { background: var(--nen-3); }
+.video-hang.dang { background: var(--nhan); color: #061018; }
+.video-cot { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.video-ten { font-size: 12px; font-variant-numeric: tabular-nums; }
+.video-phu { font-size: 11px; color: var(--chu-mo); }
+.video-hang.dang .video-phu { color: #061018; opacity: .75; }
+.video-nhan-hang { display: flex; flex-direction: column; gap: 3px; align-items: flex-end; flex: none; }
+
+.the-nho {
+  font-size: 10px; padding: 2px 6px; border-radius: 4px;
+  background: var(--nen); border: 1px solid var(--vach); color: var(--chu-mo);
+  white-space: nowrap;
+}
+.the-nho.tieng { border-color: #2b6b45; background: #13291d; color: #7fd6a0; }
+.the-nho.cam { border-color: #6b4a1c; background: #2a1f12; color: #e0a86a; }
+.video-hang.dang .the-nho { background: rgba(6,16,24,.18); border-color: rgba(6,16,24,.3); color: #061018; }
+.video-boc .nut { text-decoration: none; text-align: center; }
+
+.ly-do { max-width: 520px; text-align: left; color: var(--chu-mo); font-size: 13px; }
+.ly-do h4 { margin: 0 0 10px; color: var(--chu); font-size: 15px; }
+.ly-do ul { margin: 0 0 12px; padding-left: 20px; line-height: 1.7; }
+.ly-do li { margin-bottom: 5px; }

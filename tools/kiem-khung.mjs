@@ -44,16 +44,37 @@ try {
   /* ---------- 1. đọc ---------- */
   console.log('\n1. Đọc các lớp vẽ đè');
   const d = await (await fetch(`${GOC}/api/khung/${SLUG}`)).json();
-  dat('đọc được danh sách lớp', d.ok && d.lop.length > 0, `${d.lop?.length} lớp`);
-  dat('có khai hệ toạ độ', d.rong > 0 && d.cao > 0, `${d.rong}×${d.cao}`);
-  const coAnh = d.lop.filter((l) => l.anh).length;
-  dat('phần lớn lớp có ảnh mockup kèm theo', coAnh > d.lop.length * 0.6, `${coAnh}/${d.lop.length}`);
+  dat('đọc được các bản', d.ok && d.ban?.length > 0,
+    d.ban?.map((b) => `${b.ten} ${b.rong}×${b.cao} (${b.lop.length} lớp)`).join(' · '));
+  // Bản nào cũng phải có cỡ ảnh đọc được — cỡ lấy từ chính file PNG, không từ code.
+  dat('mọi bản đều có cỡ ảnh mockup thật', d.ban.every((b) => b.rong > 0 && b.cao > 0));
 
-  const vong = d.lop.find((l) => l.loai === 'vong' && l.suaDuoc);
+  const ban = d.ban[0];
+  const coAnh = ban.lop.filter((l) => l.anh).length;
+  dat('phần lớn lớp có ảnh mockup kèm theo', coAnh > ban.lop.length * 0.6,
+    `${coAnh}/${ban.lop.length}`);
+
+  // Chọn lớp CÓ chú thích riêng — không phải dòng nào trong file cũng được chú
+  // thích, nên bắt đại lớp đầu tiên là có lúc trúng dòng trống nhãn.
+  const vong = ban.lop.find((l) => l.loai === 'vong' && l.suaDuoc && l.ten !== l.loaiTen)
+    || ban.lop.find((l) => l.loai === 'vong' && l.suaDuoc);
   dat('tìm thấy vòng sáng sửa được', Boolean(vong),
     `"${vong?.ten}" ${JSON.stringify(vong?.box)} · ${vong?.tu}–${vong?.den}s`);
-  dat('nhãn lấy từ chú thích người viết đặt trong file',
-    Boolean(vong?.ten) && vong.ten !== vong.loaiTen, vong?.ten);
+  // Không phải clip nào cũng chú thích mọi dòng — bản marketer chẳng chú thích
+  // vòng nào cả. Nên chỉ đòi: HỄ trong file có chú thích thì phải lôi ra dùng;
+  // không có thì lùi về tên loại là đúng.
+  const coChu = ban.lop.filter((l) => l.ten !== l.loaiTen);
+  const fileCoChu = readFileSync(FILE, 'utf8').split('\n')
+    .some((l) => /box\s*:\s*\[/.test(l) && /\/\*/.test(l));
+  dat(fileCoChu ? 'nhãn lấy từ chú thích trong file' : 'không có chú thích → lùi về tên loại',
+    fileCoChu ? coChu.length > 0 : ban.lop.every((l) => l.ten === l.loaiTen),
+    fileCoChu ? `${coChu.length} lớp có nhãn riêng, vd "${coChu[0]?.ten}"` : 'đúng như mong đợi');
+  dat('mọi lớp đều tra ra ảnh mockup', ban.lop.every((l) => l.anh),
+    `${ban.lop.filter((l) => l.anh).length}/${ban.lop.length}`);
+  // Loại lạ phải TỰ KHOÁ kèm lý do, không âm thầm cho kéo bậy.
+  const khoa = ban.lop.filter((l) => !l.suaDuoc);
+  dat('lớp nào khoá cũng nói rõ lý do', khoa.every((l) => l.viSao),
+    `${khoa.length} lớp khoá`);
 
   /* ---------- 2. ghi rồi trả lại ---------- */
   console.log('\n2. Ghi — và trả lại nguyên trạng');
@@ -94,6 +115,44 @@ try {
   dat('file giống hệt bản đầu từng byte',
     Buffer.compare(readFileSync(FILE), banChup) === 0);
 
+  /* ---------- 2b. mảng phẳng: hai mục một dòng, và có mục 7 ô ---------- */
+  console.log('\n2b. Miếng che khai kiểu mảng phẳng');
+  const phang = ban.lop.find((l) => l.loai === 'xoa' && l.suaDuoc);
+  if (!phang) {
+    console.log('     (clip này không có, bỏ qua)');
+  } else {
+    const cuP = [...phang.box];
+    const k1p = await (await fetch(`${GOC}/api/khung/${SLUG}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kho: phang.kho, chiSo: phang.chiSo,
+        box: cuP.map((n) => n + 3) }),
+    })).json();
+    dat('ghi được vào mảng phẳng', k1p.ok, JSON.stringify(k1p.box || k1p.vanDe));
+
+    const noi = readFileSync(FILE, 'utf8');
+    const dongCu2 = String(banChup).split('\n');
+    const dongMoi2 = noi.split('\n');
+    const khac2 = dongCu2.reduce((n, l, i) => n + (l === dongMoi2[i] ? 0 : 1), 0);
+    dat('chỉ 1 dòng đổi (mục kia cùng dòng không bị đụng)', khac2 === 1, `${khac2} dòng`);
+    dat('bề rộng dòng không đổi — căn lề giữ nguyên',
+      dongCu2.length === dongMoi2.length
+      && dongCu2.every((l, i) => l.length === dongMoi2[i].length));
+
+    // Bản dọc có mục BẢY ô `[sc,x0,y0,x1,y1,null,'#màu']`. Dựng lại đúng năm ô
+    // là nuốt mất cờ và mã màu — miếng che mất màu mà không ai hay.
+    const conDuoi = (noi.match(/\[[^[\]]*'#[0-9a-f]{6}'\]/gi) || []).length;
+    const duoiGoc = (String(banChup).match(/\[[^[\]]*'#[0-9a-f]{6}'\]/gi) || []).length;
+    dat('mục nhiều hơn 5 ô vẫn giữ nguyên phần đuôi (cờ, mã màu)',
+      conDuoi === duoiGoc, `${duoiGoc} → ${conDuoi} mục có mã màu`);
+
+    await fetch(`${GOC}/api/khung/${SLUG}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kho: phang.kho, chiSo: phang.chiSo, box: cuP }),
+    });
+    dat('trả lại xong file giống hệt bản đầu',
+      Buffer.compare(readFileSync(FILE), banChup) === 0);
+  }
+
   /* ---------- 3. chặn số vô lý ---------- */
   console.log('\n3. Chặn số vô lý');
   const xau = await ghi([500, 500, 100, 100]);
@@ -116,7 +175,11 @@ try {
       document.getElementById('the-khung').getAttribute('aria-selected') === 'true'));
 
   const soHang = await trang.evaluate(() => document.querySelectorAll('.khung-hang').length);
-  dat('cột phải liệt kê đủ các khung', soHang === d.lop.length, `${soHang} hàng`);
+  dat('cột phải liệt kê đủ các khung của bản đầu', soHang === ban.lop.length, `${soHang} hàng`);
+  if (d.ban.length > 1) {
+    dat('có nút chọn giữa các bản',
+      await trang.evaluate(() => document.querySelectorAll('.bang-tt:not(.an) .doan-o').length) >= 2);
+  }
 
   // Chọn đúng vòng bị lệch
   await trang.evaluate((ten) => {
@@ -141,8 +204,8 @@ try {
     return { w: a.naturalWidth, h: a.naturalHeight };
   });
   dat('hệ toạ độ trùng khít cỡ ảnh mockup thật',
-    cuAnh.w === d.rong && cuAnh.h === d.cao,
-    `ảnh ${cuAnh.w}×${cuAnh.h} · khai ${d.rong}×${d.cao}`);
+    cuAnh.w === ban.rong && cuAnh.h === ban.cao,
+    `ảnh ${cuAnh.w}×${cuAnh.h} · khai ${ban.rong}×${ban.cao}`);
 
   const so0 = await trang.evaluate(() =>
     [...document.querySelectorAll('.khung-so input')].map((o) => Number(o.value)));
@@ -150,7 +213,7 @@ try {
 
   /* kéo bằng chuột thật */
   const hopBox = await trang.locator('.khung-hop').boundingBox();
-  const tyLe = hopHien.rongAnh / d.rong;
+  const tyLe = hopHien.rongAnh / ban.rong;
   const DX = 40, DY = 24;
   await trang.mouse.move(hopBox.x + hopBox.width / 2, hopBox.y + hopBox.height / 2);
   await trang.mouse.down();

@@ -22,7 +22,8 @@ import { chupBanGoc, lichSu } from './backup.js';
 import { khoiPhuc, luuClip } from './save.js';
 import { docNhap, ghiNhap, xoaNhap } from './drafts.js';
 import { huyViec, khoHopLe, kiemBoCuc, layViec, soDangCho, xuatVideo } from './jobs.js';
-import { docKhung, suaKhung } from './khung.js';
+import { chanDoan, docKhung, suaKhung } from './khung.js';
+import { danhSachVideo } from './videos.js';
 import { docJson, json, khop, loi, moSSE } from './router.js';
 
 const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -130,17 +131,28 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { ...kq, ...docClip(slug) });
     }
 
+    /* ---------- video đã xuất ---------- */
+    if (p === '/api/videos' && req.method === 'GET') {
+      return json(res, 200, { ok: true, videos: await danhSachVideo() });
+    }
+
     /* ---------- khung nhấn trên clip đời cũ ---------- */
     if ((m = khop('/api/khung/:slug', p)) && req.method === 'GET') {
       const d = docKhung(m.slug);
-      if (!d) return loi(res, 404, 'Clip này không có khung nhấn để sửa.');
+      if (!d) {
+        // Nói rõ THIẾU CÁI GÌ, đừng bắt người dùng đi hỏi mới biết.
+        return json(res, 404, { ok: false, loi: 'Clip này chưa chỉnh khung được.',
+          thieu: chanDoan(m.slug), quyUoc: 'docs/QUY-UOC-CLIP.md' });
+      }
       return json(res, 200, { ok: true, ...d });
     }
 
     if ((m = khop('/api/khung/:slug', p)) && req.method === 'POST') {
       const than = await docJson(req);
-      const kq = suaKhung(m.slug, than?.kho === 'XOA' ? 'XOA' : 'LOP',
-        Number(than?.chiSo), than?.box);
+      // KHÔNG ép về 'LOP'/'XOA': từ khi clip có bản ngang và bản dọc, tên mảng
+      // là LOP_N / LOP_D / XOA_N / XOA_D. Ép về tên trơ là ghi nhầm mảng —
+      // hoặc như vừa rồi, không tìm thấy mảng nào cả. suaKhung tự soát tên.
+      const kq = suaKhung(m.slug, String(than?.kho || ''), Number(than?.chiSo), than?.box);
       return json(res, kq.ok ? 200 : 422, kq);
     }
 

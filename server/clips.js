@@ -28,6 +28,14 @@ function timDoiCu() {
       // Chỉ đọc phần đầu file: mấy bản animatic nặng tới 1,3 MB.
       dau = readFileSync(f, 'utf8').slice(0, 4000);
     } catch { continue; }
+    /*
+     * Bỏ file nháp. `zz-probe.html` chỉ 68 byte, thân rỗng — không lọc thì nó
+     * hiện lên trong danh sách chọn clip, người dùng bấm vào rồi ngơ ngác.
+     * Chỉ dùng ngưỡng kích thước: clip thật nhẹ nhất cũng 26 KB. KHÔNG đòi có
+     * `<script>` trong phần đầu — file 1,3 MB thì 4000 ký tự đầu toàn CSS,
+     * đòi vậy là loại nhầm gần hết clip thật (đã mắc một lần).
+     */
+    if (statSync(f).size < 2000) continue;
     const tieuDe = (dau.match(/<title>([^<]*)<\/title>/) || [])[1]?.trim();
     ra.push({ slug: ten.replace(/\.html$/, ''), ten: tieuDe || ten, file: ten });
   }

@@ -20,6 +20,7 @@ import { ganKeo } from './drag.js';
 import { MAU_MON, nhanBanCanh, nhanBanMon, themCanh, themMon, xoaCanh, xoaMon } from './them.js';
 import { taoBangXuat } from './exportpanel.js';
 import { taoKhung } from './khung.js';
+import { taoBangVideo } from './videos.js';
 
 const $ = (id) => document.getElementById(id);
 const chonClip = $('chon-clip'), dangClip = $('dang-clip'), dsCanhEl = $('ds-canh');
@@ -43,6 +44,9 @@ let clips = [], clipDangMo = null, chon = null, dangKeoThanh = false;
 const bangXuat = taoBangXuat($('bang-xuat'), { laySlug: () => kho.slug(), bao: (c, h) => bao(c, h) });
 const bangKhung = taoKhung({
   bocGiua: $('san-khung'), bocBang: $('bang-khung'), bao: (c, h) => bao(c, h),
+});
+const bangVideo = taoBangVideo({
+  bocGiua: $('san-video'), bocBang: $('bang-video'), bao: (c, h) => bao(c, h),
 });
 
 /* ---------- lời nhắc ---------- */
@@ -241,18 +245,21 @@ function veLaiCanh() {
 function doiThe(ten) {
   for (const [t, the, bang] of [['tt', 'the-tt', 'bang-thuoc-tinh'],
                                 ['xuat', 'the-xuat', 'bang-xuat'],
-                                ['khung', 'the-khung', 'bang-khung']]) {
+                                ['khung', 'the-khung', 'bang-khung'],
+                                ['video', 'the-video', 'bang-video']]) {
     $(the).setAttribute('aria-selected', String(t === ten));
     $(bang).classList.toggle('an', t !== ten);
   }
   // Chỉnh khung diễn ra trên ảnh mockup tĩnh, không dính gì tới khung xem clip —
   // nên đổi hẳn vùng giữa, không chồng hai thứ lên nhau.
   $('san-khung').classList.toggle('an', ten !== 'khung');
-  $('san-clip').classList.toggle('an', ten === 'khung');
+  $('san-video').classList.toggle('an', ten !== 'video');
+  $('san-clip').classList.toggle('an', ten === 'khung' || ten === 'video');
 }
 $('the-tt').onclick = () => doiThe('tt');
 $('the-xuat').onclick = () => doiThe('xuat');
 $('the-khung').onclick = () => doiThe('khung');
+$('the-video').onclick = () => { doiThe('video'); if (!bangVideo.coGi()) bangVideo.nap(); };
 
 /* ---------- danh sách clip ---------- */
 async function napDanhSach() {
@@ -301,12 +308,14 @@ async function moClip(slug) {
       '<div class="trong">Clip đời cũ chưa sửa trực tiếp được.</div>';
     // Nhưng khung nhấn thì SỬA ĐƯỢC: toạ độ của chúng là số viết thẳng trong
     // mảng, tính theo pixel ảnh mockup — không phải do code tính lúc chạy.
-    const coKhung = await bangKhung.mo(slug).catch(() => false);
-    $('the-khung').classList.toggle('an', !coKhung);
-    doiThe(coKhung ? 'khung' : 'tt');
-    bao(coKhung
-      ? `Đã mở "${c.ten}". Chỉ xem được, nhưng khung nhấn thì chỉnh được — xem thẻ Khung nhấn.`
-      : `Đã mở "${c.ten}" — chỉ xem.`);
+    // Luôn mở thẻ Khung nhấn cho clip đời cũ: chỉnh được thì cho chỉnh, không
+    // chỉnh được thì bày lý do ra. Ẩn thẻ đi là bắt người dùng đi hỏi.
+    const kq = await bangKhung.mo(slug).catch(() => ({ ok: false, thieu: [] }));
+    $('the-khung').classList.remove('an');
+    doiThe('khung');
+    bao(kq.ok
+      ? `Đã mở "${c.ten}". Chỉ xem được, nhưng khung nhấn thì chỉnh được.`
+      : `Đã mở "${c.ten}" — clip này chưa chỉnh khung được, lý do ở cột bên phải.`);
     trangThai('san-sang');
     return;
   }
