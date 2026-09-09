@@ -41,12 +41,54 @@ function coAnh(duongDan) {
 }
 
 /**
+ * HẰNG SỐ CỦA CHÍNH FILE ĐÓ.
+ *
+ * Mảng dữ liệu trong clip hay tham chiếu hằng số khai phía trên: bản 6-cach có
+ * `const B=7.4` (độ dài một nhịp) rồi viết `b:13.0+B`, bản văn phòng có `V`
+ * (cờ bản dọc). Hộp cát trần là nổ ngay "B is not defined".
+ *
+ * Mồi từng tên một là trò đuổi bắt — mỗi clip mới lại đẻ hằng số mới, mà mỗi
+ * lần thiếu là cả clip biến mất khỏi công cụ. Nên gom luôn MỌI khai báo hằng
+ * đơn giản trong file rồi chạy trước.
+ *
+ * Chỉ nhận khai báo lành: không ngoặc vuông/nhọn, không hàm, không đụng
+ * `document`/`location`/`window`. Cái nào chạy không nổi thì bỏ qua, không để
+ * một dòng lạ làm hỏng cả việc đọc.
+ */
+function hangSo(html) {
+  const ra = [];
+  // Quét theo CẶP NGOẶC CÂN BẰNG, không theo dòng: bản 6-cach khai
+  // `const N={…}` trải nhiều dòng, lọc theo dòng là bỏ sót rồi mảng LOP dùng
+  // `N` sẽ nổ, và cả clip biến mất khỏi công cụ.
+  for (const m of html.matchAll(/^const\s+([A-Za-z_$][\w$]*)\s*=/gm)) {
+    let i = m.index + m[0].length;
+    let sau = 0, trongChuoi = null, xong = -1;
+    while (i < html.length) {
+      const c = html[i];
+      if (trongChuoi) {
+        if (c === '\\') i++;
+        else if (c === trongChuoi) trongChuoi = null;
+      } else if (c === '"' || c === "'" || c === '`') trongChuoi = c;
+      else if ('[{('.includes(c)) sau++;
+      else if (']})'.includes(c)) sau--;
+      else if (c === ';' && sau === 0) { xong = i; break; }
+      else if (c === '\n' && sau === 0 && /^\s*(const|let|var|function|\/\*)/.test(html.slice(i + 1, i + 12))) break;
+      i++;
+    }
+    if (xong < 0) continue;
+    const than = html.slice(m.index, xong + 1);
+    // Đụng tới trình duyệt thì chạy trong hộp cát không nổi — bỏ luôn cho nhanh.
+    if (/=>|\bfunction\b|document|location|window|require|await/.test(than)) continue;
+    ra.push(than.replace(/^const/, 'var'));
+  }
+  return ra;
+}
+
+/**
  * Bắt một mảng khai bằng `const TEN=[...]` rồi chạy trong hộp cát.
  *
- * `moi` là biến mồi. Cần vì `SC[]` trong bản văn phòng có dùng `V` — cờ phân
- * biệt bản dọc/ngang — nên chạy trong hộp cát trần là nổ "V is not defined",
- * và bộ đọc cũ nuốt lỗi rồi trả về null, khiến mọi lớp mất ảnh mockup mà chẳng
- * báo gì. Nuốt lỗi ở đây là sai; giờ trả kèm lý do.
+ * `moi` là biến mồi, đặt TRƯỚC hằng số của file — dùng để ép `V` theo từng bản
+ * (dọc/ngang), vì trong file `V` suy từ `location.search` nên không nạp được.
  */
 function batMang(html, ten, moi = {}) {
   const m = html.match(new RegExp(`const ${ten}\\s*=\\s*\\[[\\s\\S]*?\\];`));
@@ -54,6 +96,12 @@ function batMang(html, ten, moi = {}) {
   try {
     const s = { ...moi };
     vm.createContext(s);
+    // Hằng số của file chạy trước, nhưng KHÔNG đè biến mồi.
+    for (const d of hangSo(html)) {
+      const ten2 = d.match(/^var\s+([A-Za-z_$][\w$]*)/)?.[1];
+      if (!ten2 || ten2 in moi || ten2 === ten) continue;
+      try { vm.runInContext(d, s); } catch { /* khai lạ thì bỏ, đừng hỏng cả */ }
+    }
     vm.runInContext(`${m[0].replace(`const ${ten}`, `var ${ten}`)}\nthis.__r = ${ten};`, s);
     return { giaTri: s.__r, khoi: m[0], viTri: m.index };
   } catch (e) {
@@ -73,7 +121,10 @@ function bienThe(html) {
   for (const m of html.matchAll(/const (LOP(_[A-Z0-9]+)?)\s*=\s*\[/g)) {
     const hau = m[2] || '';
     const lop = batMang(html, m[1]);
-    if (!lop) continue;
+    // Đọc không ra thì BỎ QUA HẲN. Trước đây vẫn đẩy vào rồi lát sau
+    // `.forEach` trên null làm văng cả đường dẫn — clip biến mất kèm một câu
+    // lỗi JavaScript trần trụi thay vì lời giải thích.
+    if (!lop || !Array.isArray(lop.giaTri)) continue;
     const mk = chuoi(html, `MK${hau}`) ?? chuoi(html, 'MK');
     const anh = batMang(html, `ANH${hau}`) ?? batMang(html, 'ANH');
     ra.push({
@@ -166,27 +217,40 @@ export function chanDoan(slug) {
   const html = readFileSync(f, 'utf8');
   const thieu = [];
 
-  const coMang = /const LOP[A-Z0-9_]*\s*=\s*\[/.test(html);
-  if (!coMang) {
-    const tenKhac = [...html.matchAll(/const ([A-Z][A-Z0-9_]{2,})\s*=\s*\[/g)]
-      .map((m) => m[1]).filter((t) => /VONG|KHUNG|HIGH|BOX/.test(t));
-    thieu.push(tenKhac.length
-      ? `Mảng khung đang đặt tên "${tenKhac[0]}" — quy ước là LOP (miếng che là XOA).`
-      : 'Không có mảng LOP nào — clip này không khai khung nhấn thành dữ liệu.');
+  /*
+   * ĐIỀU KIỆN GỐC là có ảnh storyboard. Không có ảnh thì không có gì để bày ra
+   * cho người dùng kéo khung lên trên — mọi quy ước còn lại thành vô nghĩa.
+   * Nên nói cái này TRƯỚC, và nói cho rõ.
+   */
+  const coAnh = /const MK[A-Z0-9_]*\s*=\s*'/.test(html)
+    && /const ANH[A-Z0-9_]*\s*=\s*\[/.test(html);
+  if (!coAnh) {
+    thieu.push('Clip này không dựng trên ảnh storyboard (thiếu MK và ANH) — '
+      + 'không có tấm ảnh nào để bày ra cho kéo khung lên trên. Đây là điều kiện gốc.');
   }
 
-  if (!/const MK[A-Z0-9_]*\s*=\s*'/.test(html) || !/const ANH[A-Z0-9_]*\s*=\s*\[/.test(html)) {
-    thieu.push('Không có ảnh storyboard (thiếu MK và ANH) — không có gì để kéo khung lên trên.');
-  }
-
-  if (coMang) {
+  const coLOP = /const LOP[A-Z0-9_]*\s*=\s*\[/.test(html);
+  if (coLOP) {
     const bt = bienThe(html);
     if (!bt.length) thieu.push('Có mảng LOP nhưng đọc không ra — cú pháp lạ.');
     else if (!bt.some((b) => b.lop.giaTri?.some((l) => Array.isArray(l?.box)))) {
       thieu.push('Các mục trong LOP không có trường `box` — quy ước là '
         + '{sc, box:[trái,trên,phải,dưới], …}, không phải mảng vị trí.');
     }
+  } else if (coAnh) {
+    /*
+     * Chỉ gợi ý đổi tên khi clip CÓ ảnh mà lại đặt mảng tên khác. Nếu không có
+     * ảnh thì mảng kia gần như chắc chắn làm việc khác — bản tao-database có
+     * `KHUNG=[[từ,tới,hệ-số,tâm-x,tâm-y]]` là KHUNG NGẮM của máy quay, khuyên
+     * đổi tên thành LOP là khuyên họ làm hỏng clip. Đã suýt khuyên sai một lần.
+     */
+    const khac = [...html.matchAll(/const ([A-Z][A-Z0-9_]{2,})\s*=\s*\[/g)]
+      .map((m) => m[1]).filter((t) => /VONG|KHUNG|BOX|HIGH/.test(t));
+    thieu.push(khac.length
+      ? `Mảng khung đang đặt tên "${khac[0]}" — quy ước là LOP (miếng che là XOA).`
+      : 'Không có mảng LOP nào — clip này không khai khung nhấn thành dữ liệu.');
   }
+
   return thieu.length ? thieu : null;
 }
 

@@ -63,8 +63,25 @@ export function taoKhung({ bocGiua, bocBang, bao }) {
     hop.style.display = 'block';
     hop.style.left = `${box[0] * t}px`;
     hop.style.top = `${box[1] * t}px`;
-    hop.style.width = `${(box[2] - box[0]) * t}px`;
-    hop.style.height = `${(box[3] - box[1]) * t}px`;
+    const wPx = (box[2] - box[0]) * t;
+    const hPx = (box[3] - box[1]) * t;
+    hop.style.width = `${wPx}px`;
+    hop.style.height = `${hPx}px`;
+
+    /*
+     * HỘP NHỎ THÌ GIẤU BỚT TAY NẮM.
+     *
+     * Tay nắm to 13px, đặt lệch ra -7px. Với hộp mỏng — như mấy miếng hé chữ
+     * trong bản CEO, chỉ 90×18px trên màn hình — chúng phủ kín cả hộp, nên bấm
+     * vào giữa là trúng tay nắm cạnh dưới và kéo thành CO GIÃN thay vì dời chỗ.
+     * Người dùng tưởng kéo hỏng, thật ra kéo trúng thứ khác.
+     *
+     * Giấu tay nắm giữa khi hộp mỏng, giấu hết khi hộp bé cả hai chiều — lúc đó
+     * vẫn dời được bằng chuột, và co giãn thì gõ số.
+     */
+    hop.classList.toggle('mong-ngang', hPx < 34);
+    hop.classList.toggle('mong-doc', wPx < 34);
+    hop.classList.toggle('be-ti', wPx < 30 && hPx < 30);
     veSo();
     const l = banNay()?.lop[dangChon];
     const doi = goc && String(box) !== String(goc);

@@ -389,6 +389,30 @@ body {
 .video-nhan { margin: 0; font-size: 12px; color: var(--chu-mo); text-align: center; }
 
 .video-ds { padding: 0 6px 20px; }
+/* Đầu mỗi bộ dự án — bấm để gập lại. Dính lên trên khi cuộn: danh sách dài hơn
+   một màn, không dính thì cuộn tới giữa là không còn biết đang ở bộ nào. */
+.video-bo {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  position: sticky; top: 0; z-index: 2;
+  margin: 14px 0 2px; padding: 8px; border: 0; border-radius: 8px;
+  background: var(--nen-2); color: var(--chu); font: inherit;
+  cursor: pointer; text-align: left;
+}
+.video-bo:first-child { margin-top: 4px; }
+.video-bo:hover { background: var(--nen-3); }
+.video-bo b { font-size: 13px; }
+.video-bo-cot { flex: 1; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.video-bo-mo { font-size: 11px; color: var(--chu-mo);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.video-mui { flex: none; width: 10px; height: 10px; color: var(--chu-mo); }
+.video-mui svg { width: 10px; height: 10px; display: block;
+  fill: none; stroke: currentColor; stroke-width: 1.7;
+  stroke-linecap: round; stroke-linejoin: round;
+  transition: transform .12s; }
+.video-bo:not(.gap) .video-mui svg { transform: rotate(90deg); }
+/* Cột phải chỉ rộng ~150px: không chặn thì "07/09 21:55 · 85s · 48.1 MB" tụt
+   xuống hàng hai và mỗi video cao gấp rưỡi. */
+.video-phu { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .video-hang {
   display: flex; align-items: center; gap: 8px; width: 100%;
   background: none; border: 0; color: var(--chu); font: inherit;
@@ -416,3 +440,14 @@ body {
 .ly-do h4 { margin: 0 0 10px; color: var(--chu); font-size: 15px; }
 .ly-do ul { margin: 0 0 12px; padding-left: 20px; line-height: 1.7; }
 .ly-do li { margin-bottom: 5px; }
+
+/* Hộp mỏng: giấu tay nắm giữa, không thì chúng phủ kín chỗ để nắm mà dời. */
+.khung-hop.mong-ngang .khung-tay[data-tay="tg"],
+.khung-hop.mong-ngang .khung-tay[data-tay="dg"],
+.khung-hop.mong-doc  .khung-tay[data-tay="gt"],
+.khung-hop.mong-doc  .khung-tay[data-tay="gp"] { display: none; }
+/* Bé cả hai chiều thì giấu hết — dời bằng chuột, co giãn thì gõ số. */
+.khung-hop.be-ti .khung-tay { display: none; }
+.khung-hop.mong-ngang .khung-tay, .khung-hop.mong-doc .khung-tay {
+  width: 10px; height: 10px; border-width: 1.5px;
+}

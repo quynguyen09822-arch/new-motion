@@ -12,7 +12,10 @@ import { execFile } from 'node:child_process';
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { promisify } from 'node:util';
+import { BO, phanLoai } from './bo-video.js';
 import { OUT } from './proj.js';
+
+export { BO };
 
 const chay = promisify(execFile);
 const nho = new Map();
@@ -53,7 +56,8 @@ function boc(ten) {
     const goc = khong
       .replace(/-\d{3,4}x\d{3,4}/, '')
       .replace(/-(vo|sfx|music|high|max|medium|low)(?=-|$)/g, '');
-    return { goc, khoTen: khoKhop ? `${khoKhop[1]}×${khoKhop[2]}` : null, ...co };
+    return { goc, khoTen: khoKhop ? `${khoKhop[1]}×${khoKhop[2]}` : null, ...co,
+      ...phanLoai(goc, khong) };
 }
 
 export async function danhSachVideo() {
@@ -77,6 +81,20 @@ export async function danhSachVideo() {
     }));
     ra.push(...lo);
   }
-  ra.sort((a, b) => b.suaLuc - a.suaLuc);
+  /*
+   * Xếp: bộ dự án → chủ đề mới nhất trước → trong chủ đề thì bản mới nhất trước.
+   * Ngày của một CHỦ ĐỀ là ngày của file mới nhất trong nó — nếu không thì "Tạo
+   * database" dựng hôm qua bị bản thân 1920×1080 cũ kéo tụt xuống dưới.
+   */
+  const thuTuBo = new Map(BO.map((b, i) => [b.ma, i]));
+  const moiNhat = new Map();
+  for (const v of ra) {
+    moiNhat.set(v.chuDe, Math.max(moiNhat.get(v.chuDe) ?? 0, v.suaLuc));
+  }
+  ra.sort((a, b) =>
+    (thuTuBo.get(a.bo) ?? 99) - (thuTuBo.get(b.bo) ?? 99)
+    || moiNhat.get(b.chuDe) - moiNhat.get(a.chuDe)
+    || a.chuDe.localeCompare(b.chuDe)
+    || b.suaLuc - a.suaLuc);
   return ra;
 }

@@ -23,7 +23,7 @@ import { khoiPhuc, luuClip } from './save.js';
 import { docNhap, ghiNhap, xoaNhap } from './drafts.js';
 import { huyViec, khoHopLe, kiemBoCuc, layViec, soDangCho, xuatVideo } from './jobs.js';
 import { chanDoan, docKhung, suaKhung } from './khung.js';
-import { danhSachVideo } from './videos.js';
+import { BO, danhSachVideo } from './videos.js';
 import { docJson, json, khop, loi, moSSE } from './router.js';
 
 const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -133,7 +133,7 @@ const server = http.createServer(async (req, res) => {
 
     /* ---------- video đã xuất ---------- */
     if (p === '/api/videos' && req.method === 'GET') {
-      return json(res, 200, { ok: true, videos: await danhSachVideo() });
+      return json(res, 200, { ok: true, bo: BO, videos: await danhSachVideo() });
     }
 
     /* ---------- khung nhấn trên clip đời cũ ---------- */
