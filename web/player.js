@@ -10,7 +10,15 @@
  *   mỗi lần gõ một chữ lại bị quăng về giây 0 thì không dùng được. Nên `nap()`
  *   ở đây LUÔN nhớ giây hiện tại rồi tua lại.
  *
- * BẪY 2 — phép quy đổi pixel màn hình ↔ toạ độ sân khấu.
+ * BẪY 2 — `seek()` KHÔNG dừng phim.
+ *   Trong `scene-player.html`, `DUNG` chỉ bật lên ở đúng hai chỗ: lúc khai báo,
+ *   và khi phim chạy hết (`if (t >= DUR) DUNG = true`). `seek` chỉ vẽ lại MỘT
+ *   khung hình rồi vòng lặp chạy tiếp ngay nhịp sau. File này từng dừng phim
+ *   bằng `seek(at())` và ghi chú rằng làm vậy là dừng — không đúng: nhãn nút đổi
+ *   thành "Chạy" mà phim vẫn trôi. Nay bộ dựng có `pause()` thật, xem
+ *   `docs/DUNG-CHAY.md`.
+ *
+ * BẪY 3 — phép quy đổi pixel màn hình ↔ toạ độ sân khấu.
  *   Giữa hai thứ đó có ĐÚNG HAI tầng phóng to: `#stage` (co cho vừa khung) và
  *   `#cam` (máy quay). KHÔNG phải transform của chính món đang kéo — transform
  *   của nó còn chứa `measureFit()`, hiệu ứng bay vào, và nhịp đập, tất cả đều
@@ -22,16 +30,55 @@ const CHO_TOI_DA = 15000; // scene-player fetch JSON không đồng bộ, phải
 export function taoPlayer(iframe) {
   let win = null;
   let clip = null;
-  let dangChay = false;
+  /*
+   * Cờ dự phòng, CHỈ dùng khi bộ dựng không có `paused` (bản cũ, hoặc file đã bị
+   * ai đó thay mất). Nguồn sự thật là `clip.paused` — tự giữ một lá cờ riêng thì
+   * nó lệch ngay lần đầu phim tự chạy hết: bộ dựng đứng lại mà cờ vẫn báo đang
+   * chạy, nút kẹt ở nhãn "Dừng".
+   */
+  let coDuDoan = false;
+  let giuTai = null;       // vòng giữ chỗ, chỉ dùng khi thiếu `pause()`
+  let giuGiay = 0;         // giây mà vòng giữ đang ghim — biến SỐNG, không chụp cứng
   const nghe = new Set();
+
+  /** Bộ dựng đang chạy hay đang đứng. */
+  function dangChayThat() {
+    if (!clip) return false;
+    return typeof clip.paused === 'boolean' ? !clip.paused : coDuDoan;
+  }
+
+  const oCuoi = () => Boolean(clip) && clip.at() >= clip.duration - 1e-3;
+
+  /** Tắt vòng giữ chỗ của đường lùi. Gọi trước mọi thao tác đổi thời gian. */
+  function thoiGiu() {
+    if (giuTai != null) { cancelAnimationFrame(giuTai); giuTai = null; }
+  }
 
   function baoTick() {
     for (const f of nghe) f();
   }
 
-  /* Đồng hồ của trang cha, chỉ để cập nhật thanh thời gian — không lái gì cả. */
+  /*
+   * Đồng hồ của trang cha, chỉ để cập nhật thanh thời gian — không lái gì cả.
+   *
+   * Vẫn phải báo thêm MỘT nhịp sau khi phim đứng lại, nếu không: phim chạy hết,
+   * bộ dựng tự đặt `DUNG = true`, nhưng trang cha đã thôi báo nên nút vẫn đứng
+   * nguyên nhãn "❚❚ Dừng" và đồng hồ đóng băng.
+   */
+  /*
+   * HỆ SỐ PHÓNG CỦA TRANG CHA (nút Ctrl + lăn chuột). Mặc định 1.
+   *
+   * Nó KHÔNG nằm trong iframe nên `hesoPhong()` không thấy — mà mọi phép quy đổi
+   * chuột đều phải tính nó, nếu không: phóng to 2 lần rồi bấm là trúng chỗ cách
+   * đó gấp đôi, kéo một phân thì món nhảy hai phân.
+   */
+  let layPhongCha = () => 1;
+
+  let chayNhipTruoc = false;
   function vongLap() {
-    if (clip && dangChay) baoTick();
+    const chay = dangChayThat();
+    if (clip && (chay || chayNhipTruoc)) baoTick();
+    chayNhipTruoc = chay;
     requestAnimationFrame(vongLap);
   }
   requestAnimationFrame(vongLap);
@@ -52,6 +99,7 @@ export function taoPlayer(iframe) {
      * vì `export-video.mjs` tự thêm `export=1` khi nó lái trang.
      */
     async mo(duongDan, doiClip = 2) {
+      thoiGiu();
       clip = null;
       win = null;
       await new Promise((xong, hong) => {
@@ -62,7 +110,7 @@ export function taoPlayer(iframe) {
       win = iframe.contentWindow;
 
       if (doiClip !== 2) {
-        dangChay = true; // trang đời cũ tự chạy lấy
+        coDuDoan = true; // trang đời cũ tự chạy lấy
         baoTick();
         return null;
       }
@@ -74,7 +122,7 @@ export function taoPlayer(iframe) {
       }
       clip = win.__clip;
       await clip.ready();
-      dangChay = false;
+      coDuDoan = false;
       baoTick();
       return clip;
     },
@@ -89,36 +137,76 @@ export function taoPlayer(iframe) {
      */
     nap(doc) {
       if (!clip) return;
+      const dangDung = !dangChayThat();
       const giuGiay = clip.at();
       clip.load(doc);
       // load() vừa render(0) — tua lại chỗ cũ, kẹp trong thời lượng mới vì
       // sửa kịch bản có thể làm clip ngắn đi.
       clip.seek(Math.min(giuGiay, Math.max(0, clip.duration - 0.001)));
+      // `load()` gọi `render(0)` chứ không đụng tới `DUNG`, nên đang dừng mà sửa
+      // kịch bản thì vẫn đang dừng — trừ khi trước đó ta dừng bằng đường lùi,
+      // lúc ấy phải bật lại vòng giữ vì `nap` vừa cắt nó.
+      if (dangDung && typeof clip.pause === 'function') clip.pause();
+      else if (giuTai != null) giuGiay = clip.at();   // đường lùi: ghim lại chỗ mới
       baoTick();
     },
 
     tua(giay) {
       if (!clip) return;
-      clip.seek(Math.max(0, Math.min(giay, clip.duration)));
+      const moi = Math.max(0, Math.min(giay, clip.duration));
+      // Đang dừng bằng đường lùi thì DỜI chỗ ghim chứ đừng tắt vòng giữ — tắt là
+      // hoá ra đang chạy trở lại; còn không dời thì vòng giữ lôi ngược về chỗ cũ
+      // và thanh tua nhảy lại như bị ma làm.
+      giuGiay = moi;
+      clip.seek(moi);
       baoTick();
     },
 
+    /**
+     * Chạy. Đang đứng ở CUỐI phim thì quay về đầu rồi mới chạy.
+     *
+     * Không có bước quay về đầu ấy thì nút kẹt cứng: bộ dựng đặt `DUNG = true`
+     * khi `t >= DUR`, nên `play()` vừa bật `DUNG = false` là nhịp sau nó bật lại
+     * ngay. Người dùng bấm Chạy mà không có gì nhúc nhích, không hiểu vì sao.
+     */
     chay() {
       if (!clip) return;
+      thoiGiu();
+      if (oCuoi()) clip.seek(0);
       clip.play();
-      dangChay = true;
+      coDuDoan = true;
       baoTick();
     },
 
-    /** Dừng bằng cách tua tại chỗ — `seek` đặt `DUNG = true` trong bộ dựng. */
+    /** Dừng tại chỗ. */
     dung() {
       if (!clip) return;
-      clip.seek(clip.at());
-      dangChay = false;
+      coDuDoan = false;
+      if (typeof clip.pause === 'function') {
+        clip.pause();
+      } else {
+        /*
+         * ĐƯỜNG LÙI cho bộ dựng thiếu `pause()` — `scene-player.html` là file của
+         * dự án chung, có người sửa hằng ngày, và `docs/DUNG-CHAY.md` ghi rõ đoạn
+         * thêm vào đó có thể biến mất khi ai đó thay cả file.
+         *
+         * Giữ chỗ bằng cách mỗi nhịp tua lại đúng giây đang đứng. Phim vẫn nhích
+         * trong lòng một khung hình rồi bị kéo về, nên hơi rung — nhưng đứng gần
+         * đúng chỗ vẫn hơn là chạy tiếp trong khi nút ghi "Chạy".
+         */
+        thoiGiu();
+        giuGiay = clip.at();
+        const giu = () => {
+          if (!clip) return;
+          clip.seek(giuGiay);
+          giuTai = requestAnimationFrame(giu);
+        };
+        giu();
+      }
       baoTick();
     },
 
-    dangChay: () => dangChay,
+    dangChay: dangChayThat,
     giay: () => (clip ? clip.at() : 0),
     thoiLuong: () => (clip ? clip.duration : 0),
     dsCanh: () => (clip ? clip.scenes() : []),
@@ -162,7 +250,9 @@ export function taoPlayer(iframe) {
           return 1;
         }
       };
-      return doc(d.querySelector('#stage')) * doc(d.querySelector('#cam'));
+      // Nhân cả phóng của trang cha: `dx` mà `drag.js` đo được là pixel MÀN HÌNH,
+      // đã đi qua cả hai tầng phóng trong iframe LẪN tầng phóng của trang cha.
+      return doc(d.querySelector('#stage')) * doc(d.querySelector('#cam')) * (layPhongCha() || 1);
     },
 
     /** Khung của iframe trên màn hình — để lớp phủ ở trang cha vẽ đúng chỗ. */
@@ -180,7 +270,32 @@ export function taoPlayer(iframe) {
      */
     quyDoi(clientX, clientY) {
       const r = iframe.getBoundingClientRect();
-      return { x: clientX - r.left, y: clientY - r.top };
+      // Chia cho hệ số phóng của trang cha: `r` đã là khung ĐÃ PHÓNG, còn
+      // `elementFromPoint` bên trong iframe thì tính bằng pixel CHƯA phóng.
+      const z = layPhongCha() || 1;
+      return { x: (clientX - r.left) / z, y: (clientY - r.top) / z };
+    },
+
+    /** Trang cha khai hệ số phóng của nó vào đây. Xem `web/zoom.js`. */
+    datPhongCha(f) { layPhongCha = typeof f === 'function' ? f : () => 1; },
+
+    /**
+     * Nghe lăn chuột NGAY TRONG tài liệu của iframe.
+     *
+     * Sự kiện chuột không vượt qua ranh giới iframe, nên trang cha không thấy cú
+     * lăn nào xảy ra bên trong. Với clip đời 2 thì lớp bắt phủ kín nên không sao;
+     * clip đời cũ thì lớp bắt bị ẩn, và nếu không có hàm này thì Ctrl+lăn ngay
+     * trên khung hình không ăn — chỉ ăn ở viền ngoài, một tính năng nửa vời.
+     *
+     * Đây là GẮN NGHE, không phải ghi vào DOM: không thêm bớt thẻ nào, không đổi
+     * kiểu dáng gì, nên trang đem đi quay phim vẫn sạch. Mà bộ xuất cũng mở trang
+     * bằng trình duyệt riêng của nó, không dính gì tới trình sửa.
+     */
+    ngheLan(f) {
+      const d = win?.document;
+      if (!d) return () => {};
+      d.addEventListener('wheel', f, { passive: false });
+      return () => d.removeEventListener('wheel', f);
     },
 
     khiDoi(f) {

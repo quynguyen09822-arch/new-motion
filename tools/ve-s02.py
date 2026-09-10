@@ -25,7 +25,7 @@ import sys
 W, H = 1280, 720
 GOC = pathlib.Path('/home/coder/workspace/projects/clipVibehost/hosting-animatic-production')
 OUT = GOC / 'scenes' / 'thu-ve-lai-s02.json'
-KIEM = pathlib.Path(__file__).parent / 'kiem-s02.json'
+KIEM = pathlib.Path(__file__).parent / 'kiem-thu-ve-lai-s02.json'
 
 # ══ MÀU — đọc từ chính tấm storyboard ═══════════════════════════════════════
 NEN     = '#f3f5f8'
@@ -398,9 +398,14 @@ doc = {
 }
 OUT.write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding='utf-8')
 
-# Bản kê cho `kiem-s02.mjs` đo lại bằng trình duyệt thật.
-KIEM.write_text(json.dumps({'w': W, 'h': H, 'trong': trong_cs}, ensure_ascii=False,
-                           indent=2), encoding='utf-8')
+# Bản kê cho `kiem-canh.mjs` đo lại bằng trình duyệt thật. `moc` là giây nên
+# chốt để đo: cuối cảnh, lúc mọi chuyển động đã dừng.
+KIEM.write_text(json.dumps({
+    'slug': OUT.stem, 'w': W, 'h': H,
+    'canh': [{'id': c['id'], 'moc': round(sum(x['duration'] for x in doc['scenes'][:i + 1]) - 0.15, 2)}
+             for i, c in enumerate(doc['scenes'])],
+    'trong': trong_cs,
+}, ensure_ascii=False, indent=2), encoding='utf-8')
 
 print(f'✓ {OUT.name}: {len(els)} thành phần, {doc["scenes"][0]["duration"]}s')
 print(f'  cột trái xuống tới {round(DAY_TRAI)}, cột phải {round(DAY_PHAI)}, '

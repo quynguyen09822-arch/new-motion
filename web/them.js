@@ -20,6 +20,9 @@ export const MAU_MON = [
   { kind: 'card',     ten: 'Thẻ',          mau: { title: 'Tiêu đề thẻ', rows: 3, w: 420 } },
   { kind: 'table',    ten: 'Bảng',         mau: { columns: ['Cột 1', 'Cột 2'], rows: 4, w: 520 } },
   { kind: 'browser',  ten: 'Trình duyệt',  mau: { url: 'ten-cua-ban.tinhgon.xyz', w: 560, h: 340 } },
+  /* Mặc định là NỀN ĐỘNG: kín khung, mờ sẵn, tối sẵn, lặp — thả vào là dùng
+     được ngay cho việc hay làm nhất, khỏi phải vặn năm núm mới ra hình. */
+  { kind: 'video',    ten: 'Video',        mau: { src: '', fit: 'cover', blur: 8, dim: 0.25, loop: true, place: 'day' } },
   { kind: 'group',    ten: 'Cụm',          mau: { dir: 'doc', align: 'giua', justify: 'giua', gap: 4, children: [] } },
 ];
 
@@ -41,7 +44,9 @@ export function themMon(doc, canhId, kind, chaId = null) {
 
   // Món ngoài cùng thì cho vào giữa khung cho dễ thấy; món trong cụm thì để
   // flex lo, đặt `place` vào là thừa.
-  if (!chaId) el.place = 'giua';
+  // Mẫu nào tự khai `place` rồi thì tôn trọng — video mặc định phủ KÍN KHUNG vì
+  // việc hay làm nhất với nó là làm nền động.
+  if (!chaId && !el.place) el.place = 'giua';
 
   const cha = chaId ? timMon(doc, canhId, chaId)?.el : null;
   if (cha && cha.kind === 'group') (cha.children ||= []).push(el);

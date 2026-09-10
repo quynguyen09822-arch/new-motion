@@ -176,6 +176,119 @@ export function taoNum(num, giaTri, doi, cuChi) {
       dieuKhien.append(o, xem);
       break;
     }
+    /*
+     * CHỌN VIDEO — khác hẳn chọn ảnh, vì một file video TRÔNG THÌ ỔN mà vẫn có
+     * thể không phát được: `BG.mp4` của dự án là HEVC, Chromium không giải mã.
+     * Thả nó vào clip thì ra một ô đen, không lỗi, không báo gì. Nên ở đây phải
+     * nói thẳng file nào dùng được, và mời chuyển đổi ngay tại chỗ.
+     */
+    case 'video': {
+      dieuKhien = el('div', 'num-video');
+      const chon = el('select', 'o-nhap');
+      const tinh = el('p', 'num-goi');
+      const nutChuyen = el('button', 'nut nho rong', 'Chuyển sang định dạng xem được');
+      nutChuyen.type = 'button';
+      nutChuyen.style.display = 'none';
+      const xem = el('video', 'video-xem-truoc');
+      xem.muted = true; xem.loop = true; xem.playsInline = true; xem.controls = false;
+      xem.style.display = 'none';
+
+      let kho = [];
+
+      const veTinh = () => {
+        const v = kho.find((x) => x.duongDan === chon.value);
+        nutChuyen.style.display = 'none';
+        xem.style.display = 'none';
+        if (!chon.value) { tinh.textContent = 'Chưa chọn file nào.'; return; }
+        if (!v) { tinh.textContent = 'File này không nằm trong thư mục video của dự án.'; return; }
+        if (v.chayDuoc) {
+          tinh.textContent = `${v.codec.toUpperCase()} · ${v.rong}×${v.cao}`
+            + (v.giay ? ` · ${v.giay.toFixed(1)} giây` : '');
+          xem.src = `/clip/${v.duongDan}`;
+          xem.style.display = 'block';
+          xem.play().catch(() => {});
+          return;
+        }
+        tinh.innerHTML = '';
+        tinh.append(`Định dạng ${String(v.codec).toUpperCase()} — trình duyệt không mở được, `
+          + 'đặt vào clip sẽ ra một ô đen.');
+        nutChuyen.style.display = '';
+        nutChuyen.disabled = false;
+        nutChuyen.textContent = v.banChuyen
+          ? 'Dùng bản đã chuyển sẵn' : 'Chuyển sang định dạng xem được';
+        nutChuyen.onclick = v.banChuyen
+          ? () => { chon.value = v.banChuyen; dat(v.banChuyen); napKho(v.banChuyen); }
+          : () => chuyen(v);
+      };
+
+      const veChon = (dangChon) => {
+        chon.innerHTML = '';
+        const trong = el('option', null, '— chưa chọn —');
+        trong.value = '';
+        chon.appendChild(trong);
+        for (const v of kho) {
+          const o = el('option', null, v.chayDuoc ? v.ten : `${v.ten}  (không mở được)`);
+          o.value = v.duongDan;
+          chon.appendChild(o);
+        }
+        // Giá trị đang lưu mà không còn trong thư mục thì vẫn phải hiện ra, không
+        // thì mở clip cũ lên là núm tự nhảy về rỗng và người dùng mất dữ liệu.
+        if (dangChon && !kho.some((v) => v.duongDan === dangChon)) {
+          const o = el('option', null, `${dangChon} (không thấy file)`);
+          o.value = dangChon;
+          chon.appendChild(o);
+        }
+        chon.value = dangChon || '';
+      };
+
+      async function napKho(dangChon) {
+        try {
+          const d = await (await fetch('/api/nguon-video')).json();
+          kho = d.ok ? d.video : [];
+        } catch { kho = []; }
+        veChon(dangChon ?? chon.value ?? giaTri ?? '');
+        veTinh();
+      }
+
+      async function chuyen(v) {
+        nutChuyen.disabled = true;
+        nutChuyen.textContent = 'Đang chuyển…';
+        tinh.textContent = 'Việc này chạy một lần cho mỗi file, xong là dùng mãi.';
+        try {
+          const d = await (await fetch('/api/chuyen-video', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ten: v.ten }),
+          })).json();
+          if (!d.ok) throw new Error(d.loi || 'Không chuyển được.');
+          const nguon = new EventSource(`/api/job/${d.id}/stream`);
+          nguon.onmessage = async (ev) => {
+            const g = JSON.parse(ev.data);
+            if (g.trangThai === 'chay') {
+              nutChuyen.textContent = `Đang chuyển… ${g.phanTram || 0}%`;
+            } else if (g.trangThai === 'xong') {
+              nguon.close();
+              chon.value = d.ra;
+              dat(d.ra);            // trỏ clip sang bản vừa chuyển
+              await napKho(d.ra);
+            } else if (g.trangThai === 'loi' || g.trangThai === 'huy') {
+              nguon.close();
+              nutChuyen.disabled = false;
+              nutChuyen.textContent = 'Chuyển lại';
+              tinh.textContent = `Chuyển hỏng — ${g.loi || 'đã dừng'}`;
+            }
+          };
+        } catch (e) {
+          nutChuyen.disabled = false;
+          nutChuyen.textContent = 'Chuyển lại';
+          tinh.textContent = e.message;
+        }
+      }
+
+      chon.onchange = () => { dat(chon.value); veTinh(); };
+      dieuKhien.append(chon, tinh, nutChuyen, xem);
+      napKho(giaTri ?? '');
+      break;
+    }
     default:
       dieuKhien = el('div', 'num-la', String(giaTri ?? ''));
   }

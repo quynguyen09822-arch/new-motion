@@ -14,6 +14,7 @@
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { TOOLS } from './proj.js';
+import { thamSoChuyen } from './nguonvideo.js';
 
 const viec = new Map();   // id → bản ghi
 let dem = 0;
@@ -22,15 +23,16 @@ let dangChay = null;
 
 const CHANG = {
   'khoi-dong': 'Đang mở trình duyệt',
+  chuyen: 'Đang chuyển sang định dạng trình duyệt xem được',
   'dung-hinh': 'Đang dựng từng khung hình',
   'ghep': 'Đang ghép bằng ffmpeg',
   'xong': 'Xong',
 };
 
-function taoViec(loai, ten, args, { doanGiay = 0 } = {}) {
+function taoViec(loai, ten, args, { doanGiay = 0, lenh = 'node' } = {}) {
   const id = `v${++dem}`;
   const v = {
-    id, loai, ten, args,
+    id, loai, ten, args, lenh,
     trangThai: 'cho',        // cho | chay | xong | loi | huy
     chang: 'khoi-dong',
     phanTram: 0,
@@ -64,7 +66,9 @@ function chayTiep() {
 
   // cwd BẮT BUỘC là tools/: mọi script trong đó tự dò gốc dự án bằng
   // `path.resolve('..')`, chạy từ chỗ khác là chúng ghi ra sai thư mục.
-  const con = spawn('node', v.args, { cwd: TOOLS, env: process.env });
+  // (Việc chuyển video gọi thẳng `ffmpeg` và dùng đường dẫn tuyệt đối nên cwd
+  // không ảnh hưởng — vẫn để chung cho một đường chạy duy nhất.)
+  const con = spawn(v.lenh, v.args, { cwd: TOOLS, env: process.env });
   v.con = con;
 
   const dem2 = setInterval(() => {
@@ -81,7 +85,17 @@ function chayTiep() {
       v.nhatKy.push(s);
       if (v.nhatKy.length > 400) v.nhatKy.shift();
 
-      if (/Đang chạy phim từ giây/.test(s)) {
+      /* ffmpeg in `time=00:00:03.20` ra stderr — suy phần trăm từ đó. Không có
+         dòng nào khác báo tiến độ, mà chuyển một file 8 giây 4,6 MB vẫn mất
+         vài chục giây nên im lặng là người dùng tưởng treo. */
+      if (v.loai === 'chuyen') {
+        const m2 = /time=(\d+):(\d+):(\d+\.?\d*)/.exec(s);
+        if (m2 && v.doanGiay) {
+          const troi = (+m2[1]) * 3600 + (+m2[2]) * 60 + parseFloat(m2[3]);
+          v.chang = 'chuyen';
+          v.phanTram = Math.min(99, (troi / v.doanGiay) * 100);
+        }
+      } else if (/Đang chạy phim từ giây/.test(s)) {
         v.chang = 'dung-hinh'; v.moc = Date.now(); v.phanTram = 5;
       } else if (/Đang ghép bằng ffmpeg/.test(s)) {
         v.chang = 'ghep'; v.phanTram = 96;
@@ -134,6 +148,12 @@ export function xuatVideo({ slug, khungXem, preset, chatLuong, giay, tenRa }) {
     '--out', tenRa,
   ];
   return taoViec('xuat', `Xuất video ${slug}`, args, { doanGiay: giay });
+}
+
+/** Chuyển một file video sang H.264 để trình duyệt phát được. */
+export function chuyenVideo({ ten, vao, ra, giay }) {
+  return taoViec('chuyen', `Chuyển ${ten}`, thamSoChuyen(vao, ra),
+    { lenh: 'ffmpeg', doanGiay: giay || 0 });
 }
 
 export function kiemBoCuc({ slug, khungXem }) {

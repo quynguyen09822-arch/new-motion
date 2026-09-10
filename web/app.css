@@ -13,6 +13,15 @@
   --do: #e3272c;
   --xanh: #2ecc71;
   --bo: 10px;
+
+  /* NHỊP CHUNG. Mọi chuyển động trong vỏ phần mềm dùng đúng bộ này, để cả giao
+     diện chạy cùng một nhịp thay vì mỗi chỗ một kiểu.
+     150–300ms là khoảng "có phản hồi mà không phải chờ"; dài hơn là chậm chạp.
+     Đường cong vào có đuôi vượt nhẹ cho giống lò xo — thứ tạo cảm giác mượt. */
+  --nhip-nhanh: 150ms;
+  --nhip: 220ms;
+  --da-vao: cubic-bezier(.22, 1, .36, 1);
+  --da-ra: cubic-bezier(.4, 0, 1, 1);
   color-scheme: dark;
 }
 
@@ -72,6 +81,7 @@ body {
   padding: 9px 11px; border-radius: 8px; cursor: pointer;
   display: flex; justify-content: space-between; gap: 8px; align-items: baseline;
 }
+.ds-canh li { transition: background var(--nhip-nhanh) var(--da-ra); }
 .ds-canh li:hover { background: var(--nen-3); }
 .ds-canh li[aria-current="true"] { background: var(--nhan); color: #061018; font-weight: 600; }
 .ds-canh li[aria-current="true"] .giay-canh { color: #061018; opacity: .75; }
@@ -125,7 +135,13 @@ body {
   border: 1px solid var(--vach); border-radius: 8px;
   padding: 8px 16px; font: inherit; cursor: pointer; white-space: nowrap;
 }
+.nut { transition: background var(--nhip-nhanh) var(--da-ra),
+                   border-color var(--nhip-nhanh) var(--da-ra),
+                   transform var(--nhip-nhanh) var(--da-vao); }
 .nut:hover:not(:disabled) { background: #24344c; }
+/* Lún xuống một chút khi bấm. Không đổi kích thước ô, chỉ transform — nên không
+   làm xô lệch những thứ xung quanh. */
+.nut:active:not(:disabled) { transform: scale(.97); }
 .nut:disabled { opacity: .45; cursor: default; }
 .nut.chinh { min-width: 104px; font-weight: 600; }
 
@@ -136,6 +152,15 @@ body {
   padding: 11px 18px; border-radius: var(--bo);
   box-shadow: 0 10px 30px rgba(0, 0, 0, .55);
   font-size: 13px; z-index: 100; max-width: min(560px, 90vw);
+  /* Nền mờ: lời nhắc nổi trên khung hình clip, mà khung hình thì lắm chi tiết.
+     Làm nhoè cái phía sau thì chữ đọc ra ngay mà không phải tô nền đục kín. */
+  background: color-mix(in srgb, var(--nen-3) 88%, transparent);
+  backdrop-filter: blur(14px);
+  animation: bao-hien var(--nhip) var(--da-vao);
+}
+@keyframes bao-hien {
+  from { opacity: 0; transform: translate(-50%, 10px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
 }
 .bao.hong { border-color: var(--do); background: #2c1416; color: #ffd9da; }
 
@@ -177,6 +202,7 @@ body {
   display: flex; align-items: center; gap: 7px;
   padding: 5px 10px; cursor: pointer; font-size: 13px;
 }
+.lop-hang { transition: background var(--nhip-nhanh) var(--da-ra); }
 .lop-hang:hover { background: var(--nen-3); }
 .lop-hang.dang { background: var(--nhan); color: #061018; }
 .lop-cham { width: 7px; height: 7px; border-radius: 2px; background: #5d7794; flex: none; }
@@ -284,6 +310,16 @@ body {
   position: absolute; z-index: 30; background: var(--nen-3);
   border: 1px solid var(--vach); border-radius: 9px; padding: 5px;
   box-shadow: 0 12px 34px rgba(0, 0, 0, .55); max-height: 320px; overflow-y: auto;
+  background: color-mix(in srgb, var(--nen-3) 90%, transparent);
+  backdrop-filter: blur(16px);
+  /* Bung ra từ phía nút vừa bấm, không phải hiện đột ngột giữa trời — cho mắt
+     nối được cái menu với cái nút đã gọi nó ra. */
+  animation: menu-bung var(--nhip-nhanh) var(--da-vao);
+  transform-origin: top left;
+}
+@keyframes menu-bung {
+  from { opacity: 0; transform: scale(.96) translateY(-4px); }
+  to   { opacity: 1; transform: none; }
 }
 .menu-them button {
   display: block; width: 100%; text-align: left; background: none; border: 0;
@@ -301,6 +337,8 @@ body {
   padding: 11px 6px; cursor: pointer;
 }
 .the[aria-selected="true"] { color: var(--chu); border-bottom-color: var(--nhan); }
+.the { transition: color var(--nhip-nhanh) var(--da-ra),
+                   border-color var(--nhip) var(--da-vao); }
 .the:hover { color: var(--chu); }
 
 /* ============ XUẤT VIDEO ============ */
@@ -451,3 +489,91 @@ body {
 .khung-hop.mong-ngang .khung-tay, .khung-hop.mong-doc .khung-tay {
   width: 10px; height: 10px; border-width: 1.5px;
 }
+
+/* ---------- soát chất lượng ---------- */
+/* Hai mức, phân biệt bằng CẢ màu lẫn chữ và chấm — không bao giờ chỉ bằng màu,
+   vì người mù màu sẽ không thấy khác gì giữa "phải sửa" và "nên xem". */
+.soat { display: flex; flex-direction: column; gap: 6px; }
+.soat-sach { margin: 0; color: var(--xanh); font-size: 13px; }
+
+.soat-hang {
+  display: grid; grid-template-columns: 9px 1fr; gap: 3px 8px;
+  text-align: left; padding: 9px 10px; border-radius: 8px;
+  background: var(--nen-3); border: 1px solid var(--vach);
+  color: var(--chu); font: inherit; font-size: 12px; line-height: 1.45;
+  cursor: pointer;
+}
+.soat-hang:hover { border-color: var(--nhan); }
+.soat-hang:focus-visible { outline: 2px solid var(--nhan); outline-offset: 1px; }
+.soat-cham { width: 7px; height: 7px; border-radius: 50%; margin-top: 5px; }
+.soat-hang.nang { border-left: 3px solid var(--do); }
+.soat-hang.nang .soat-cham { background: var(--do); }
+.soat-hang.nhe  { border-left: 3px solid #8a6d3b; }
+.soat-hang.nhe  .soat-cham { background: #c9973f; }
+.soat-goi { grid-column: 2; color: var(--chu-mo); font-size: 11px; }
+
+.soat-them {
+  background: none; border: 0; padding: 7px 2px; text-align: left;
+  color: var(--chu-mo); font: inherit; font-size: 12px; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.soat-them:hover { color: var(--chu); }
+.soat-them:focus-visible { outline: 2px solid var(--nhan); outline-offset: 1px; border-radius: 4px; }
+
+/* Thẻ có lỗi nặng: chấm đỏ + con số, không chỉ đổi màu chữ. */
+.the.co-loi { color: #ff9c9e; }
+.the.co-loi[aria-selected="true"] { border-bottom-color: var(--do); }
+
+/* ---------- mục nâng cao ---------- */
+.nang-cao { margin-top: 4px; }
+.nang-cao > summary {
+  list-style: none; cursor: pointer; user-select: none;
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 2px; font-size: 12px; color: var(--chu-mo);
+}
+.nang-cao > summary::-webkit-details-marker { display: none; }
+.nang-cao > summary::before {
+  content: ''; width: 0; height: 0; flex: none;
+  border: 4px solid transparent; border-left-color: currentColor;
+  transition: transform var(--nhip-nhanh) var(--da-vao);
+}
+.nang-cao[open] > summary::before { transform: rotate(90deg) translateX(-1px); }
+.nang-cao > summary:hover { color: var(--chu); }
+.nang-cao > summary:focus-visible { outline: 2px solid var(--nhan); outline-offset: 1px; border-radius: 4px; }
+.nang-cao[open] > summary { margin-bottom: 6px; }
+
+/* ---------- tôn trọng cài đặt giảm chuyển động ---------- */
+/* Người bật cài đặt này thường vì chuyển động làm họ chóng mặt hoặc buồn nôn.
+   Tắt hẳn, không phải làm chậm lại. Giao diện vẫn dùng được y nguyên. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+}
+
+/* ---------- núm chọn video ---------- */
+.num-video { display: flex; flex-direction: column; gap: 7px; }
+.video-xem-truoc {
+  width: 100%; border-radius: 8px; background: #000; display: block;
+  max-height: 130px; object-fit: cover;
+}
+
+/* ---------- phóng to khung làm việc ---------- */
+.giua { position: relative; }
+.chi-phong {
+  position: absolute; right: 16px; top: 14px; z-index: 20;
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 6px 5px 12px; border-radius: 999px;
+  background: color-mix(in srgb, var(--nen-2) 86%, transparent);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--vach);
+  font-size: 12px; font-variant-numeric: tabular-nums;
+  animation: bao-hien var(--nhip) var(--da-vao);
+}
+.chi-phong .nut { border-radius: 999px; }
+/* Đang phóng thì bỏ bo góc và bóng đổ: hai thứ đó bị phóng theo, thành ra viền
+   dày cộp và bóng loang lổ ở mức 400%. */
+.boc-khung.dang-phong { border-radius: 0; box-shadow: none; }
+#san-clip.dang-doi { cursor: grabbing; }

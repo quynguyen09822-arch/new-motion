@@ -14,3 +14,4 @@ clip-15s/*.mp4
 
 # Ảnh do máy kiểm chụp.
 .kiem/
+__pycache__/

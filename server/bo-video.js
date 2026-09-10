@@ -46,6 +46,8 @@ const TEN_DEP = {
   '18s': 'Vibe Hosting 18 giây',
   'vibe-hosting': 'Vibe Hosting — bản đầu',
   'thu-ve-lai-s02': 'S02 · Một đường link',
+  'thu-trien-khai-html': 'Kéo thả HTML → chạy ngay',
+  'thu-trien-khai-doc': 'Kéo thả HTML → chạy ngay (dọc 9:16)',
   'scene-thu-nghiem': 'Cảnh thử nghiệm',
   'cta-mat-bao': 'Thẻ kêu gọi Mắt Bão',
   'thuong-hieu': 'Nhận diện thương hiệu',
@@ -59,7 +61,7 @@ const TEN_DEP = {
 const BIEN = {
   doc: 'dọc', ngang: 'ngang', '4k': '4K', '1080p': '1080p', '720p': '720p',
   than: 'phần thân', thanhinh: 'thay hình', full: 'đủ', high: 'nét cao',
-  wireframe: 'khung xám',
+  wireframe: 'khung xám', bg: 'nền động', reels: 'Reels',
 };
 
 /**
@@ -67,6 +69,25 @@ const BIEN = {
  * `goc` là tên đã được `videos.js` gỡ khổ hình và hậu tố tiếng (-vo/-sfx/-music).
  */
 export function phanLoai(goc, ten) {
+  /*
+   * Khớp KHOÁ ĐÃ BIẾT trước khi bóc biến thể. Không làm thế thì chữ `doc`
+   * trong slug `thu-trien-khai-doc` bị bóc mất vì trùng từ khoá hướng "dọc",
+   * và chủ đề rơi về `thu-trien-khai-reels` — không tra được tên tiếng Việt.
+   */
+  const sach = goc.replace(/^BACKUP-/, '');
+  for (const khoa of Object.keys(TEN_DEP).sort((a, b) => b.length - a.length)) {
+    if (sach === khoa || sach.startsWith(khoa + '-')) {
+      const duoi = sach.slice(khoa.length).replace(/^-/, '')
+        .replace(/\d{10,14}/g, '').replace(/-+/g, ' ').trim();
+      const bien = duoi.split(' ').filter(Boolean)
+        .map((w) => BIEN[w] || w).join(' · ');
+      return {
+        bo: HO_TRO.test(goc) ? 'ho-tro' : LA_VH.test(ten) ? 'vh' : 'thu',
+        chuDe: khoa, tenChuDe: TEN_DEP[khoa], bien: bien || null,
+      };
+    }
+  }
+
   const luu = /^BACKUP-/.test(goc);
   const khongLuu = goc.replace(/^BACKUP-/, '');
   /* Giữ lại tiền tố vừa gỡ: mấy bản tháng 7 (`vibe-hosting-doc`) không còn chữ
@@ -77,7 +98,7 @@ export function phanLoai(goc, ten) {
   /* Bộ xuất video dán mốc thời gian vào tên file (`-202609090911`). Không gỡ
      thì MỖI LẦN XUẤT thành một chủ đề riêng — đúng cái đống lộn xộn vừa dọn.
      Ngày giờ đã hiện ở cột bên phải mỗi hàng rồi, không cần trong tên mục. */
-  con = con.replace(/-\d{10,14}$/, '');
+  con = con.replace(/-\d{10,14}(?=-|$)/, '');
 
   const bien = [];
   /* Đuôi số là bản dựng lại lần thứ mấy, không phải chủ đề — `vibe-hosting-doc-2`

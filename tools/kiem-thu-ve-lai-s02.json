@@ -1,6 +1,13 @@
 {
+  "slug": "thu-ve-lai-s02",
   "w": 1280,
   "h": 720,
+  "canh": [
+    {
+      "id": "canh-1",
+      "moc": 12.35
+    }
+  ],
   "trong": {
     "t-nav": "t-khung",
     "t-logo-o": "t-khung",

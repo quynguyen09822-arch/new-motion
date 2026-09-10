@@ -14,7 +14,9 @@ const el = (the, lop, chu) => {
 };
 const g1 = (n) => Number(n).toFixed(1).replace('.', ',');
 
-export function taoBangXuat(boc, { laySlug, bao }) {
+import { soatChatLuong } from './soat.js';
+
+export function taoBangXuat(boc, { laySlug, bao, layDoc, chonMon }) {
   let viecId = null;
   let nguon = null;
 
@@ -139,6 +141,62 @@ export function taoBangXuat(boc, { laySlug, bao }) {
     });
   };
 
+  /* ---------- soát chất lượng ---------- *
+   * Chạy ngay trong trình duyệt, không qua máy chủ, không xếp hàng — nên hiện
+   * được LIÊN TỤC trong lúc sửa. Khác hẳn "Kiểm tra bố cục" bên dưới: cái đó
+   * mở Chromium thật để đo, chính xác hơn nhưng mất vài chục giây.
+   */
+  const bocSoat = el('div', 'soat');
+  let moNhe = false;
+
+  function veSoat() {
+    const doc = layDoc?.();
+    bocSoat.innerHTML = '';
+    if (!doc) return { soNang: 0 };
+    const kq = soatChatLuong(doc);
+
+    if (!kq.loi.length) {
+      bocSoat.appendChild(el('p', 'soat-sach', '✓ Không thấy vấn đề nào.'));
+      return kq;
+    }
+
+    const hang = (l) => {
+      const b = el('button', `soat-hang ${l.nang ? 'nang' : 'nhe'}`);
+      b.type = 'button';
+      b.append(el('span', 'soat-cham'), el('span', 'soat-cau', l.cau));
+      if (l.goiY) b.appendChild(el('span', 'soat-goi', l.goiY));
+      // Bấm vào lời báo là nhảy thẳng tới món có vấn đề — đọc xong phải sửa
+      // được ngay, không bắt người dùng tự đi tìm "chu-1" nằm ở đâu.
+      if (l.canhId) b.onclick = () => chonMon?.({ canhId: l.canhId, monId: l.monId });
+      return b;
+    };
+
+    for (const l of kq.loi.filter((x) => x.nang)) bocSoat.appendChild(hang(l));
+
+    const nhe = kq.loi.filter((x) => !x.nang);
+    if (nhe.length) {
+      const nut = el('button', 'soat-them');
+      nut.type = 'button';
+      const datChu = () => {
+        nut.textContent = moNhe
+          ? `Ẩn ${nhe.length} chỗ nên xem lại`
+          : `Còn ${nhe.length} chỗ nên xem lại — bấm để xem`;
+      };
+      nut.onclick = () => {
+        moNhe = !moNhe;
+        veSoat();
+      };
+      datChu();
+      bocSoat.appendChild(nut);
+      if (moNhe) for (const l of nhe) bocSoat.appendChild(hang(l));
+    }
+    return kq;
+  }
+
+  const mucSoat = el('section', 'muc');
+  mucSoat.append(el('h3', 'muc-ten', 'Soát trước khi xuất'), bocSoat);
+  boc.appendChild(mucSoat);
+
   const muc = el('section', 'muc');
   muc.appendChild(el('h3', 'muc-ten', 'Xuất video'));
   const b1 = el('div', 'num'); b1.append(el('label', 'num-nhan', 'Khổ hình'), chonKho);
@@ -148,5 +206,5 @@ export function taoBangXuat(boc, { laySlug, bao }) {
     el('hr', 'ke'), nutKiem);
   boc.appendChild(muc);
 
-  return { napKho };
+  return { napKho, veSoat };
 }

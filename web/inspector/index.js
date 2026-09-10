@@ -60,6 +60,32 @@ export function taoBang(boc, kho, player) {
     return m;
   }
 
+  /*
+   * NÚM NÂNG CAO — mặc định giấu đi.
+   *
+   * Người dùng chính của công cụ này không rành kỹ thuật. Bày cả chín núm ra
+   * một lúc thì họ không biết núm nào là núm cần vặn, và thường là vặn nhầm cái
+   * hiếm dùng rồi không biết đường lùi. Núm hay dùng (chọn kiểu bay, nhanh/chậm)
+   * ở ngoài; núm hiếm (kiểu đà, đi xa gần, nghiêng) nằm sau một cái gạt.
+   *
+   * Dùng `<details>` gốc chứ không tự dựng: bàn phím, trình đọc màn hình và
+   * trạng thái đóng/mở là có sẵn, không phải viết lại và viết lại thì thường sai.
+   */
+  const dangMo = new Set();   // nhớ mục nào đang mở, vì `ve()` dựng lại cả bảng
+
+  function nangCao(khoa) {
+    const d = document.createElement('details');
+    d.className = 'nang-cao';
+    d.open = dangMo.has(khoa);
+    const s2 = document.createElement('summary');
+    s2.textContent = 'Nâng cao';
+    d.appendChild(s2);
+    d.addEventListener('toggle', () => {
+      if (d.open) dangMo.add(khoa); else dangMo.delete(khoa);
+    });
+    return d;
+  }
+
   /* ---------- thanh chỉ đường ---------- */
   function veChiDuong(doc) {
     const duong = duongDanMon(doc, chon.canhId, chon.monId);
@@ -120,22 +146,26 @@ export function taoBang(boc, kho, player) {
       m.appendChild(boc2);
 
       if (!cur) return;
+      // Núm hay dùng nhất — ở ngoài.
       m.appendChild(taoNum(
         { id: 'dur', nhan: 'Nhanh / chậm', kieu: 'so', min: 0.05, max: 2, buoc: 0.05,
           goi: `${g1(cur.dur ?? (huong === 'in' ? 0.55 : 0.4))} giây` },
         cur.dur ?? (huong === 'in' ? 0.55 : 0.4),
         (v) => datMon('đổi tốc độ chuyển động', huong, { ...cur, dur: v }), cuChi));
-      m.appendChild(taoNum(
+
+      const sau = nangCao(`chuyendong-${huong}`);
+      sau.appendChild(taoNum(
         { id: 'ease', nhan: 'Kiểu đà', kieu: 'chon', chon: KHO_DA },
         cur.ease ?? (huong === 'in' ? 'out' : 'inOut'),
         (v) => { datMon('đổi kiểu đà', huong, { ...cur, ease: v }); dienThu(e); }, cuChi));
       if (['rise', 'fall', 'left', 'right'].includes(cur.kind)) {
-        m.appendChild(taoNum(
+        sau.appendChild(taoNum(
           { id: 'dist', nhan: 'Đi xa / gần', kieu: 'so', min: 0, max: 300,
             goi: 'bỏ trống thì bộ dựng tự chọn theo cỡ khung' },
           cur.dist ?? '',
           (v) => datMon('đổi quãng dịch', huong, { ...cur, dist: v }), cuChi));
       }
+      m.appendChild(sau);
     };
 
     veHuong('in', KHO_VAO, 'Bay vào');
@@ -339,9 +369,11 @@ export function taoBang(boc, kho, player) {
       e.pad ?? 0, (v) => datMon('đổi đệm trong', 'pad', v), cuChi));
     mK.appendChild(taoNum({ id: 'opacity', nhan: 'Độ mờ', kieu: 'so', min: 0, max: 1, buoc: 0.05 },
       e.opacity ?? 1, (v) => datMon('đổi độ mờ', 'opacity', v), cuChi));
-    mK.appendChild(taoNum({ id: 'rotate', nhan: 'Nghiêng', kieu: 'so', min: -180, max: 180,
+    const sauK = nangCao('khoangcach');
+    sauK.appendChild(taoNum({ id: 'rotate', nhan: 'Nghiêng', kieu: 'so', min: -180, max: 180,
       goi: 'độ — đây là số cố định, không phải chuyển động xoay' },
       e.rotate ?? 0, (v) => datMon('đổi độ nghiêng', 'rotate', v), cuChi));
+    mK.appendChild(sauK);
     boc.appendChild(mK);
   }
 

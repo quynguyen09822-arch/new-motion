@@ -69,8 +69,23 @@ export const TEN_LOAI = {
   logo: 'Logo', image: 'Ảnh', pointer: 'Con trỏ', wheel: 'Vòng quay', chat: 'Cửa sổ AI',
   shield: 'Khiên bảo mật', upload: 'Ô kéo thả', table: 'Bảng', browser: 'Trình duyệt',
   sweep: 'Vệt sáng', nen: 'Nền thương hiệu', huyhieu: 'Huy hiệu', hangnhan: 'Hàng nhãn',
+  video: 'Video',
   quydao: 'Quỹ đạo', nut: 'Nút bấm',
 };
+
+/*
+ * MÀU CHỮ RIÊNG cho từng khối. Bộ dựng đặt `--ink` lên chính nút đó nên con cháu
+ * thừa hưởng — vặn ở một cụm là cả cụm đổi màu chữ. Xem `docs/MAU-CHU-RIENG.md`.
+ *
+ * Trước đây trường này CÓ trong dữ liệu và bộ dựng đọc được, nhưng bảng thuộc
+ * tính lại không có núm nào để đặt — nên muốn dùng thì phải sửa tay file JSON.
+ * Bảng soát chất lượng bảo người dùng "đặt màu chữ riêng cho món này" mà không
+ * có chỗ để đặt thì lời khuyên ấy thành trò đùa.
+ */
+const MAU_CHU = [
+  { id: 'ink', nhan: 'Màu chữ riêng', kieu: 'mau',
+    goi: 'bỏ trống = dùng màu chữ chung của clip · đặt ở đây thì cả những gì bên trong cũng đổi theo' },
+];
 
 const DAU = [
   { v: '', nhan: '(chữ tự gõ)' },
@@ -96,11 +111,12 @@ export const NUM_RIENG = {
       goi: 'so với dòng chính' },
     { id: 'lineStagger', nhan: 'Hiện từng dòng', kieu: 'so', min: 0, max: 0.6, buoc: 0.01,
       goi: 'giây cách nhau giữa các dòng · 0 = hiện cùng lúc' },
+    ...MAU_CHU,
   ],
   nut:      [{ id: 'label', nhan: 'Chữ trên nút', kieu: 'chu' },
              { id: 'size', nhan: 'Cỡ chữ', kieu: 'so', min: 12, max: 120 },
              { id: 'ticks', nhan: 'Đập nhịp', kieu: 'bat',
-               goi: '⚠ cả clip chỉ nên có MỘT món đập nhịp' }],
+               goi: '⚠ cả clip chỉ nên có MỘT món đập nhịp' }, ...MAU_CHU],
   image:    [{ id: 'src', nhan: 'File ảnh', kieu: 'anh' },
              { id: 'fit', nhan: 'Cách lấp ô', kieu: 'chon', chon: [
                { v: 'cover', nhan: 'Lấp đầy (cắt bớt)' }, { v: 'contain', nhan: 'Vừa khung (giữ tỉ lệ)' }],
@@ -119,15 +135,36 @@ export const NUM_RIENG = {
   chip:     [{ id: 'value', nhan: 'Con số', kieu: 'chu' },
              { id: 'label', nhan: 'Nhãn', kieu: 'chu' },
              { id: 'note', nhan: 'Ghi chú', kieu: 'chu' },
-             { id: 'outline', nhan: 'Chỉ viền', kieu: 'bat' }],
+             { id: 'outline', nhan: 'Chỉ viền', kieu: 'bat' }, ...MAU_CHU],
   card:     [{ id: 'title', nhan: 'Tiêu đề thẻ', kieu: 'chu' },
              { id: 'rows', nhan: 'Số dòng', kieu: 'so', min: 0, max: 12 },
-             { id: 'button', nhan: 'Chữ trên nút', kieu: 'chu' }],
+             { id: 'button', nhan: 'Chữ trên nút', kieu: 'chu' }, ...MAU_CHU],
   form:     [{ id: 'title', nhan: 'Tiêu đề biểu mẫu', kieu: 'chu' },
              { id: 'dots', nhan: 'Số chấm bước', kieu: 'so', min: 0, max: 8 }],
   table:    [{ id: 'columns', nhan: 'Tên các cột', kieu: 'danhsach' },
-             { id: 'rows', nhan: 'Số dòng', kieu: 'so', min: 0, max: 20 }],
+             { id: 'rows', nhan: 'Số dòng', kieu: 'so', min: 0, max: 20 }, ...MAU_CHU],
   browser:  [{ id: 'url', nhan: 'Địa chỉ trên thanh', kieu: 'chu' }],
+  /*
+   * VIDEO. Đặt kín khung thì thành nền động; thu nhỏ lại thì lồng được vào màn
+   * hình điện thoại hay khung trình duyệt. Muốn làm nền thì chọn "Chỗ đặt" →
+   * "Kín cả khung", và nhớ kéo nó lên ĐẦU danh sách thành phần — thứ tự trong
+   * danh sách là thứ tự vẽ, món đứng sau nằm đè lên món đứng trước.
+   */
+  video:    [{ id: 'src', nhan: 'File video', kieu: 'video' },
+             { id: 'fit', nhan: 'Cách lấp ô', kieu: 'chon', chon: [
+               { v: 'cover', nhan: 'Lấp đầy (cắt bớt)' }, { v: 'contain', nhan: 'Vừa khung (giữ tỉ lệ)' }],
+               goi: 'làm nền thì chọn Lấp đầy' },
+             { id: 'blur', nhan: 'Làm mờ', kieu: 'so', min: 0, max: 40,
+               goi: 'mờ nền đi thì chữ và thẻ phía trên mới nổi lên · 0 = nét căng' },
+             { id: 'dim', nhan: 'Tối đi', kieu: 'so', min: 0, max: 0.9, buoc: 0.05,
+               goi: 'phủ một lớp đen mỏng lên trên' },
+             { id: 'radius', nhan: 'Bo góc', kieu: 'so', min: 0, max: 80 },
+             { id: 'loop', nhan: 'Hết thì chạy lại', kieu: 'bat',
+               goi: 'video ngắn hơn cảnh thì bật cái này, không thì nó đứng hình ở khung cuối' },
+             { id: 'start', nhan: 'Bắt đầu từ giây', kieu: 'so', min: 0, max: 120, buoc: 0.1,
+               goi: 'cắt bỏ đoạn đầu của file' },
+             { id: 'rate', nhan: 'Tốc độ phát', kieu: 'so', min: 0.1, max: 3, buoc: 0.1,
+               goi: '1 = như thật · 0,5 = chậm một nửa' }],
   chat:     [{ id: 'title', nhan: 'Tiêu đề cửa sổ', kieu: 'chu' },
              { id: 'lines', nhan: 'Các câu thoại', kieu: 'danhsach' },
              { id: 'typing', nhan: 'Câu đang gõ', kieu: 'chu' }],
@@ -173,7 +210,7 @@ export const NUM_RIENG = {
              { id: 'align', nhan: 'Căn ngang', kieu: 'chon', chon: [
                { v: 'dau', nhan: 'Đầu' }, { v: 'giua', nhan: 'Giữa' }, { v: 'cuoi', nhan: 'Cuối' }] },
              { id: 'justify', nhan: 'Căn dọc', kieu: 'chon', chon: [
-               { v: 'dau', nhan: 'Đầu' }, { v: 'giua', nhan: 'Giữa' }, { v: 'cuoi', nhan: 'Cuối' }] }],
+               { v: 'dau', nhan: 'Đầu' }, { v: 'giua', nhan: 'Giữa' }, { v: 'cuoi', nhan: 'Cuối' }] }, ...MAU_CHU],
   pointer:  [],
 };
 
