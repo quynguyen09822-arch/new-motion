@@ -78,6 +78,8 @@ clip. Node 22 tự lột kiểu file `.ts` nên `types.ts` nạp thẳng đượ
 | `exportpanel.js` `videos.js` `khung.js` | ba thẻ còn lại của cột phải |
 | `soat.js` | **soát chất lượng** — JS thuần, cả trình duyệt lẫn Node dùng chung |
 | `zoom.js` | phóng khung làm việc bằng Ctrl+lăn, phóng quanh con trỏ |
+| `anhnho.js` | ảnh nhỏ từng thành phần — **quy tắc 7 điều áp cho mọi clip**, xem `docs/QUY-TAC-ANH-NHO.md` |
+| `huongdan.js` | bong bóng hướng dẫn tại chỗ; nội dung nằm ở `inspector/schema.js` |
 
 **Luồng dữ liệu một chiều, không ngoại lệ:**
 
@@ -108,7 +110,12 @@ nó (`getBoundingClientRect`, hệ số phóng).
    `#stage` (co cho vừa khung) × `#cam` (máy quay) × phóng của trang cha
    (Ctrl+lăn, `web/zoom.js`). `player.quyDoi` chia cho tầng thứ ba,
    `player.hesoPhong` nhân nó vào. Quên tầng nào là bấm một đằng trúng một nẻo.
-4. **Không ghi vào DOM của iframe.** Lớp phủ vẽ ở trang cha. Ngoại lệ duy nhất là
+4. **Không ghi vào DOM của iframe.** Chỉ ĐỌC thì thoải mái — `anhnho.js` nhân bản
+   nút DOM và chép `<style>` của bộ dựng ra trang cha để vẽ ảnh nhỏ, không đụng
+   gì vào bên trong. Khi chép ra nhớ ba việc: đổi đường dẫn ảnh sang tuyệt đối
+   (gốc của iframe là `/clip/`, của trang cha là `/`), chép cả biến CSS và màu
+   nền của clip, và gỡ `opacity`/`transform` của khoảnh khắc hiện tại — món chưa
+   bay vào thì `opacity` bằng 0, chép ra được ô trống trơn. Lớp phủ vẽ ở trang cha. Ngoại lệ duy nhất là
    `drag.js` đặt tạm `left`/`top` trong lúc kéo, và xoá ngay khi thả. Chèn bậy là
    làm bẩn đúng cái trang mà `export-video.mjs` sẽ đem đi quay thành phim.
 5. **Cùng origin là điều kiện sống còn.** Server này tự phục vụ file dự án clip
@@ -235,6 +242,12 @@ node tools/kiem-soat.mjs            # bảng soát chất lượng: bắt đúng
 node tools/kiem-chay-dung.mjs       # nút Chạy/Dừng, kể cả đường lùi khi bộ dựng thiếu pause()
 node tools/kiem-nen-video.mjs       # món video: chạy trong khung xem VÀ lọt vào video xuất ra
 node tools/kiem-phong.mjs           # Ctrl+lăn phóng khung: bấm và kéo có còn trúng không
+node tools/kiem-anh-nho.mjs         # ảnh nhỏ thành phần: ĐÚNG CHỖ ĐẶT, đúng nền, ảnh không vỡ, dựng lười
+node tools/kiem-huong-dan.mjs       # hướng dẫn tại chỗ: đủ núm, đúng khuôn viết, bàn phím dùng được
+node tools/kiem-doi-cu.mjs          # clip đời cũ: thấy được, chạy/tua được, vẫn KHÔNG sửa được
+node tools/kiem-dem-khe.mjs         # đệm trong / khe hở: không núm chết, không năng lực bị giấu
+node tools/kiem-hieu-ung.mjs        # nhoè / bóng đổ / đẩy máy chậm: bộ dựng còn phần vá không
+node tools/kiem-khe-media.mjs       # ảnh/phim trong màn hình điện thoại & trình duyệt, và ĐỒNG HỒ
 ```
 
 Riêng **`node tools/kiem-lichsu.mjs`** chạy bằng Node trần — không cần server,
@@ -270,7 +283,37 @@ từ khối hình học và chạy bốn phép kiểm bố cục (`kiem_trong`, 
   comment nếu lý do đổi.
 - Câu chữ hiện ra cho người dùng: tiếng Việt đời thường, nói rõ **thiếu cái gì**,
   không để lọt từ kỹ thuật (không "opacity", không "stagger", không "ease").
-  `web/inspector/schema.js` là việc viết câu chữ, không phải viết code.
+  `web/inspector/schema.js` là việc viết câu chữ, không phải viết code — cả núm
+  lẫn **hướng dẫn tại chỗ** (`HUONG_DAN`, `HUONG_DAN_CHUNG`, `HUONG_DAN_MAU`).
+  Khuôn: tiêu đề dưới 6 từ, mô tả dưới 35 từ, không từ kỹ thuật — có
+  `tools/kiem-huong-dan.mjs` canh, không phải tự nhớ. Xem `docs/HUONG-DAN-TAI-CHO.md`.
+- **Ảnh nhỏ trong bảng lớp có quy tắc riêng, áp cho mọi clip** — 7 điều trong
+  `web/anhnho.js`, tài liệu ở `docs/QUY-TAC-ANH-NHO.md`. Nền dưới mỗi món dùng
+  chung hàm `banDoNen()` của `soat.js` với phép soát chất lượng: hai nơi không
+  được nói khác nhau. Sửa cách vẽ ô ảnh thì chạy `tools/kiem-anh-nho.mjs` mục 5 —
+  nó đo **chỗ đặt**, vì lỗi cũ (156 ô trắng) qua được mọi phép kiểm "có nội dung".
+- **Phim nằm TRONG món khác phải được ghim theo đồng hồ clip.** Thẻ `<video>` tự
+  phát theo đồng hồ thật: xem trong trình sửa tưởng đúng, mà tua tới giây nào nền
+  cũng đứng ở giây 0 và mỗi lần xuất ra một khung khác. `applyEl` gọi `TICK.video`
+  cho mọi món có chứa thẻ video. Xem `docs/VIDEO-TRONG-CLIP.md`.
+- **Hiệu ứng hình (`soft`/`softIn`/`shadow`/`push`) cần phần vá trong
+  `scene-player.html`** — file của dự án chung, KHÔNG có git. Ai khôi phục file
+  đó từ bản sao lưu cũ là núm vẫn còn mà hiệu ứng biến mất, không báo gì.
+  `tools/kiem-hieu-ung.mjs` đọc thẳng file ấy để bắt ca đó. Xem `docs/HIEU-UNG-HINH.md`.
+- **Chỉ bày núm mà bộ dựng THẬT SỰ đọc.** `DEM_TRONG`/`KHE_HO` trong `schema.js`
+  là bảng sự thật cho `pad`/`gap`, kèm bậc mặc định thật. Bày núm chết còn tệ hơn
+  không bày — bấm vào thì kịch bản đổi mà khung hình đứng im. `tools/kiem-dem-khe.mjs`
+  ĐO THẬT bằng Chromium rồi đối chiếu hai chiều. Xem `docs/DEM-KHE.md`.
+- **Clip đời cũ nạp kèm `?export=1`, clip đời mới TUYỆT ĐỐI KHÔNG.** Tham số đó
+  tắt `fit()` nên mọi phép đo lệch — clip đời mới sửa được nên phép đo phải đúng;
+  clip đời cũ không sửa được nên không có gì để lệch, mà đổi lại thì có `__clip`
+  (cả 12 clip đều phơi `duration/ready/play/at/seek`) nên chạy và tua được.
+  `__clip` của clip đời cũ **không có `scenes()`** — hỏi trước rồi hãy gọi.
+- **Giao diện theo bản dựng Stitch** (`stitch_d_n_kh_i_nghi_p/`) — bảng màu và
+  nhịp nằm gọn trong `:root` của `web/app.css`, đừng viết màu thẳng vào rule.
+  Nhấn là **xanh lá**, chữ trên nhấn là `var(--tren-nhan)`. Không dựng nút cho
+  tính năng không có thật (vòng màu, LUT, track âm thanh, đồng bộ cloud) — xem
+  bảng "KHÔNG được dựng" trong `docs/GIAO-DIEN.md`.
 - Commit message tiếng Việt, mô tả việc thật.
 
 ## 9. Cạm bẫy đã biết
@@ -324,6 +367,9 @@ Tài liệu áp thẳng vào repo này nằm trong `docs/`: `QUY-UOC-CLIP.md` (d
 sao cho sửa được bằng chuột), `STITCH.md` (MCP Stitch dựng màn hình UI),
 `MAU-CHU-RIENG.md` (sửa đổi đã làm trong `scene-player.html` của dự án chung —
 nay có núm "Màu chữ riêng" trong bảng thuộc tính, không phải sửa tay JSON nữa),
+`QUY-TAC-ANH-NHO.md` (quy tắc ảnh nhỏ bảng lớp, áp cho mọi clip),
+`GIAO-DIEN.md` (dựng lại giao diện theo bản Stitch, và những gì cố ý không dựng),
+`HIEU-UNG-HINH.md` (nhoè, bóng đổ, đẩy máy chậm — có sửa `scene-player.html`),
 `DUNG-CHAY.md` (thêm `pause()`/`paused` vào `scene-player.html`, kèm đường lùi và
 cách khôi phục), `VIDEO-TRONG-CLIP.md` (thành phần `video`, bẫy HEVC, cách đổi
 định dạng).

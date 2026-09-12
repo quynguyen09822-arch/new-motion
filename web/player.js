@@ -89,14 +89,25 @@ export function taoPlayer(iframe) {
      * (vd `/clip/scene-player.html?scene=cta`) — cùng origin, nếu không thì
      * không với được vào `contentDocument`.
      *
-     * ⚠️ Tuyệt đối KHÔNG thêm `export=1`: tham số đó tắt `fit()`, sân khấu sẽ
-     * không co cho vừa khung nữa và mọi phép đo đều lệch.
+     * ⚠️ CLIP ĐỜI MỚI: tuyệt đối KHÔNG thêm `export=1`. Tham số đó tắt `fit()`,
+     * sân khấu sẽ không co cho vừa khung nữa và mọi phép đo đều lệch — mà clip
+     * đời mới thì SỬA được, nên phép đo phải đúng.
      *
-     * `doiClip` = 1 nghĩa là clip đời cũ. Những trang ấy chỉ dựng `window.__clip`
-     * bên trong nhánh `if (export=1)`, mà `export=1` thì lại đúng thứ ta không
-     * được phép bật. Nên với clip đời cũ ta không chờ `__clip` nữa: cứ để trang
-     * tự chạy lấy, coi như một khung xem thường. Xuất video vẫn chạy bình thường
-     * vì `export-video.mjs` tự thêm `export=1` khi nó lái trang.
+     * CLIP ĐỜI CŨ (`doiClip` = 1) thì ngược lại: ta CỐ Ý bật `export=1`.
+     *
+     * Những trang ấy chỉ dựng `window.__clip` bên trong nhánh `if (export=1)`.
+     * Không bật thì không có `__clip`, và trước đây ta đành để trang tự chạy
+     * lấy — kết quả là nút Chạy và thanh tua chết cứng, đồng hồ ghi "trang tự
+     * chạy", xem xong một clip 90 giây phải ngồi đợi đủ 90 giây. Đo thử cả 12
+     * clip đời cũ: **cả 12 đều phơi ra `duration/ready/play/at/seek/step`** —
+     * tức là cái transport ta cần vốn đã nằm sẵn ở đó.
+     *
+     * Đánh đổi: `export=1` tắt `fit()`, sân khấu ra đúng cỡ gốc (1280×720 hoặc
+     * 720×1280) và tràn khỏi iframe. Không sao — clip đời cũ KHÔNG sửa được nên
+     * chẳng có phép đo nào để mà lệch. Trang cha tự lo phần thu nhỏ: đặt iframe
+     * đúng cỡ gốc rồi `scale` nó, xem `khoTho()`.
+     *
+     * Trang nào không phơi `__clip` thì nạp lại bản trần và về đúng nếp cũ.
      */
     async mo(duongDan, doiClip = 2) {
       thoiGiu();
@@ -105,14 +116,30 @@ export function taoPlayer(iframe) {
       await new Promise((xong, hong) => {
         iframe.onload = xong;
         iframe.onerror = () => hong(new Error('Không mở được khung xem.'));
-        iframe.src = duongDan;
+        iframe.src = doiClip === 2 ? duongDan
+          : duongDan + (duongDan.includes('?') ? '&' : '?') + 'export=1';
       });
       win = iframe.contentWindow;
 
       if (doiClip !== 2) {
-        coDuDoan = true; // trang đời cũ tự chạy lấy
+        // Đã nạp kèm `export=1` ở trên; chờ `__clip` hiện ra.
+        const hanCu = Date.now() + CHO_TOI_DA;
+        while (!win.__clip) {
+          if (Date.now() > hanCu) {
+            // Không phơi `__clip` — nạp lại bản trần, về đúng nếp cũ.
+            await new Promise((xong) => { iframe.onload = xong; iframe.src = duongDan; });
+            win = iframe.contentWindow;
+            coDuDoan = true; // trang đời cũ tự chạy lấy
+            baoTick();
+            return null;
+          }
+          await new Promise((r) => setTimeout(r, 50));
+        }
+        clip = win.__clip;
+        await clip.ready();
+        coDuDoan = false;
         baoTick();
-        return null;
+        return clip;
       }
 
       const han = Date.now() + CHO_TOI_DA;
@@ -209,11 +236,15 @@ export function taoPlayer(iframe) {
     dangChay: dangChayThat,
     giay: () => (clip ? clip.at() : 0),
     thoiLuong: () => (clip ? clip.duration : 0),
-    dsCanh: () => (clip ? clip.scenes() : []),
+    /* Clip đời cũ có `__clip` nhưng KHÔNG có `scenes()` — nó không chia cảnh.
+       Gọi thẳng là ném TypeError giữa vòng lặp vẽ, và vòng lặp thì chạy mỗi
+       nhịp hình nên lỗi đổ ra hàng trăm dòng. Hỏi trước rồi hãy gọi. */
+    dsCanh: () => (typeof clip?.scenes === 'function' ? clip.scenes() : []),
 
     /** Cảnh đang hiện ở giây hiện tại. */
     canhHienTai() {
       if (!clip) return null;
+      if (typeof clip.scenes !== 'function') return null;   // clip đời cũ: không chia cảnh
       const t = clip.at();
       const ds = clip.scenes();
       return ds.find((c) => t >= c.start && t < c.start + c.duration) || ds[ds.length - 1] || null;
@@ -221,6 +252,20 @@ export function taoPlayer(iframe) {
 
     tai() {
       return win?.document ?? null;
+    },
+
+    /**
+     * KHỔ GỐC của sân khấu bên trong — chỉ có nghĩa với clip đời cũ chạy
+     * `export=1`, vì lúc đó trang không tự co nữa.
+     *
+     * Mỗi clip một khổ: đo thật 12 clip ra 1280×720, 720×1280 và vài trang lấy
+     * chiều cao theo cửa sổ. Nên phải ĐO, không được đoán 16:9.
+     */
+    khoTho() {
+      const d = win?.document;
+      const n = d?.querySelector('#stage, .stage');
+      if (!n || !n.offsetWidth || !n.offsetHeight) return null;
+      return { w: n.offsetWidth, h: n.offsetHeight };
     },
 
     /** Node DOM của một món trong một cảnh. Mọi cảnh đều nằm sẵn trong DOM nên

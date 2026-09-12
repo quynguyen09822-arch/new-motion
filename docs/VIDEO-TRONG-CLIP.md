@@ -107,3 +107,77 @@ cp projects/matbao-hub-video/.hub-video-backups/scene-player/2026-09-10T163213/s
 ⚠ Bản đó **đã có** `pause()`/`paused` của `DUNG-CHAY.md` nhưng **chưa có** phần
 video. Khôi phục về nó là mọi clip dùng món `video` mất nền, im lặng.
 `tools/kiem-nen-video.mjs` sẽ báo ngay.
+
+---
+
+# Khe media — thả ảnh hoặc phim vào màn hình điện thoại và cửa sổ trình duyệt
+
+**Ngày 12/09/2026 — có sửa thêm `scene-player.html` của dự án chung.**
+
+## Vấn đề
+
+Hai chỗ đáng lẽ là "màn hình" lại là ngõ cụt:
+
+- **Màn hình điện thoại** chỉ nhận **ảnh** (`<img>` viết cứng trong bộ dựng).
+- **Cửa sổ trình duyệt** không nhận gì cả — thân nó là ba vạch xám giả, không có
+  chỗ đặt hình thật.
+
+Muốn khoe một đoạn quay màn hình thì phải đặt món `video` rời đè lên rồi căn tay
+cho khớp khung máy — sai một chút là lòi ra ngoài viền.
+
+## Cách làm
+
+Một hàm `khePhim(src, lap)` dựng `<img>` hay `<video>` tuỳ **đuôi file**. Không
+bắt người dùng khai thêm núm "đây là ảnh hay phim" — thêm một núm là thêm một
+chỗ khai sai.
+
+| Khe | Bỏ trống | Có file |
+|---|---|---|
+| Màn hình điện thoại | đen | ảnh hoặc phim lấp đầy màn |
+| Cửa sổ trình duyệt | ba vạch xám như trang đang tải | ảnh hoặc phim lấp đầy thân |
+
+Món **Điện thoại** cũng được thêm vào menu "Thêm thành phần" — trước đây nó có
+trong bộ dựng nhưng không có trong menu, muốn dùng phải sửa tay JSON.
+
+## Bẫy lớn nhất: ĐỒNG HỒ, không phải thẻ video
+
+Dựng được thẻ `<video>` là phần dễ. Phần khó là thẻ video **tự phát theo đồng hồ
+thật**. Xem trong trình sửa thì tưởng đúng, nhưng:
+
+- tua tới giây nào thì phim bên trong vẫn đứng ở giây 0;
+- mỗi lần xuất video lại ra một khung khác nhau.
+
+Bộ dựng đã có `TICK.video` ghim `currentTime` theo đồng hồ clip, nhưng nó chỉ
+chạy cho món `kind: 'video'`. Nay `applyEl` gọi thêm cho **mọi món khác có chứa
+một thẻ video**:
+
+```js
+if (el.kind !== 'video' && el.src && node.querySelector('video')) {
+  TICK.video(el, node, local, at);
+}
+```
+
+`tools/kiem-khe-media.mjs` mục 3 đo đúng chuyện đó: tua tới giây nào thì phim
+bên trong phải đứng ở giây đó — và phim ngắn hơn cảnh thì so theo
+`giây % độ dài phim`, vì nó chạy vòng.
+
+## Vẫn là bẫy cũ: HEVC
+
+Khe media hỏi luôn máy chủ xem trình duyệt mở được file không. Đây không phải
+cẩn thận thừa — `intro.mp4`, `outro.mp4` và `BG.mp4` của chính dự án đều là
+HEVC, Chromium không giải được, đặt vào clip ra đúng một ô **đen** mà không báo
+lỗi gì. Núm hiện thẳng dòng cảnh báo và chỉ sang mục Video để chuyển định dạng.
+
+## Khôi phục
+
+```bash
+cp .hub-video-backups/scene-player/2026-09-12T092216/scene-player.html \
+   /home/coder/workspace/projects/clipVibehost/hosting-animatic-production/scene-player.html
+```
+
+Bản trước khi vá md5 `98455f50bc41dcfec56bcceb61443aff`. Khôi phục là mất luôn
+cả khe media lẫn hiệu ứng hình — `kiem-khe-media.mjs` và `kiem-hieu-ung.mjs` mục
+1 đọc thẳng file ấy để bắt đúng ca đó.
+
+Thuần bổ sung, kiểm chứng bằng phép đo: dựng lại cả 11 clip ở ba mốc giây bằng
+bản cũ và bản mới — **11/11 ra khung hình y hệt từng byte**.

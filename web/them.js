@@ -20,6 +20,10 @@ export const MAU_MON = [
   { kind: 'card',     ten: 'Thẻ',          mau: { title: 'Tiêu đề thẻ', rows: 3, w: 420 } },
   { kind: 'table',    ten: 'Bảng',         mau: { columns: ['Cột 1', 'Cột 2'], rows: 4, w: 520 } },
   { kind: 'browser',  ten: 'Trình duyệt',  mau: { url: 'ten-cua-ban.tinhgon.xyz', w: 560, h: 340 } },
+  /* Màn hình điện thoại và cửa sổ trình duyệt đều là KHE MEDIA: thả ảnh hay
+     phim vào đều được. Trước đây máy chỉ có trong kho món, không có trong menu
+     thêm — muốn dùng phải sửa tay JSON. */
+  { kind: 'phone',    ten: 'Điện thoại',   mau: { src: '', w: 260, h: 540 } },
   /* Mặc định là NỀN ĐỘNG: kín khung, mờ sẵn, tối sẵn, lặp — thả vào là dùng
      được ngay cho việc hay làm nhất, khỏi phải vặn năm núm mới ra hình. */
   { kind: 'video',    ten: 'Video',        mau: { src: '', fit: 'cover', blur: 8, dim: 0.25, loop: true, place: 'day' } },

@@ -30,6 +30,7 @@ export const KHO_VAO = [
   { id: 'no-ra-em',    ten: 'Nở ra êm',         m: { kind: 'pop',  ease: 'out',  dur: 0.70 }, goi: 'ảnh, khối lớn' },
   { id: 'hien-dan',    ten: 'Hiện dần',         m: { kind: 'fade', ease: 'out',  dur: 0.70 }, goi: 'nền, thứ không muốn hút mắt' },
   { id: 'hien-cham',   ten: 'Hiện thật chậm',   m: { kind: 'fade', ease: 'linear', dur: 1.2 }, goi: 'cảnh mở màn' },
+  { id: 'thu-tu-lon',  ten: 'Thu lại từ lớn',   m: { kind: 'nen',  ease: 'out',  dur: 1.0 }, goi: 'ảnh, khối lớn — cú đẩy máy của phim' },
   { id: 'dung-im',     ten: 'Đứng im',          m: { kind: 'none', dur: 0.001 },              goi: 'nền giữ nguyên khi sang cảnh' },
 ];
 
@@ -98,6 +99,69 @@ const DAU = [
  * Núm riêng của từng loại. Núm chung (chỗ đặt, cỡ, thời gian, chuyển động) do
  * bảng thuộc tính tự thêm, không khai lại ở đây.
  */
+/**
+ * ĐỆM TRONG và KHE HỞ — loại nào THẬT SỰ nghe, và bộ dựng lấy bậc mấy làm mặc định.
+ *
+ * Hai bảng này sinh ra từ một lỗi lặng lẽ: bảng thuộc tính bày núm "Đệm trong"
+ * cho CẢ 24 loại, trong khi bộ dựng chỉ đọc `pad` ở 8 loại. Mười sáu núm còn lại
+ * bấm vào thì số trong kịch bản có đổi, mà khung hình không nhúc nhích — đúng
+ * kiểu hỏng tệ nhất, vì nó trông như đang chạy. Chiều ngược lại cũng sai: `gap`
+ * chạy được ở 11 loại nhưng chỉ `group` được bày núm, nên khe hở giữa các dòng
+ * trong một tấm thẻ là thứ có thật mà không ai chỉnh tới được.
+ *
+ * Con số là BẬC 0..7 (xem `TEN_BAC`), không phải điểm ảnh — đổi "Độ thoáng cả
+ * clip" là mọi bậc giãn theo.
+ *
+ * SỐ MẶC ĐỊNH PHẢI ĐÚNG. Trước đây núm luôn hiện bậc 0 khi kịch bản chưa khai,
+ * trong khi tấm thẻ thật đang đệm bậc 5 — núm nói dối, và người dùng bấm vào
+ * bậc 0 tưởng "giữ nguyên" thì thẻ co lại.
+ *
+ * Đo thật bằng Chromium, không đọc code mà đoán: dựng một cảnh có đủ 24 loại,
+ * vặn bậc 0 → 7 rồi đo lại `padding`/`gap` của từng nút. `tools/kiem-dem-khe.mjs`
+ * chạy đúng phép đo đó, nên bộ dựng đổi là bài kiểm biết ngay.
+ */
+export const DEM_TRONG = {
+  group: 0, card: 5, form: 5, calendar: 5, chip: 4, timeline: 2, chat: 4, upload: 5,
+};
+
+export const KHE_HO = {
+  group: 4, text: 3, card: 3, form: 4, calendar: 3, chip: 1,
+  logo: 3, chat: 3, shield: 4, upload: 3, hangnhan: 4,
+};
+
+/** Núm khe hở gọi tên khác nhau tuỳ loại — "các phần" chỉ đúng với cụm. */
+export const NHAN_KHE_HO = {
+  group: 'Khoảng cách giữa các phần',
+  text: 'Khoảng cách giữa các dòng',
+  hangnhan: 'Khoảng cách giữa các nhãn',
+};
+
+/**
+ * HIỆU ỨNG HÌNH — nhoè, bóng đổ, đẩy máy chậm.
+ *
+ * Ba thứ làm một clip trông "điện ảnh" hơn mà không phải vẽ lại gì: chiều sâu
+ * (nhoè hậu cảnh), khối (bóng đổ), và máy quay không bao giờ đứng chết (đẩy máy
+ * rất chậm suốt cảnh).
+ *
+ * Tất cả đều là BẬC, không phải điểm ảnh — đổi khổ clip thì hiệu ứng giãn theo.
+ * Và tất cả đều lái bằng `t` của clip, KHÔNG bằng animation của CSS: bộ xuất
+ * video nhảy thẳng tới từng mốc giây, dùng CSS là mỗi lần xuất ra một khung
+ * khác nhau. Xem `docs/HIEU-UNG-HINH.md`.
+ *
+ * Áp được cho MỌI loại phần tử — `filter` của trình duyệt không kén loại.
+ */
+export const BAC_NHOE  = ['Không', 'Rất nhẹ', 'Nhẹ', 'Vừa', 'Đậm', 'Rất đậm'];
+export const BAC_BONG  = ['Không', 'Rất nhẹ', 'Nhẹ', 'Vừa', 'Đậm', 'Rất đậm'];
+export const BAC_DAY   = ['Không', 'Rất chậm', 'Chậm', 'Vừa', 'Rõ'];
+
+export const NUM_HIEU_UNG = [
+  { id: 'soft',   nhan: 'Làm nhoè',        kieu: 'bac', bac: BAC_NHOE },
+  { id: 'softIn', nhan: 'Nét dần khi vào', kieu: 'bac', bac: BAC_NHOE },
+  { id: 'shadow', nhan: 'Bóng đổ',         kieu: 'bac', bac: BAC_BONG },
+  { id: 'push',   nhan: 'Đẩy máy chậm',    kieu: 'bac', bac: BAC_DAY },
+  { id: 'pushOut', nhan: 'Đẩy ra thay vì đẩy vào', kieu: 'bat' },
+];
+
 export const NUM_RIENG = {
   text: [
     { id: 'text', nhan: 'Dòng chính', kieu: 'vanban',
@@ -143,7 +207,10 @@ export const NUM_RIENG = {
              { id: 'dots', nhan: 'Số chấm bước', kieu: 'so', min: 0, max: 8 }],
   table:    [{ id: 'columns', nhan: 'Tên các cột', kieu: 'danhsach' },
              { id: 'rows', nhan: 'Số dòng', kieu: 'so', min: 0, max: 20 }, ...MAU_CHU],
-  browser:  [{ id: 'url', nhan: 'Địa chỉ trên thanh', kieu: 'chu' }],
+  browser:  [{ id: 'url', nhan: 'Địa chỉ trên thanh', kieu: 'chu' },
+             { id: 'src', nhan: 'Ảnh hoặc video trong cửa sổ', kieu: 'hinh',
+               goi: 'bỏ trống thì hiện mấy vạch giả như trang đang tải' },
+             { id: 'loop', nhan: 'Phát lặp lại', kieu: 'bat' }],
   /*
    * VIDEO. Đặt kín khung thì thành nền động; thu nhỏ lại thì lồng được vào màn
    * hình điện thoại hay khung trình duyệt. Muốn làm nền thì chọn "Chỗ đặt" →
@@ -188,7 +255,8 @@ export const NUM_RIENG = {
   sweep:    [{ id: 'angle', nhan: 'Góc nghiêng', kieu: 'so', min: -90, max: 90 },
              { id: 'width', nhan: 'Bề rộng vệt', kieu: 'so', min: 10, max: 600 },
              { id: 'color', nhan: 'Màu vệt', kieu: 'mau' }],
-  phone:    [{ id: 'src', nhan: 'Ảnh trong màn hình', kieu: 'anh' }],
+  phone:    [{ id: 'src', nhan: 'Ảnh hoặc video trong màn hình', kieu: 'hinh' },
+             { id: 'loop', nhan: 'Phát lặp lại', kieu: 'bat' }],
   quydao:   [{ id: 'core', nhan: 'Vật ở tâm', kieu: 'chon', chon: [
                { v: 'cau', nhan: 'Quả cầu' }, { v: 'web', nhan: 'Cửa sổ trình duyệt' },
                { v: 'sao', nhan: 'Ngôi sao' }, { v: 'tim', nhan: 'Ô tìm kiếm' }] },
@@ -228,4 +296,293 @@ export const NUM_MAU = [
 export const MAU_MAT_BAO = {
   bg: '#0A1F3C', ink: '#E8EDF5', accent: '#00A3FF', accent2: '#4A9EFF',
   hot: '#ED7225', hot2: '#E3272C',
+};
+
+/* ===========================================================================
+ * SỔ HƯỚNG DẪN TẠI CHỖ
+ *
+ * Mỗi núm một cặp: `tieuDe` (tên + công dụng cốt lõi, dưới 6 từ) và `mota`
+ * (1–2 câu tả cơ chế, dưới 35 từ). Bảng thuộc tính tự dựng nút hỏi từ đây —
+ * thêm hướng dẫn cho núm mới là viết thêm một dòng ở đây, KHÔNG đụng UI code.
+ *
+ * Luật viết, giống hệt phần trên của file này:
+ *   · Không từ kỹ thuật. Không "opacity", không "easing", không "padding".
+ *   · Tả thứ MẮT NGƯỜI XEM THẤY đổi, không tả tên biến trong bộ dựng.
+ *   · Nói luôn cái bẫy nếu núm đó có bẫy — đó mới là chỗ người dùng cần cứu.
+ * ======================================================================== */
+
+const HUONG_DAN = {
+  /* ---------- chữ ---------- */
+  'text.text': { tieuDe: 'Dòng chữ chính',
+    mota: 'Chữ to nhất của món. Bọc một đoạn trong dấu sao để tô màu nhấn, gõ dấu gạch đứng để xuống dòng đúng chỗ mình muốn.' },
+  'text.sub': { tieuDe: 'Câu phụ dưới dòng chính',
+    mota: 'Dòng nhỏ nằm ngay dưới, cỡ chữ tự tính theo dòng chính. Bỏ trống thì không hiện gì cả.' },
+  'text.size': { tieuDe: 'Cỡ chữ trên khung hình',
+    mota: 'Tính theo khung hình của clip chứ không theo màn hình. Clip dọc 720 rộng thì cỡ 48 đã là một dòng tiêu đề lớn.' },
+  'text.align': { tieuDe: 'Căn chữ trái, giữa hay phải',
+    mota: 'Căn trong bề rộng của chính món chữ. Món đang dùng vùng đặt sẵn thì bề rộng là cả vùng đó.' },
+  'text.rule': { tieuDe: 'Gạch ngắn ngăn hai dòng',
+    mota: 'Chèn một gạch ngắn màu nhấn giữa dòng chính và câu phụ. Dùng khi hai dòng nói hai ý khác nhau.' },
+  'text.subScale': { tieuDe: 'Câu phụ nhỏ bằng bao nhiêu',
+    mota: 'Một phần mấy của dòng chính. Để 0,34 là câu phụ nhỏ bằng một phần ba — mức dễ đọc mà không tranh chỗ.' },
+  'text.lineStagger': { tieuDe: 'Hiện lần lượt từng dòng',
+    mota: 'Số giây cách nhau giữa các dòng. Bật cái này thì món KHÔNG chạy hiệu ứng bay vào chung nữa, từng dòng tự hiện lấy.' },
+
+  /* ---------- nút bấm ---------- */
+  'nut.label': { tieuDe: 'Chữ trên nút',
+    mota: 'Nên là một hành động ngắn: "Khám phá ngay", "Dùng thử". Nút dài quá thì chữ co lại và mất vẻ dứt khoát.' },
+  'nut.size': { tieuDe: 'Cỡ chữ trong nút',
+    mota: 'Nút tự nở theo chữ, nên đổi cỡ chữ là đổi luôn cả kích thước nút.' },
+  'nut.ticks': { tieuDe: 'Cho nút đập nhịp',
+    mota: 'Nút phồng lên xẹp xuống đều đặn để hút mắt. Cả clip chỉ nên có MỘT món đập nhịp — nhiều thứ cùng động thì chẳng thứ nào nổi.' },
+
+  /* ---------- ảnh ---------- */
+  'image.src': { tieuDe: 'File ảnh trong dự án',
+    mota: 'Đường dẫn tính từ gốc dự án clip, ví dụ public/image/logo.png.' },
+  'image.fit': { tieuDe: 'Ảnh lấp đầy hay vừa khung',
+    mota: 'Lấp đầy thì ảnh phủ kín ô và bị cắt bớt hai bên. Vừa khung thì thấy trọn ảnh — logo luôn phải chọn Vừa khung, không thì mất chữ.' },
+  'image.radius': { tieuDe: 'Bo tròn góc ảnh',
+    mota: 'Số càng lớn góc càng tròn. Để 0 là góc vuông.' },
+  'image.glow': { tieuDe: 'Quầng sáng sau ảnh',
+    mota: 'Lót một vầng sáng mềm phía sau để ảnh tách khỏi thứ đứng sau lưng nó. Hợp với logo đặt trên nền nhiều chi tiết.' },
+  'image.shine': { tieuDe: 'Vệt sáng quét qua ảnh',
+    mota: 'Số giây cho một vòng quét. Quét một nhát rồi nghỉ chứ không quét liên tục — quét mãi thì thành đèn nhấp nháy, mắt bỏ qua ngay.' },
+
+  /* ---------- logo, huy hiệu, hàng nhãn ---------- */
+  'logo.name': { tieuDe: 'Tên thương hiệu',
+    mota: 'Chữ đứng cạnh dấu hiệu.' },
+  'logo.mark': { tieuDe: 'Dấu hiệu đứng trước tên',
+    mota: 'Một hai chữ cái viết tắt, hiện trong ô vuông bo góc màu nhấn.' },
+  'logo.size': { tieuDe: 'Cỡ cả cụm logo',
+    mota: 'Đổi một số thì cả dấu hiệu lẫn chữ to nhỏ theo, không lệch nhau.' },
+  'huyhieu.mark': { tieuDe: 'Biểu tượng trong huy hiệu',
+    mota: 'Chọn một hình có sẵn, hoặc để trống rồi tự gõ chữ vào giữa.' },
+  'huyhieu.size': { tieuDe: 'Cỡ hình trong huy hiệu',
+    mota: 'Phần trăm so với vòng tròn bao ngoài. Số nhỏ thì hình co lại, chừa nhiều khoảng trống quanh nó.' },
+  'hangnhan.items': { tieuDe: 'Các nhãn trên một hàng',
+    mota: 'Mỗi dòng một nhãn, khi hiện ra chúng nằm cùng hàng và ngăn nhau bằng dấu chấm giữa.' },
+  'hangnhan.size': { tieuDe: 'Cỡ chữ của hàng nhãn',
+    mota: 'Hàng nhãn là chữ phụ, nên để nhỏ hơn hẳn dòng chính thì bố cục mới có trên có dưới.' },
+
+  /* ---------- nhãn số, thẻ, bảng, biểu mẫu ---------- */
+  'chip.value': { tieuDe: 'Con số nổi bật',
+    mota: 'Phần chữ to nhất của nhãn, thường là con số hoặc phần trăm.' },
+  'chip.label': { tieuDe: 'Nhãn dưới con số',
+    mota: 'Câu ngắn nói con số đó là cái gì.' },
+  'chip.note': { tieuDe: 'Ghi chú nhỏ thêm',
+    mota: 'Dòng nhỏ nhất, dùng cho chú thích kiểu "so với tháng trước".' },
+  'chip.outline': { tieuDe: 'Chỉ vẽ viền, bỏ nền',
+    mota: 'Nhãn thành trong suốt chỉ còn đường viền. Dùng khi đặt trên nền đã nhiều màu, đỡ chồng khối lên nhau.' },
+  'card.title': { tieuDe: 'Tiêu đề trên thẻ',
+    mota: 'Dòng đậm trên cùng của thẻ.' },
+  'card.rows': { tieuDe: 'Số dòng giả trong thẻ',
+    mota: 'Mấy vạch xám tượng trưng cho nội dung. Đây là thẻ minh hoạ giao diện nên không gõ chữ thật vào từng dòng.' },
+  'card.button': { tieuDe: 'Chữ trên nút của thẻ',
+    mota: 'Bỏ trống thì thẻ không có nút.' },
+  'table.columns': { tieuDe: 'Tên các cột',
+    mota: 'Mỗi dòng một tên cột. Số cột quyết định bề rộng chia đều trong bảng.' },
+  'table.rows': { tieuDe: 'Số dòng giả trong bảng',
+    mota: 'Các dòng vẽ bằng vạch xám, dùng để gợi hình một bảng dữ liệu chứ không phải để điền số thật.' },
+  'form.title': { tieuDe: 'Tiêu đề biểu mẫu',
+    mota: 'Dòng trên cùng của khối biểu mẫu.' },
+  'form.dots': { tieuDe: 'Số chấm chỉ bước',
+    mota: 'Dãy chấm nhỏ cho thấy biểu mẫu có mấy bước, kiểu "bước 2 trên 4".' },
+
+  /* ---------- trình duyệt, điện thoại, dòng thời gian ---------- */
+  'browser.url': { tieuDe: 'Địa chỉ trên thanh',
+    mota: 'Chữ hiện trong thanh địa chỉ của khung trình duyệt giả.' },
+  'browser.src': { tieuDe: 'Hình trong cửa sổ',
+    mota: 'Thả ảnh hoặc đoạn phim lấp đầy thân cửa sổ. Bỏ trống thì hiện mấy vạch xám như trang đang tải dở.' },
+  'browser.loop': { tieuDe: 'Hết thì quay lại đầu',
+    mota: 'Phim ngắn hơn cảnh thì cứ chạy vòng. Tắt đi thì nó dừng ở khung cuối và đứng yên tới hết cảnh.' },
+  'phone.src': { tieuDe: 'Hình trong màn hình máy',
+    mota: 'Thả ảnh hoặc đoạn phim vào màn hình. Nó được cắt vừa khít, khung máy vẽ sẵn bao quanh.' },
+  'phone.loop': { tieuDe: 'Hết thì quay lại đầu',
+    mota: 'Phim ngắn hơn cảnh thì cứ chạy vòng. Tắt đi thì nó dừng ở khung cuối và đứng yên tới hết cảnh.' },
+  'timeline.labels': { tieuDe: 'Các mốc trên dòng thời gian',
+    mota: 'Mỗi dòng một mốc. Chúng được rải đều trên một đường ngang, có chấm đánh dấu từng mốc.' },
+
+  /* ---------- video ---------- */
+  'video.src': { tieuDe: 'File video làm nền',
+    mota: 'Chọn file trong thư mục video của dự án. File nào trình duyệt không mở được sẽ báo ngay kèm nút chuyển đổi.' },
+  'video.fit': { tieuDe: 'Video lấp đầy hay vừa khung',
+    mota: 'Làm nền thì chọn Lấp đầy để không hở mép. Vừa khung dùng khi muốn thấy trọn khuôn hình gốc.' },
+  'video.blur': { tieuDe: 'Làm mờ nền động',
+    mota: 'Mờ nền đi thì chữ và thẻ phía trên mới nổi lên. Để 0 là nét căng — chỉ hợp khi phía trên không có chữ.' },
+  'video.dim': { tieuDe: 'Phủ lớp đen lên video',
+    mota: 'Kéo lên cho nền tối lại. Cách nhanh nhất để cứu một dòng chữ trắng đang chìm vào chỗ sáng của video.' },
+  'video.radius': { tieuDe: 'Bo tròn góc khung video',
+    mota: 'Để 0 khi làm nền phủ kín; bo góc khi lồng video vào trong một khung nhỏ.' },
+  'video.loop': { tieuDe: 'Hết thì chạy lại từ đầu',
+    mota: 'Video ngắn hơn cảnh thì phải bật, không thì nó đứng hình ở khung cuối và người xem tưởng treo.' },
+  'video.start': { tieuDe: 'Bắt đầu từ giây thứ mấy',
+    mota: 'Cắt bỏ đoạn đầu của file. Dùng khi mấy giây đầu của video chưa đẹp.' },
+  'video.rate': { tieuDe: 'Tốc độ phát video',
+    mota: 'Để 1 là như thật, 0,5 là chậm một nửa. Nền động chạy chậm thường dễ nhìn hơn vì nó không tranh mắt với chữ.' },
+
+  /* ---------- cửa sổ AI, khiên, ô kéo thả ---------- */
+  'chat.title': { tieuDe: 'Tiêu đề cửa sổ trò chuyện',
+    mota: 'Chữ trên thanh đầu cửa sổ.' },
+  'chat.lines': { tieuDe: 'Các câu đã nói',
+    mota: 'Mỗi dòng một bong bóng thoại, xếp lần lượt từ trên xuống.' },
+  'chat.typing': { tieuDe: 'Câu đang được gõ dở',
+    mota: 'Hiện trong ô nhập kèm con trỏ nháy, để thấy cuộc trò chuyện vẫn đang diễn ra.' },
+  'shield.mark': { tieuDe: 'Dấu trên mặt khiên',
+    mota: 'Một hai ký tự nằm giữa khiên.' },
+  'shield.badges': { tieuDe: 'Nhãn chứng nhận quanh khiên',
+    mota: 'Mỗi dòng một nhãn, bay quanh khiên như huy hiệu chứng nhận.' },
+  'upload.label': { tieuDe: 'Chữ trong ô kéo thả',
+    mota: 'Câu mời kéo file vào, ví dụ "Kéo file vào đây".' },
+  'upload.file': { tieuDe: 'Tên file sau khi thả',
+    mota: 'Bỏ trống thì ô vẫn ở trạng thái đang chờ, chưa có file nào.' },
+
+  /* ---------- lịch, vòng quay ---------- */
+  'calendar.month': { tieuDe: 'Tên tháng trên lịch',
+    mota: 'Chữ ở đầu tấm lịch.' },
+  'calendar.cta': { tieuDe: 'Chữ trên nút của lịch',
+    mota: 'Nút nhỏ dưới tấm lịch, thường là lời mời đặt hẹn.' },
+  'calendar.days': { tieuDe: 'Số ngày trong tháng',
+    mota: 'Quyết định lịch có bao nhiêu ô.' },
+  'calendar.offset': { tieuDe: 'Mùng một rơi vào thứ mấy',
+    mota: 'Đẩy ô đầu tiên sang phải chừng này cột, để hàng ngày trong tuần khớp với lịch thật.' },
+  'calendar.highlight': { tieuDe: 'Ngày được tô đậm',
+    mota: 'Một ngày duy nhất được khoanh màu nhấn. Để 0 là không tô ngày nào.' },
+  'wheel.slices': { tieuDe: 'Số nan của vòng quay',
+    mota: 'Vòng chia đều thành chừng này phần.' },
+  'wheel.label': { tieuDe: 'Chữ trong nút giữa vòng',
+    mota: 'Chữ nằm trên cái nút tròn ở tâm.' },
+  'wheel.spin': { tieuDe: 'Cho vòng quay tít',
+    mota: 'Số càng lớn quay càng nhanh. Để 0 là vòng đứng yên.' },
+  'wheel.colors': { tieuDe: 'Màu các nan',
+    mota: 'Mỗi dòng một mã màu, dùng lặp vòng cho tới hết số nan. Bỏ trống thì dùng bộ màu sẵn có.' },
+
+  /* ---------- khối màu, vệt sáng ---------- */
+  'panel.fill': { tieuDe: 'Màu của khối',
+    mota: 'Khối màu hay được dùng làm nền cho chữ đặt lên trên. Nhớ chọn màu chữ đủ tương phản với nó.' },
+  'panel.radius': { tieuDe: 'Bo tròn góc khối',
+    mota: 'Số càng lớn góc càng tròn.' },
+  'sweep.angle': { tieuDe: 'Góc nghiêng của vệt sáng',
+    mota: 'Độ nghiêng so với phương ngang. Vệt chéo nhìn động hơn vệt thẳng đứng.' },
+  'sweep.width': { tieuDe: 'Bề rộng vệt sáng',
+    mota: 'Vệt hẹp thì như tia loé, vệt rộng thì như một luồng sáng quét chậm qua khung.' },
+  'sweep.color': { tieuDe: 'Màu vệt sáng',
+    mota: 'Vệt sáng chỉ nổi trên nền tối. Trên nền sáng thì gần như không thấy.' },
+
+  /* ---------- quỹ đạo ---------- */
+  'quydao.core': { tieuDe: 'Vật nằm ở tâm quỹ đạo',
+    mota: 'Thứ đứng giữa, có mấy vòng elip nét đứt quay quanh nó.' },
+  'quydao.label': { tieuDe: 'Tên miền hiện trong thẻ',
+    mota: 'Phần đuôi của tên miền được tách ra và hiện to trong tấm thẻ.' },
+  'quydao.query': { tieuDe: 'Chữ gõ trong ô tìm kiếm',
+    mota: 'Bỏ trống thì ô tìm kiếm để trống.' },
+  'quydao.logo': { tieuDe: 'Logo bày trong thẻ',
+    mota: 'Có logo thì thẻ hiện logo thay cho phần đuôi tên miền viết bằng chữ.' },
+  'quydao.arrow': { tieuDe: 'Mũi tên đi lên',
+    mota: 'Thêm một mũi tên tăng trưởng. Dùng cho cảnh nói về đà đi lên.' },
+  'quydao.warm': { tieuDe: 'Pha màu nóng vào quỹ đạo',
+    mota: 'Đổi vòng và quả cầu sang tông nóng. Để dành cho cảnh kêu gọi hành động ở cuối clip.' },
+
+  /* ---------- nền thương hiệu ---------- */
+  'nen.parts': { tieuDe: 'Bật tắt từng món đồ nền',
+    mota: 'Nền thương hiệu gom sẵn lưới chấm, nét mảnh, khối mềm, sóng đáy. Tắt bớt khi cảnh đã nhiều chi tiết.' },
+  'nen.draw': { tieuDe: 'Vẽ dần đường tăng trưởng',
+    mota: 'Số giây để nét vẽ chạy hết. Để 0 khi cảnh này nối tiếp cảnh trước — coi như đã vẽ xong từ trước.' },
+  'nen.waveLow': { tieuDe: 'Hạ dải sóng xuống thấp',
+    mota: 'Đẩy sóng đáy xuống để chừa chỗ cho dòng chữ cuối đứng trên phần nền sáng.' },
+
+  /* ---------- cụm ---------- */
+  'group.dir': { tieuDe: 'Cụm xếp dọc hay ngang',
+    mota: 'Xếp dọc là các món chồng lên nhau từ trên xuống; xếp ngang là nằm cạnh nhau từ trái sang.' },
+  'group.align': { tieuDe: 'Căn các món theo chiều ngang',
+    mota: 'Cụm xếp dọc thì đây là căn trái, giữa hay phải cho tất cả các món trong cụm.' },
+  'group.justify': { tieuDe: 'Căn các món theo chiều dọc',
+    mota: 'Quyết định cả chồng món dồn lên trên, nằm giữa, hay tụt xuống dưới trong khoảng cụm chiếm.' },
+
+  /* ---------- màu chữ riêng, dùng chung cho nhiều loại ---------- */
+  ink: { tieuDe: 'Màu chữ riêng cho món này',
+    mota: 'Bỏ trống là dùng màu chữ chung của clip. Đặt ở đây thì mọi thứ bên trong món cũng đổi màu theo — cách cứu chữ bị chìm vào nền.' },
+};
+
+/* Núm `ink` khai chung một chỗ nên gắn cho mọi loại có nó. */
+for (const ds of Object.values(NUM_RIENG)) {
+  for (const n of ds) if (n.id === 'ink' && !n.huongDan) n.huongDan = HUONG_DAN.ink;
+}
+for (const [khoa, hd] of Object.entries(HUONG_DAN)) {
+  if (!khoa.includes('.')) continue;
+  const [loai, id] = khoa.split('.');
+  const num = (NUM_RIENG[loai] || []).find((n) => n.id === id);
+  // Khoá sai chính tả thì im lặng trôi mất — kêu lên để còn sửa.
+  if (!num) console.warn(`[schema] hướng dẫn "${khoa}" không khớp núm nào`);
+  else num.huongDan = hd;
+}
+
+/**
+ * Hướng dẫn cho NÚM CHUNG — thứ bảng thuộc tính tự thêm cho mọi loại phần tử,
+ * nên không khai được trong `NUM_RIENG`. Khoá theo `id` của núm.
+ */
+export const HUONG_DAN_CHUNG = {
+  in: { tieuDe: 'Cách món xuất hiện',
+    mota: 'Chọn kiểu món bay vào khi tới lượt nó. "Nở ra êm" phóng món to dần từ tâm ra, "Trượt lên nhẹ" đẩy món từ dưới lên — kiểu mặc định của nhà.' },
+  out: { tieuDe: 'Cách món biến đi',
+    mota: 'Chỉ chạy khi món có hẹn giờ biến, hoặc khi sang cảnh mới. Bỏ trống là dùng kiểu mờ dần mặc định.' },
+  cachDat: { tieuDe: 'Đặt sẵn hay tự đặt chỗ',
+    mota: 'Đặt sẵn thì bộ dựng lo chỗ theo vùng, đổi khổ clip vẫn đúng. Tự đặt thì bạn kéo tay — chính xác hơn nhưng đổi khổ là phải chỉnh lại.' },
+  at: { tieuDe: 'Chờ rồi mới hiện',
+    mota: 'Số giây món nằm im chưa xuất hiện, tính từ đầu cảnh. Đây là thứ làm nên nhịp: cho các món vào lệch nhau thay vì ùa ra một lượt.' },
+  for: { tieuDe: 'Ở lại trong bao lâu',
+    mota: 'Hiện chừng này giây rồi biến. Bỏ trống là ở tới hết cảnh — phần lớn trường hợp cứ bỏ trống.' },
+  dur: { tieuDe: 'Hiệu ứng chạy nhanh hay chậm',
+    mota: 'Số giây để món vào xong. Nhỏ thì dứt khoát, lớn thì mềm mại. Dưới 0,3 giây gần như không kịp thấy chuyển động.' },
+  ease: { tieuDe: 'Kiểu lấy đà của chuyển động',
+    mota: 'Chậm dần lại là mặc định của nhà, hợp mọi chỗ. Vượt quá rồi lùi cho cảm giác nảy, hợp huy hiệu và nút.' },
+  dist: { tieuDe: 'Món đi xa hay gần',
+    mota: 'Quãng đường món trượt khi bay vào. Bỏ trống thì bộ dựng tự chọn theo cỡ khung — thường là vừa nhất.' },
+  place: { tieuDe: 'Vùng đặt sẵn trên khung',
+    mota: 'Đây là VÙNG chứ không phải một điểm: nó đặt cả chỗ lẫn bề rộng. Nhờ vậy đổi khổ clip thì bố cục vẫn đúng.' },
+  pad: { tieuDe: 'Khoảng thở bên trong món',
+    mota: 'Nới rộng khoảng trống giữa viền món và nội dung bên trong. Đo bằng bậc chứ không bằng điểm ảnh, nên đổi độ thoáng cả clip là nó giãn theo.' },
+  gap: { tieuDe: 'Khe hở giữa các món',
+    mota: 'Cũng đo bằng bậc. Một núm này làm mọi khe trong cụm giãn đều, không chỗ nào dính nhau.' },
+  margin: { tieuDe: 'Lề chừa quanh mép khung',
+    mota: 'Khoảng cách tối thiểu từ món tới mép khung hình. Chừa đủ thì trên điện thoại không bị góc bo hay thanh trạng thái che mất.' },
+  opacity: { tieuDe: 'Độ mờ của món',
+    mota: 'Để 1 là rõ hẳn, kéo xuống cho món chìm bớt. Hay dùng để hạ đồ trang trí xuống làm nền.' },
+  rotate: { tieuDe: 'Nghiêng món đi một góc',
+    mota: 'Đây là một góc CỐ ĐỊNH, không phải chuyển động xoay. Món nghiêng rồi đứng yên ở đó.' },
+  duration: { tieuDe: 'Cảnh này dài bao lâu',
+    mota: 'Số giây của riêng cảnh. Nhớ để đủ dài cho mọi món kịp bay vào xong — bảng soát sẽ báo nếu thiếu.' },
+  stagger: { tieuDe: 'Các món vào so le nhau',
+    mota: 'Món sau vào chậm hơn món trước chừng này giây. Đây là thứ làm chuyển động bớt máy móc — bỏ đi là cả cảnh ùa ra một lượt.' },
+  src: { tieuDe: 'File đặt vào khe này',
+    mota: 'Nhận cả ảnh lẫn phim — máy tự nhận ra theo đuôi file. Phim đặt vào đây chạy theo đồng hồ của clip, tua tới đâu phim ở đó.' },
+  loop: { tieuDe: 'Hết thì quay lại từ đầu',
+    mota: 'Phim ngắn hơn cảnh thì cứ chạy vòng cho tới hết cảnh. Tắt đi thì phim dừng ở khung cuối và đứng yên tới hết.' },
+  soft: { tieuDe: 'Làm nhoè món này',
+    mota: 'Đẩy món ra sau bằng cách làm nó nhoè đi. Dùng cho hậu cảnh, để mắt người xem dính vào thứ còn sắc nét ở trước.' },
+  softIn: { tieuDe: 'Nét dần khi vào',
+    mota: 'Món vào khung còn nhoè rồi rõ dần, như ống kính vừa lấy nét xong. Hợp với ảnh và khối lớn mở đầu một cảnh.' },
+  shadow: { tieuDe: 'Bóng đổ dưới món',
+    mota: 'Nâng món lên khỏi nền, cho nó dày và có khối. Bóng bám theo đúng hình món nên logo hay ảnh khoét nền vẫn đúng viền.' },
+  push: { tieuDe: 'Đẩy máy chậm suốt cảnh',
+    mota: 'Phóng rất chậm suốt cảnh nên mắt không bắt được, chỉ thấy hình như đang thở. Đây là thứ tách một đoạn phim khỏi một tấm ảnh đứng yên.' },
+  pushOut: { tieuDe: 'Đẩy ra thay vì đẩy vào',
+    mota: 'Đổi chiều: bắt đầu ở mức lớn rồi lùi dần về. Hợp lúc kết cảnh, khi muốn mở rộng ra cho thấy toàn cảnh.' },
+  density: { tieuDe: 'Độ thoáng của cả clip',
+    mota: 'Một núm làm mọi khoảng cách trong clip giãn ra hoặc chặt lại cùng lúc, mà tương quan giữa các món không đổi.' },
+};
+
+/** Hướng dẫn cho sáu màu của cả clip. Khoá theo `id` trong `NUM_MAU`. */
+export const HUONG_DAN_MAU = {
+  bg: { tieuDe: 'Màu nền cả clip',
+    mota: 'Màu phủ dưới cùng. Đổi cái này là đổi tông cả clip, nên nhớ ngó lại màu chữ cho khỏi chìm.' },
+  ink: { tieuDe: 'Màu chữ chung',
+    mota: 'Mọi chữ trong clip dùng màu này, trừ món nào tự đặt màu chữ riêng.' },
+  accent: { tieuDe: 'Màu nhấn của thương hiệu',
+    mota: 'Dùng cho đồ nền, huy hiệu, gạch ngăn và đoạn chữ bọc trong dấu sao.' },
+  accent2: { tieuDe: 'Màu nhấn thứ hai',
+    mota: 'Có màu này thì chữ trong dấu sao chuyển dần từ màu nhấn sang đây, thay vì một màu phẳng.' },
+  hot: { tieuDe: 'Màu nóng cho nút bấm',
+    mota: 'Tách riêng khỏi màu nhấn vì hai màu làm hai việc. Trộn chung thì cái nút không còn nổi hơn thứ gì nữa.' },
+  hot2: { tieuDe: 'Màu nóng thứ hai',
+    mota: 'Vế còn lại của cặp màu nóng, dùng để chuyển màu trên nút kêu gọi hành động.' },
 };

@@ -36,10 +36,29 @@ function timDoiCu() {
      * đòi vậy là loại nhầm gần hết clip thật (đã mắc một lần).
      */
     if (statSync(f).size < 2000) continue;
-    const tieuDe = (dau.match(/<title>([^<]*)<\/title>/) || [])[1]?.trim();
+    const tieuDe = giaiMaHtml((dau.match(/<title>([^<]*)<\/title>/) || [])[1]?.trim());
     ra.push({ slug: ten.replace(/\.html$/, ''), ten: tieuDe || ten, file: ten });
   }
   return ra;
+}
+
+/**
+ * Đổi thực thể HTML trong `<title>` về chữ thật.
+ *
+ * `<title>VH-V2 · Tạo &amp; quản lý Database</title>` là HTML ĐÚNG — dấu `&`
+ * bắt buộc phải viết là `&amp;`. Nhưng chỗ này lấy nó ra làm CHỮ THƯỜNG rồi
+ * nhét vào `textContent`, nên người dùng đọc được nguyên chữ "&amp;" trong ô
+ * chọn clip, ở thanh phát và trong mọi lời nhắc.
+ *
+ * Chỉ giải năm thực thể bắt buộc của XML. Không đụng tới dạng `&#…;`: tiêu đề
+ * clip xưa nay chưa từng dùng, mà giải bừa thì mở đường cho chuỗi lạ.
+ */
+export function giaiMaHtml(t) {
+  if (typeof t !== 'string') return t;
+  return t
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&#0?39;|&apos;/g, "'")
+    .replace(/&amp;/g, '&');       // LUÔN cuối cùng, không thì "&amp;lt;" ra "<"
 }
 
 /** Tên file chỉ được là chữ thường, số và gạch ngang — không dấu chấm, không gạch chéo. */

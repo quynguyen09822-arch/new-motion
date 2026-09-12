@@ -220,10 +220,12 @@ for (const slug of dsSlug) {
     const w = document.getElementById('khung').contentWindow;
     const d = w.document;
     const c = w.__clip;
-    // Clip đời cũ chỉ dựng `__clip` khi có `export=1`, mà ta cố tình không bật.
-    // Với chúng, "đạt" nghĩa là trang mở ra và có vẽ được cái gì đó, chứ không
-    // phải là có `__clip`.
-    if (!c) {
+    // Clip đời cũ NAY CŨNG có `__clip` (trình sửa nạp chúng kèm `export=1` để
+    // chạy và tua được), nhưng `__clip` của chúng KHÔNG có `scenes()` — chúng
+    // không chia cảnh. Nên phải hỏi đúng thứ cần: có `scenes()` hay không, chứ
+    // không phải có `__clip` hay không. Với clip đời cũ, "đạt" nghĩa là trang mở
+    // ra và vẽ được cái gì đó.
+    if (!c || typeof c.scenes !== 'function') {
       return {
         doiCu: true,
         coThan: d.body ? d.body.children.length : 0,
@@ -241,18 +243,28 @@ for (const slug of dsSlug) {
     };
   });
 
-  // Khoá điều khiển: clip đời cũ phải khoá, clip đời mới phải mở.
+  /*
+   * ĐỔI Ý CÓ CHỦ Ý: trước đây mục này đòi clip đời cũ phải KHOÁ điều khiển.
+   * Nay ngược lại — clip đời cũ cũng phải chạy và tua được. Chúng phơi đủ
+   * `duration/ready/play/at/seek` khi nạp kèm `export=1`, nên khoá nút Chạy là
+   * bắt người dùng ngồi đợi hết 90 giây phim. Không sửa được thì vẫn không sửa
+   * được — chỗ đó không đổi: `lop-bat` vẫn tắt, bảng thuộc tính vẫn trống.
+   * Xem `tools/kiem-doi-cu.mjs` và `docs/GIAO-DIEN.md`.
+   */
   const khoa = await trang.evaluate(() => document.getElementById('nut-chay').disabled);
+  const suaDuoc = await trang.evaluate(() =>
+    document.getElementById('lop-bat').style.display !== 'none');
 
   const ok = kq.doiCu
-    ? kq.coThan > 0 && khoa && loiTrang.length === 0
-    : !kq.duPhong && kq.dai > 0 && kq.thieuTen === 0 && !khoa && loiTrang.length === 0;
+    ? kq.coThan > 0 && !khoa && !suaDuoc && loiTrang.length === 0
+    : !kq.duPhong && kq.dai > 0 && kq.thieuTen === 0 && !khoa && suaDuoc && loiTrang.length === 0;
 
   dat(
     `${slug}`.padEnd(16),
     ok,
     (kq.doiCu
-      ? `đời cũ · "${kq.tieuDe}" · điều khiển ${khoa ? 'đã khoá ✓' : '⚠ CHƯA KHOÁ'}`
+      ? `đời cũ · "${kq.tieuDe}" · xem được ${khoa ? '⚠ NÚT CHẠY BỊ KHOÁ' : '✓'}`
+        + (suaDuoc ? ' · ⚠ LẠI SỬA ĐƯỢC — không được phép' : '')
       : `${kq.dai.toFixed(1)}s · ${kq.soCanh} cảnh · ${kq.tong} phần tử` +
         (kq.duPhong ? ' · ⚠ RƠI VÀO KỊCH BẢN DỰ PHÒNG' : '') +
         (kq.thieuTen ? ` · ⚠ ${kq.thieuTen} phần tử thiếu tên` : '') +

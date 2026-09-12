@@ -3,19 +3,29 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Sửa clip — Mắt Bão</title>
+<!-- Phông chữ có đủ đường lùi hệ thống trong `--font`: mạng hỏng thì giao diện
+     vẫn đúng, chỉ khác nét chữ. KHÔNG nạp phông vào clip. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="/app.css">
 
 <div id="app">
   <header class="thanh-tren">
+    <div class="o-hieu" aria-hidden="true">MB</div>
     <div class="hieu">Sửa clip</div>
     <select id="chon-clip" class="chon" aria-label="Chọn clip"></select>
-    <span id="dang-clip" class="phu"></span>
+    <span id="dau-ban" class="dau-ban an">chưa lưu</span>
 
     <div class="day"></div>
 
-    <button id="nut-lui" class="nut nho" type="button" title="Ctrl+Z">↩</button>
-    <button id="nut-toi" class="nut nho" type="button" title="Ctrl+Shift+Z">↪</button>
-    <span id="dau-ban" class="dau-ban an">chưa lưu</span>
+    <span id="dang-clip" class="chip-tin"></span>
+
+    <span class="nhom-nut">
+      <button id="nut-lui" class="nut-tron" type="button" title="Hoàn tác (Ctrl+Z)" aria-label="Hoàn tác"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 4L2.5 7.5 6 11"/><path d="M2.5 7.5h7a4 4 0 0 1 0 8H8"/></svg></button>
+      <button id="nut-toi" class="nut-tron" type="button" title="Làm lại (Ctrl+Shift+Z)" aria-label="Làm lại"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 4l3.5 3.5L10 11"/><path d="M13.5 7.5h-7a4 4 0 0 0 0 8H8"/></svg></button>
+    </span>
     <button id="nut-luu" class="nut chinh" type="button" title="Ctrl+S">Lưu</button>
   </header>
 
@@ -38,6 +48,13 @@
           <button id="mon-nhan" class="nut-ti" type="button" title="Nhân bản thành phần đang chọn"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 5.5v-2a1.5 1.5 0 0 0-1.5-1.5H4a1.5 1.5 0 0 0-1.5 1.5V9A1.5 1.5 0 0 0 4 10.5h2"/></svg></button>
           <button id="mon-xoa" class="nut-ti" type="button" title="Xoá thành phần đang chọn"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
         </span>
+      </div>
+      <!-- Lọc theo tên: một cảnh có tới 156 thành phần, cuộn tay là hết ngày. -->
+      <div class="hop-tim">
+        <svg class="tim-kinh" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>
+        <input id="tim-lop" class="nhap-tim" type="search" autocomplete="off"
+               placeholder="Lọc thành phần…" aria-label="Lọc thành phần theo tên">
+        <span id="tim-dem" class="tim-dem"></span>
       </div>
       <div id="ds-lop" class="ds-lop"></div>
       <div id="menu-them" class="menu-them an"></div>
@@ -68,13 +85,6 @@
         <button id="phong-lai" class="nut nho" type="button"
                 title="Về 100% (Ctrl+0)">Vừa khung</button>
       </div>
-
-      <div class="dieu-khien">
-        <button id="nut-chay" class="nut chinh" type="button">▶ Chạy</button>
-        <input id="thanh-tua" class="thanh-tua" type="range" min="0" max="1000" value="0"
-               step="1" aria-label="Tua clip">
-        <span id="dong-ho" class="dong-ho">0,0 / 0,0 giây</span>
-      </div>
     </main>
 
     <aside class="cot-phai">
@@ -90,6 +100,33 @@
       <div id="bang-video" class="bang-tt an"></div>
     </aside>
   </div>
+
+  <!-- Thanh phát dưới cùng: tên cảnh đang đứng · nút chạy · thanh tua · đồng hồ.
+       Tách khỏi khung xem để lúc phóng to khung, chỗ điều khiển vẫn đứng yên. -->
+  <footer class="thanh-duoi">
+    <div class="dang-phat">
+      <div id="anh-canh" class="anh-canh" aria-hidden="true"><svg viewBox="0 0 16 16"><rect x="1.5" y="3" width="13" height="10" rx="2"/><path d="M4.5 3v10M11.5 3v10"/></svg></div>
+      <div class="dang-phat-chu">
+        <span id="ten-canh" class="ten-canh">Chưa mở clip</span>
+        <span id="phu-canh" class="phu-canh"></span>
+      </div>
+    </div>
+
+    <div class="dieu-khien">
+      <!-- Hình vẽ bằng SVG, nhưng chữ "Chạy"/"Dừng" vẫn nằm thật trong DOM cho
+           trình đọc màn hình — và `kiem-chay-dung.mjs` đọc đúng chữ đó. -->
+      <button id="nut-chay" class="nut-phat" type="button" data-chay="0" aria-label="Chạy">
+        <svg class="hinh-chay" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.2l8 4.8-8 4.8z"/></svg>
+        <svg class="hinh-dung" viewBox="0 0 16 16" aria-hidden="true"><rect x="4" y="3.4" width="3" height="9.2" rx="1"/><rect x="9" y="3.4" width="3" height="9.2" rx="1"/></svg>
+        <span class="chay-nhan chi-doc">Chạy</span>
+      </button>
+      <input id="thanh-tua" class="thanh-tua" type="range" min="0" max="1000" value="0"
+             step="1" aria-label="Tua clip">
+      <span id="dong-ho" class="dong-ho">0,0 / 0,0 giây</span>
+    </div>
+
+    <div class="tien-ich-phai"></div>
+  </footer>
 
   <div id="bao" class="bao an" role="status" aria-live="polite"></div>
 </div>

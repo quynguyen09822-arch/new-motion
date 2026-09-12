@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Mắt Bão Studio — Trình biên tập Video chuyên nghiệp</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+/* ==========================================================================
+   MẮT BÃO VIDEO STUDIO — SPOTIFY DESIGN LANGUAGE SYSTEM
+   ========================================================================== */
+:root {
+  --trang-nen:  #000000;   /* Nền sâu */
+  --nen:        #121212;   /* Khối nổi chính */
+  --nen-2:      #181818;   /* Khối thẻ con, thanh công cụ */
+  --nen-3:      #242424;   /* Hover, ô input */
+  --nen-4:      #333333;   /* Viền, thanh rãnh */
+  --vach:       #262626;
+
+  /* Màu chữ */
+  --chu:        #ffffff;
+  --chu-mo:     #b3b3b3;
+  --chu-mo-2:   #727272;
+
+  /* Nhấn Spotify */
+  --nhan:       #31d975;
+  --nhan-sang:  #44f38b;
+  --nhan-nhe:   rgba(49, 217, 117, 0.15);
+  --tren-nhan:  #000000;
+
+  /* Track colors */
+  --track-v:    #1e3a5f;
+  --track-v-bd: #38bdf8;
+  --track-a:    #064e3b;
+  --track-a-bd: #34d399;
+  --track-t:    #581c87;
+  --track-t-bd: #c084fc;
+
+  /* Trạng thái */
+  --cam:        #f97316;
+  --do:         #ef4444;
+  --vang:       #eab308;
+  --lam:        #3b82f6;
+
+  /* Bo góc */
+  --bo-nho:     4px;
+  --bo:         8px;
+  --bo-khoi:    10px;
+  --bo-tron:    9999px;
+
+  /* Nhịp */
+  --nhip-nhanh: 120ms;
+  --nhip:       200ms;
+  --da:         cubic-bezier(.3, 0, 0, 1);
+  --font: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: var(--trang-nen);
+  color: var(--chu);
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* Material Icons size sync */
+.ms {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 18px;
+  line-height: 1;
+  display: inline-block;
+  white-space: nowrap;
+  letter-spacing: normal;
+  text-transform: none;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+.cuon { overflow-y: auto; scrollbar-width: thin; scrollbar-color: transparent transparent; }
+.cuon:hover { scrollbar-color: var(--nen-4) transparent; }
+.cuon::-webkit-scrollbar { width: 6px; height: 6px; }
+.cuon::-webkit-scrollbar-track { background: transparent; }
+.cuon::-webkit-scrollbar-thumb { background: transparent; border-radius: var(--bo-tron); }
+.cuon:hover::-webkit-scrollbar-thumb { background: var(--nen-4); }
+
+/* Bố cục ứng dụng chính */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  padding: 8px;
+  gap: 8px;
+  box-sizing: border-box;
+}
+
+/* Thanh đỉnh (Top Bar) */
+.thanh-dinh {
+  height: 48px;
+  background: var(--nen);
+  border-radius: var(--bo-khoi);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  flex-shrink: 0;
+}
+
+.khu-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.logo-badge {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, var(--nhan), #0ea5e9);
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+  font-weight: 800;
+  font-size: 15px;
+}
+.ten-du-an {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ten-du-an h1 {
+  font-size: 13.5px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--chu);
+}
+.da-luu-chip {
+  font-size: 11px;
+  color: var(--nhan);
+  background: var(--nhan-nhe);
+  padding: 2px 8px;
+  border-radius: var(--bo-tron);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.khu-giua-dinh {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.khu-phai-dinh {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Nút bấm tổng quát */
+.nut {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 0;
+  border-radius: var(--bo-tron);
+  background: var(--nen-3);
+  color: var(--chu);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--nhip-nhanh) var(--da);
+}
+.nut:hover { background: var(--nen-4); transform: scale(1.02); }
+.nut:active { transform: scale(0.98); }
+.nut.chinh {
+  background: var(--nhan);
+  color: var(--tren-nhan);
+  font-weight: 700;
+}
+.nut.chinh:hover { background: var(--nhan-sang); box-shadow: 0 0 16px rgba(49, 217, 117, 0.4); }
+.nut.vien { background: transparent; border: 1px solid var(--nen-4); }
+.nut.vien:hover { border-color: var(--chu); }
+.nut.nho { padding: 4px 10px; font-size: 11px; }
+
+.nut-icon {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--chu-mo);
+  cursor: pointer;
+  transition: all var(--nhip-nhanh) var(--da);
+  flex-shrink: 0;
+}
+.nut-icon:hover { color: var(--chu); background: rgba(255,255,255,0.08); transform: scale(1.06); }
+.nut-icon.kich-hoat { color: var(--nhan); background: var(--nhan-nhe); }
+
+/* Thân ứng dụng 3 cột */
+.than-ung-dung {
+  display: grid;
+  grid-template-columns: 280px 1fr 320px;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+}
+
+.cot-trai, .khu-trung-tam, .cot-phai {
+  background: var(--nen);
+  border-radius: var(--bo-khoi);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ================= 1. CỘT TRÁI: THƯ VIỆN TÀI NGUYÊN ================= */
+.tabs-tai-nguyen {
+  display: flex;
+  padding: 8px 8px 0;
+  gap: 2px;
+  border-bottom: 1px solid var(--vach);
+  background: var(--nen-2);
+}
+.tab-btn {
+  flex: 1;
+  padding: 8px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--chu-mo);
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all var(--nhip-nhanh);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.tab-btn .ms { font-size: 17px; }
+.tab-btn:hover { color: var(--chu); }
+.tab-btn.kich-hoat {
+  color: var(--nhan);
+  border-bottom-color: var(--nhan);
+}
+
+.hop-tim-kiem {
+  padding: 10px 12px;
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--vach);
+}
+.nhap-tim {
+  flex: 1;
+  background: var(--nen-3);
+  border: 1px solid transparent;
+  border-radius: var(--bo-tron);
+  padding: 6px 12px 6px 30px;
+  color: var(--chu);
+  font-family: var(--font);
+  font-size: 12px;
+  position: relative;
+  outline: none;
+}
+.nhap-tim:focus { border-color: var(--chu-mo); background: var(--nen-2); }
+.vi-tri-tim {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+.vi-tri-tim .ms {
+  position: absolute;
+  left: 8px;
+  color: var(--chu-mo-2);
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.bo-loc-the {
+  display: flex;
+  gap: 6px;
+  padding: 8px 12px;
+  overflow-x: auto;
+}
+.chip-loc {
+  padding: 3px 10px;
+  background: var(--nen-3);
+  border-radius: var(--bo-tron);
+  font-size: 11px;
+  color: var(--chu-mo);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chip-loc.kich-hoat { background: var(--chu); color: #000; font-weight: 700; }
+
+.danh-sach-media {
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.the-media {
+  display: flex;
+  gap: 10px;
+  padding: 8px;
+  background: var(--nen-2);
+  border-radius: var(--bo);
+  cursor: grab;
+  transition: all var(--nhip) var(--da);
+  border: 1px solid transparent;
+}
+.the-media:hover {
+  background: var(--nen-3);
+  border-color: rgba(255,255,255,0.08);
+  transform: translateY(-1px);
+}
+.the-media.dang-dung {
+  border-color: var(--nhan);
+  background: rgba(49, 217, 117, 0.05);
+}
+.thumb-media {
+  width: 72px;
+  height: 48px;
+  background: #202020;
+  border-radius: var(--bo-nho);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.thumb-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.thoi-luong-badge {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  background: rgba(0,0,0,0.8);
+  color: #fff;
+  font-size: 9px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.thong-tin-media {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.thong-tin-media .ten {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--chu);
+}
+.thong-tin-media .phu {
+  font-size: 11px;
+  color: var(--chu-mo);
+  margin-top: 2px;
+}
+
+/* ================= 2. KHU TRUNG TÂM: CANVAS & TIMELINE ================= */
+.khu-trung-tam {
+  display: grid;
+  grid-template-rows: 1fr auto 240px;
+  background: #0d0d0d;
+}
+
+/* 2.1 Video Preview Canvas */
+.khung-xem-truoc {
+  position: relative;
+  background: #080808;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 12px;
+}
+.man-chieu {
+  width: 82%;
+  aspect-ratio: 16/9;
+  background: #181818;
+  border-radius: 8px;
+  position: relative;
+  box-shadow: 0 16px 36px rgba(0,0,0,0.9);
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.canvas-bg-demo {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 60% 40%, #1e3a5f 0%, #0b132b 50%, #020617 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.canvas-bg-demo .grid-guide {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.canvas-safe-zone {
+  position: absolute;
+  inset: 7%;
+  border: 1px dashed rgba(255,255,255,0.2);
+  border-radius: 4px;
+  pointer-events: none;
+}
+.canvas-element-active {
+  position: relative;
+  z-index: 2;
+  border: 1.5px solid var(--nhan);
+  padding: 12px 24px;
+  background: rgba(18, 18, 18, 0.75);
+  backdrop-filter: blur(8px);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.canvas-element-active .cham-keo {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--nhan);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px #000;
+}
+.cham-keo.tl { top: -4px; left: -4px; }
+.cham-keo.tr { top: -4px; right: -4px; }
+.cham-keo.bl { bottom: -4px; left: -4px; }
+.cham-keo.br { bottom: -4px; right: -4px; }
+
+/* Nút điều khiển nổi trên màn chiếu */
+.thanh-canvas-dieu-khien {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(18, 18, 18, 0.88);
+  backdrop-filter: blur(12px);
+  padding: 4px 12px;
+  border-radius: var(--bo-tron);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  z-index: 10;
+}
+
+.ty-le-select {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(18, 18, 18, 0.85);
+  border: 1px solid var(--nen-4);
+  padding: 3px 10px;
+  border-radius: var(--bo-tron);
+  font-size: 11px;
+  color: var(--chu-mo);
+}
+
+.do-phan-giai-badge {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 2.2 Quick Edit Toolbar */
+.thanh-cong-cu-nhanh {
+  height: 42px;
+  background: var(--nen-2);
+  border-top: 1px solid var(--vach);
+  border-bottom: 1px solid var(--vach);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  flex-shrink: 0;
+}
+.nhom-nut-edit {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.phan-cach {
+  width: 1px;
+  height: 18px;
+  background: var(--vach);
+  margin: 0 6px;
+}
+.zoom-slider-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--chu-mo);
+  font-size: 11px;
+}
+.thanh-truot-zoom {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 80px;
+  height: 4px;
+  background: var(--nen-4);
+  border-radius: 4px;
+  outline: none;
+}
+.thanh-truot-zoom::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--chu);
+  cursor: pointer;
+}
+
+/* 2.3 Multi-track Timeline */
+.khu-timeline {
+  display: flex;
+  flex-direction: column;
+  background: var(--nen);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Thước đo thời gian Ruler */
+.timeline-ruler {
+  height: 26px;
+  background: #141414;
+  border-bottom: 1px solid var(--vach);
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+.ruler-header {
+  width: 130px;
+  height: 100%;
+  border-right: 1px solid var(--vach);
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--nhan);
+  font-variant-numeric: tabular-nums;
+  background: #121212;
+  flex-shrink: 0;
+}
+.ruler-ticks {
+  flex: 1;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 2px;
+}
+.tick-mark {
+  position: absolute;
+  font-size: 9.5px;
+  color: var(--chu-mo-2);
+  font-variant-numeric: tabular-nums;
+  transform: translateX(-50%);
+  border-left: 1px solid var(--nen-4);
+  height: 12px;
+  padding-left: 3px;
+}
+
+/* Các Track */
+.timeline-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  position: relative;
+}
+.track-row {
+  display: flex;
+  min-height: 48px;
+  border-bottom: 1px solid #1a1a1a;
+  position: relative;
+}
+.track-header {
+  width: 130px;
+  background: var(--nen-2);
+  border-right: 1px solid var(--vach);
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  z-index: 5;
+}
+.track-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--chu-mo);
+}
+.track-label.active { color: var(--chu); }
+.track-controls {
+  display: flex;
+  gap: 2px;
+}
+.btn-track-mini {
+  width: 20px;
+  height: 20px;
+  border: 0;
+  background: transparent;
+  color: var(--chu-mo-2);
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.btn-track-mini:hover { background: var(--nen-3); color: var(--chu); }
+.btn-track-mini.on { color: var(--cam); }
+
+.track-content {
+  flex: 1;
+  position: relative;
+  background: #111111;
+  display: flex;
+  align-items: center;
+  padding: 4px 0;
+}
+
+/* Clip khối trên Timeline */
+.clip-khoi {
+  position: absolute;
+  height: 40px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  cursor: pointer;
+  overflow: hidden;
+  border: 1px solid transparent;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  font-size: 11px;
+  font-weight: 600;
+}
+.clip-khoi.track-text {
+  background: linear-gradient(90deg, #4c1d95, #6b21a8);
+  border-color: var(--track-t-bd);
+  color: #f3e8ff;
+}
+.clip-khoi.track-video {
+  background: linear-gradient(90deg, #1e3a8a, #0369a1);
+  border-color: var(--track-v-bd);
+  color: #e0f2fe;
+}
+.clip-khoi.track-audio {
+  background: linear-gradient(90deg, #065f46, #047857);
+  border-color: var(--track-a-bd);
+  color: #d1fae5;
+}
+.clip-khoi.selected {
+  outline: 2px solid var(--nhan);
+  box-shadow: 0 0 12px rgba(49, 217, 117, 0.4);
+}
+
+/* Sóng âm waveform SVG */
+.waveform-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* Playhead Scrubber */
+.playhead-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 290px;
+  width: 2px;
+  background: var(--nhan);
+  z-index: 30;
+  pointer-events: none;
+  box-shadow: 0 0 8px var(--nhan);
+}
+.playhead-head {
+  position: absolute;
+  top: 0;
+  left: 290px;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 14px;
+  background: var(--nhan);
+  clip-path: polygon(0% 0%, 100% 0%, 100% 65%, 50% 100%, 0% 65%);
+  z-index: 31;
+  cursor: ew-resize;
+}
+
+/* ================= 3. CỘT PHẢI: INSPECTOR THUỘC TÍNH ================= */
+.dau-cot-phai {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--vach);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.tabs-inspector {
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--nen-2);
+  border-bottom: 1px solid var(--vach);
+}
+.tab-ins-btn {
+  flex: 1;
+  padding: 5px 0;
+  font-size: 11.5px;
+  font-weight: 600;
+  background: transparent;
+  color: var(--chu-mo);
+  border: 0;
+  border-radius: var(--bo-nho);
+  cursor: pointer;
+  transition: all var(--nhip-nhanh);
+}
+.tab-ins-btn:hover { color: var(--chu); }
+.tab-ins-btn.kich-hoat {
+  background: var(--nen-3);
+  color: var(--nhan);
+}
+
+.nhom-thuoc-tinh {
+  padding: 14px;
+  border-bottom: 1px solid var(--vach);
+}
+.tieu-de-nhom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--chu);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+}
+.tieu-de-nhom .nut-keyframe {
+  color: var(--nhan);
+  cursor: pointer;
+}
+
+.hang-input-doi {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.o-input {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+.o-input:last-child { margin-bottom: 0; }
+.o-input label {
+  font-size: 11px;
+  color: var(--chu-mo);
+  display: flex;
+  justify-content: space-between;
+}
+.input-field {
+  width: 100%;
+  background: var(--nen-3);
+  border: 1px solid transparent;
+  border-radius: var(--bo-nho);
+  padding: 6px 8px;
+  color: var(--chu);
+  font-family: var(--font);
+  font-size: 12px;
+  outline: none;
+  font-variant-numeric: tabular-nums;
+}
+.input-field:focus { border-color: var(--nhan); }
+
+.slider-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.slider-group input[type="range"] {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--nen-4);
+  outline: none;
+}
+.slider-group input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--chu);
+  cursor: pointer;
+}
+.slider-group input[type="range"]:hover::-webkit-slider-thumb {
+  background: var(--nhan);
+}
+.slider-val {
+  min-width: 36px;
+  text-align: right;
+  font-size: 11px;
+  color: var(--chu-mo);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Vòng tròn Color grading */
+.color-wheels {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  text-align: center;
+  margin-top: 8px;
+}
+.wheel-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.wheel-circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red);
+  border: 2px solid var(--nen-4);
+  position: relative;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+}
+.wheel-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #fff;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 4px #000;
+}
+.wheel-label {
+  font-size: 10px;
+  color: var(--chu-mo);
+}
+
+/* ================= 4. THANH TRẠNG THÁI / PHÁT DƯỚI CÙNG ================= */
+.thanh-duoi-phat {
+  height: 64px;
+  background: var(--nen);
+  border-radius: var(--bo-khoi);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 20px;
+  flex-shrink: 0;
+}
+.clip-dang-phat-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mini-thumb {
+  width: 44px;
+  height: 44px;
+  background: #282828;
+  border-radius: var(--bo);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--nhan);
+  overflow: hidden;
+}
+.dieu-khien-trung-tam {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.cac-nut-media {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.nut-play-chinh {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--chu);
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  cursor: pointer;
+  transition: transform var(--nhip-nhanh);
+}
+.nut-play-chinh:hover { transform: scale(1.08); background: #ffffff; }
+
+.tua-thoi-gian {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--chu-mo);
+  font-variant-numeric: tabular-nums;
+}
+.thanh-tua-mini {
+  width: 320px;
+  height: 4px;
+  background: var(--nen-4);
+  border-radius: var(--bo-tron);
+  position: relative;
+  overflow: hidden;
+}
+.thanh-tua-mini .tien-do {
+  height: 100%;
+  width: 38%;
+  background: var(--nhan);
+}
+.tien-ich-phai {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+</style>
+</head>
+<body>
+<div class="app-container">
+<!-- ================= THANH ĐỈNH (TOP NAVIGATION BAR) ================= -->
+<header class="thanh-dinh">
+<div class="khu-logo">
+<div class="logo-badge">MB</div>
+<div class="ten-du-an">
+<h1>Dự án Mắt Bão — Video Showcase v2</h1>
+<span class="da-luu-chip">
+<span class="ms" style="font-size: 13px;">check_circle</span>
+          Đã tự động lưu
+        </span>
+</div>
+</div>
+<div class="khu-giua-dinh">
+<button class="nut-icon" title="Hoàn tác (Ctrl+Z)"><span class="ms">undo</span></button>
+<button class="nut-icon" title="Làm lại (Ctrl+Y)"><span class="ms">redo</span></button>
+<div class="phan-cach"></div>
+<button class="nut vien nho">
+<span class="ms" style="font-size: 15px;">aspect_ratio</span>
+        Khung hình: 16:9
+      </button>
+<button class="nut vien nho">
+<span class="ms" style="font-size: 15px;">speed</span>
+        60 FPS
+      </button>
+</div>
+<div class="khu-phai-dinh">
+<button class="nut tran" style="color: var(--chu-mo)">
+<span class="ms" style="font-size: 17px;">cloud_done</span>
+        Đồng bộ Cloud
+      </button>
+<button class="nut chinh">
+<span class="ms" style="font-size: 17px;">ios_share</span>
+        Xuất video (4K)
+      </button>
+<div class="phan-cach"></div>
+<button class="nut-icon" title="Cài đặt dự án"><span class="ms">settings</span></button>
+<div style="width: 28px; height: 28px; border-radius: 50%; background: #2e1065; border: 1.5px solid var(--nhan); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #d8b4fe;">
+        VN
+      </div>
+</div>
+</header>
+<!-- ================= THÂN CHÍNH (3 CỘT) ================= -->
+<div class="than-ung-dung">
+<!-- CỘT 1: THƯ VIỆN TÀI NGUYÊN (MEDIA & ASSETS) -->
+<aside class="cot-trai">
+<nav class="tabs-tai-nguyen">
+<button class="tab-btn kich-hoat">
+<span class="ms">video_library</span>
+          Media
+        </button>
+<button class="tab-btn">
+<span class="ms">music_note</span>
+          Âm thanh
+        </button>
+<button class="tab-btn">
+<span class="ms">title</span>
+          Văn bản
+        </button>
+<button class="tab-btn">
+<span class="ms">auto_fix_high</span>
+          Hiệu ứng
+        </button>
+<button class="tab-btn">
+<span class="ms">palette</span>
+          Màu sắc
+        </button>
+</nav>
+<div class="hop-tim-kiem">
+<div class="vi-tri-tim">
+<span class="ms">search</span>
+<input class="nhap-tim" placeholder="Tìm tài nguyên, sfx, video..." type="text"/>
+</div>
+<button class="nut-icon" style="background: var(--nen-3); color: var(--chu); border-radius: var(--bo-nho);" title="Nhập file mới">
+<span class="ms">add</span>
+</button>
+</div>
+<div class="bo-loc-the">
+<span class="chip-loc kich-hoat">Tất cả (18)</span>
+<span class="chip-loc">Video 4K</span>
+<span class="chip-loc">Ảnh UI</span>
+<span class="chip-loc">Nhạc nền</span>
+</div>
+<div class="danh-sach-media cuon">
+<!-- Item 1 (Đang active trên preview) -->
+<div class="the-media dang-dung">
+<div class="thumb-media">
+<svg fill="none" height="24" stroke="var(--nhan)" stroke-width="1.5" viewbox="0 0 24 24" width="24"><rect height="18" rx="2" width="18" x="3" y="3"></rect><path d="M9 3v18M15 3v18M3 9h18M3 15h18"></path></svg>
+<span class="thoi-luong-badge">05.4s</span>
+</div>
+<div class="thong-tin-media">
+<div class="ten">Intro_MatBao_Brand.mp4</div>
+<div class="phu">3840×2160 · 60fps · 48kHz</div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="the-media">
+<div class="thumb-media">
+<svg fill="none" height="24" stroke="#38bdf8" stroke-width="1.5" viewbox="0 0 24 24" width="24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" x2="12" y1="15" y2="3"></line></svg>
+<span class="thoi-luong-badge">04.2s</span>
+</div>
+<div class="thong-tin-media">
+<div class="ten">Deploy_Hosting_Vibe.mp4</div>
+<div class="phu">1920×1080 · 30fps · H.264</div>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="the-media">
+<div class="thumb-media">
+<svg fill="none" height="24" stroke="#a855f7" stroke-width="1.5" viewbox="0 0 24 24" width="24"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+<span class="thoi-luong-badge">08.1s</span>
+</div>
+<div class="thong-tin-media">
+<div class="ten">Vong_Quay_TenMien.mov</div>
+<div class="phu">Alpha Channel · ProRes 4444</div>
+</div>
+</div>
+<!-- Item 4 (Audio SFX) -->
+<div class="the-media">
+<div class="thumb-media" style="background: #064e3b;">
+<span class="ms" style="color: var(--nhan); font-size: 24px;">graphic_eq</span>
+<span class="thoi-luong-badge">02.8s</span>
+</div>
+<div class="thong-tin-media">
+<div class="ten">SFX_Whoosh_Cyber.wav</div>
+<div class="phu">Stereo · 24-bit 96kHz</div>
+</div>
+</div>
+<!-- Item 5 -->
+<div class="the-media">
+<div class="thumb-media" style="background: #172554;">
+<span class="ms" style="color: #60a5fa; font-size: 24px;">music_note</span>
+<span class="thoi-luong-badge">45.0s</span>
+</div>
+<div class="thong-tin-media">
+<div class="ten">Ambient_Electronic_BGM.mp3</div>
+<div class="phu">320kbps · 128 BPM</div>
+</div>
+</div>
+<!-- Item 6 -->
+<div class="the-media">
+<div class="thumb-media">
+<svg fill="none" height="24" stroke="#eab308" stroke-width="1.5" viewbox="0 0 24 24" width="24"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+<span class="thoi-luong-badge">03.6s</span>
+</div>
+<div class="thong-tin-media">
+<div class="ten">Database_Zoom_In.mp4</div>
+<div class="phu">3840×2160 · 60fps</div>
+</div>
+</div>
+</div>
+</aside>
+<!-- CỘT 2: KHU TRUNG TÂM (CANVAS XEM TRƯỚC & TIMELINE ĐA RÃNH) -->
+<main class="khu-trung-tam">
+<!-- 2.1 TRÌNH XEM TRƯỚC VIDEO (VIDEO CANVAS) -->
+<section class="khung-xem-truoc">
+<!-- Tùy chọn tỷ lệ & Resolution -->
+<div class="ty-le-select">
+<span class="ms" style="font-size: 14px; color: var(--nhan)">crop_16_9</span>
+<span>16 : 9 (Ngang)</span>
+<span class="ms" style="font-size: 12px; cursor: pointer;">expand_more</span>
+</div>
+<div class="do-phan-giai-badge">
+<span class="chip-loc kich-hoat" style="font-size: 10px; padding: 2px 8px;">4K UHD</span>
+<button class="nut-icon" title="Bật/Tắt Lưới an toàn (Safe Margin)">
+<span class="ms" style="font-size: 16px; color: var(--nhan)">grid_on</span>
+</button>
+<button class="nut-icon" title="Chụp ảnh khung hình hiện tại (Snapshot)">
+<span class="ms" style="font-size: 16px;">photo_camera</span>
+</button>
+<button class="nut-icon" title="Toàn màn hình">
+<span class="ms" style="font-size: 16px;">fullscreen</span>
+</button>
+</div>
+<!-- Màn chiếu mô phỏng Video Output -->
+<div class="man-chieu">
+<div class="canvas-bg-demo">
+<div class="grid-guide"></div>
+<div class="canvas-safe-zone"></div>
+<!-- Đối tượng đang được chọn trên Canvas (Visual Handles) -->
+<div class="canvas-element-active">
+<span class="cham-keo tl"></span>
+<span class="cham-keo tr"></span>
+<span class="cham-keo bl"></span>
+<span class="cham-keo br"></span>
+<svg fill="var(--nhan)" height="24" viewbox="0 0 24 24" width="24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.8 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5z"></path></svg>
+<div>
+<div style="font-size: 15px; font-weight: 700; color: #fff; letter-spacing: -0.02em;">MẮT BÃO CLOUD HOSTING</div>
+<div style="font-size: 11px; color: var(--chu-mo);">Hạ tầng tốc độ cao · NVMe SSD · 99.9% Uptime</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Thanh điều khiển nổi Canvas -->
+<div class="thanh-canvas-dieu-khien">
+<button class="nut-icon" title="Lùi 1 Frame"><span class="ms">skip_previous</span></button>
+<button class="nut-icon kich-hoat" title="Phát/Tạm dừng"><span class="ms" style="font-size: 22px;">play_arrow</span></button>
+<button class="nut-icon" title="Tiến 1 Frame"><span class="ms">skip_next</span></button>
+<span style="font-size: 12px; font-variant-numeric: tabular-nums; font-weight: 700; color: var(--chu); margin: 0 4px;">
+            00:04:18 / 00:15:00
+          </span>
+<button class="nut-icon" title="Vòng lặp Loop"><span class="ms">repeat</span></button>
+</div>
+</section>
+<!-- 2.2 THANH CÔNG CỤ NHANH (QUICK EDIT TOOLBAR) -->
+<section class="thanh-cong-cu-nhanh">
+<div class="nhom-nut-edit">
+<button class="nut-icon kich-hoat" title="Con trỏ chọn (V)"><span class="ms">near_me</span></button>
+<button class="nut-icon" title="Dao lam / Cắt Clip (C)"><span class="ms">content_cut</span></button>
+<button class="nut-icon" title="Cắt tỉa hai đầu (Trim)"><span class="ms">vertical_align_center</span></button>
+<button class="nut-icon" title="Xoá phần chọn (Del)"><span class="ms">delete</span></button>
+<div class="phan-cach"></div>
+<button class="nut-icon" title="Tách riêng âm thanh (Detach Audio)"><span class="ms">call_split</span></button>
+<button class="nut-icon" title="Thêm Keyframe chuyển động"><span class="ms">scatter_plot</span></button>
+<button class="nut-icon" title="Tốc độ Speed (1.0x, 2.0x)"><span class="ms">speed</span></button>
+<button class="nut-icon" title="Đảo ngược Clip (Reverse)"><span class="ms">fast_rewind</span></button>
+</div>
+<div class="nhom-nut-edit">
+<div class="zoom-slider-box">
+<span class="ms" style="font-size: 15px;">zoom_out</span>
+<input class="thanh-truot-zoom" max="100" min="1" type="range" value="45"/>
+<span class="ms" style="font-size: 15px;">zoom_in</span>
+</div>
+<div class="phan-cach"></div>
+<button class="nut-icon" title="Khớp toàn bộ Timeline vào màn hình"><span class="ms">fit_screen</span></button>
+<button class="nut-icon kich-hoat" title="Tự động hít Snap (S)"><span class="ms">magnet</span></button>
+</div>
+</section>
+<!-- 2.3 TIMELINE ĐA RÃNH (MULTI-TRACK TIMELINE) -->
+<section class="khu-timeline">
+<!-- Ruler thời gian -->
+<div class="timeline-ruler">
+<div class="ruler-header">
+<span class="ms" style="font-size: 14px; margin-right: 4px;">timer</span>
+            00:04:18:24
+          </div>
+<div class="ruler-ticks">
+<span class="tick-mark" style="left: 0%;">00:00</span>
+<span class="tick-mark" style="left: 15%;">00:02</span>
+<span class="tick-mark" style="left: 30%;">00:04</span>
+<span class="tick-mark" style="left: 45%;">00:06</span>
+<span class="tick-mark" style="left: 60%;">00:08</span>
+<span class="tick-mark" style="left: 75%;">00:10</span>
+<span class="tick-mark" style="left: 90%;">00:12</span>
+</div>
+</div>
+<!-- Playhead & Scrubber -->
+<div class="playhead-head"></div>
+<div class="playhead-line"></div>
+<!-- Danh sách các Track -->
+<div class="timeline-body cuon">
+<!-- TRACK T1: Văn bản / Phụ đề -->
+<div class="track-row">
+<div class="track-header">
+<span class="track-label active">
+<span class="ms" style="color: var(--track-t-bd); font-size: 15px;">title</span>
+                T1 Phụ đề
+              </span>
+<div class="track-controls">
+<button class="btn-track-mini" title="Khoá rãnh"><span class="ms" style="font-size: 13px;">lock</span></button>
+<button class="btn-track-mini" title="Ẩn rãnh"><span class="ms" style="font-size: 13px;">visibility</span></button>
+</div>
+</div>
+<div class="track-content">
+<div class="clip-khoi track-text" style="left: 60px; width: 140px;">
+<span>Intro Slogan Mắt Bão</span>
+</div>
+<div class="clip-khoi track-text selected" style="left: 210px; width: 200px;">
+<span>Cloud Hosting NVMe</span>
+</div>
+</div>
+</div>
+<!-- TRACK V2: Overlay Đồ hoạ -->
+<div class="track-row">
+<div class="track-header">
+<span class="track-label">
+<span class="ms" style="color: var(--track-v-bd); font-size: 15px;">layers</span>
+                V2 Đồ hoạ
+              </span>
+<div class="track-controls">
+<button class="btn-track-mini" title="Khoá rãnh"><span class="ms" style="font-size: 13px;">lock</span></button>
+<button class="btn-track-mini" title="Ẩn rãnh"><span class="ms" style="font-size: 13px;">visibility</span></button>
+</div>
+</div>
+<div class="track-content">
+<div class="clip-khoi track-video" style="left: 140px; width: 190px;">
+<span>Badge_Discount_50%.png</span>
+</div>
+</div>
+</div>
+<!-- TRACK V1: Video chính (Main Track) -->
+<div class="track-row" style="min-height: 52px;">
+<div class="track-header">
+<span class="track-label active">
+<span class="ms" style="color: var(--track-v-bd); font-size: 15px;">movie</span>
+                V1 Video gốc
+              </span>
+<div class="track-controls">
+<button class="btn-track-mini" title="Khoá rãnh"><span class="ms" style="font-size: 13px;">lock</span></button>
+<button class="btn-track-mini" title="Ẩn rãnh"><span class="ms" style="font-size: 13px;">visibility</span></button>
+</div>
+</div>
+<div class="track-content">
+<div class="clip-khoi track-video" style="left: 0px; width: 170px; height: 44px;">
+<span>Scene 1: Intro_Brand</span>
+</div>
+<div class="clip-khoi track-video selected" style="left: 175px; width: 230px; height: 44px;">
+<span>Scene 2: Hosting_Infra_4K</span>
+</div>
+<div class="clip-khoi track-video" style="left: 410px; width: 160px; height: 44px;">
+<span>Scene 3: CTA_Outro</span>
+</div>
+</div>
+</div>
+<!-- TRACK A1: Nhạc nền (BGM) -->
+<div class="track-row">
+<div class="track-header">
+<span class="track-label active">
+<span class="ms" style="color: var(--track-a-bd); font-size: 15px;">volume_up</span>
+                A1 Nhạc nền
+              </span>
+<div class="track-controls">
+<button class="btn-track-mini on" title="Mute"><span class="ms" style="font-size: 13px;">volume_up</span></button>
+<button class="btn-track-mini" title="Solo rãnh">S</button>
+</div>
+</div>
+<div class="track-content">
+<div class="clip-khoi track-audio" style="left: 0px; width: 560px;">
+<!-- Sóng âm giả lập -->
+<svg class="waveform-svg" preserveaspectratio="none" viewbox="0 0 500 40">
+<path d="M0,20 Q10,5 20,20 T40,20 T60,8 T80,20 T100,2 T120,20 T140,10 T160,20 T180,5 T200,20 T220,12 T240,20 T260,3 T280,20 T300,10 T320,20 T340,6 T360,20 T380,12 T400,20 T420,4 T440,20 T460,10 T480,20 T500,20" fill="none" stroke="#fff" stroke-width="1.8"></path>
+</svg>
+<span style="position: relative; z-index: 2;">Cyber_Electronic_Future.mp3</span>
+</div>
+</div>
+</div>
+<!-- TRACK A2: Lồng tiếng / SFX -->
+<div class="track-row">
+<div class="track-header">
+<span class="track-label">
+<span class="ms" style="color: var(--track-a-bd); font-size: 15px;">mic</span>
+                A2 Lồng tiếng
+              </span>
+<div class="track-controls">
+<button class="btn-track-mini" title="Mute"><span class="ms" style="font-size: 13px;">volume_up</span></button>
+<button class="btn-track-mini" title="Solo rãnh">S</button>
+</div>
+</div>
+<div class="track-content">
+<div class="clip-khoi track-audio" style="left: 175px; width: 220px;">
+<svg class="waveform-svg" preserveaspectratio="none" viewbox="0 0 300 40">
+<path d="M0,20 Q15,2 30,20 T60,20 T90,0 T120,20 T150,4 T180,20 T210,8 T240,20 T270,12 T300,20" fill="none" stroke="#fff" stroke-width="1.8"></path>
+</svg>
+<span style="position: relative; z-index: 2;">Voiceover_Vietnamese_AI.wav</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- CỘT 3: INSPECTOR BẢNG THUỘC TÍNH (PROPERTIES PANEL) -->
+<aside class="cot-phai cuon">
+<div class="dau-cot-phai">
+<div>
+<div style="font-size: 13px; font-weight: 700; color: var(--chu);">Hosting_Infra_4K</div>
+<div style="font-size: 11px; color: var(--nhan);">Lớp đang chọn: Track V1</div>
+</div>
+<button class="nut-icon" title="Đặt lại mặc định"><span class="ms">restart_alt</span></button>
+</div>
+<!-- Tabs Chuyển Đổi Thuộc Tính -->
+<div class="tabs-inspector">
+<button class="tab-ins-btn kich-hoat">Video</button>
+<button class="tab-ins-btn">Âm thanh</button>
+<button class="tab-ins-btn">Chuyển động</button>
+<button class="tab-ins-btn">Màu sắc</button>
+</div>
+<!-- NHÓM 1: CHUYỂN ĐỘNG & TRANSFORM -->
+<div class="nhom-thuoc-tinh">
+<div class="tieu-de-nhom">
+<span>Biến đổi &amp; Vị trí (Transform)</span>
+<span class="ms nut-keyframe" title="Bật/Tắt Keyframe">scatter_plot</span>
+</div>
+<div class="hang-input-doi">
+<div class="o-input">
+<label>Vị trí X <span>px</span></label>
+<input class="input-field" type="text" value="960"/>
+</div>
+<div class="o-input">
+<label>Vị trí Y <span>px</span></label>
+<input class="input-field" type="text" value="540"/>
+</div>
+</div>
+<div class="o-input">
+<label>Tỷ lệ thu phóng (Scale) <span>105%</span></label>
+<div class="slider-group">
+<input max="250" min="10" type="range" value="105"/>
+<span class="slider-val">105%</span>
+</div>
+</div>
+<div class="hang-input-doi">
+<div class="o-input">
+<label>Góc xoay</label>
+<input class="input-field" type="text" value="0.0°"/>
+</div>
+<div class="o-input">
+<label>Độ trong suốt (Opacity)</label>
+<input class="input-field" type="text" value="100%"/>
+</div>
+</div>
+<div class="o-input">
+<label>Chế độ hòa trộn (Blend Mode)</label>
+<select class="input-field">
+<option>Bình thường (Normal)</option>
+<option>Làm sáng (Screen)</option>
+<option>Nhân sắc (Multiply)</option>
+<option>Phủ lớp (Overlay)</option>
+</select>
+</div>
+</div>
+<!-- NHÓM 2: CHỈNH MÀU COLOR GRADING -->
+<div class="nhom-thuoc-tinh">
+<div class="tieu-de-nhom">
+<span>Chỉnh màu &amp; Bộ lọc (Color &amp; LUTs)</span>
+<span class="ms nut-keyframe">scatter_plot</span>
+</div>
+<div class="o-input">
+<label>Phơi sáng (Exposure)</label>
+<div class="slider-group">
+<input max="100" min="-100" type="range" value="12"/>
+<span class="slider-val">+0.2</span>
+</div>
+</div>
+<div class="o-input">
+<label>Độ tương phản (Contrast)</label>
+<div class="slider-group">
+<input max="100" min="-100" type="range" value="20"/>
+<span class="slider-val">+15%</span>
+</div>
+</div>
+<div class="o-input">
+<label>Độ bão hòa (Saturation)</label>
+<div class="slider-group">
+<input max="100" min="-100" type="range" value="8"/>
+<span class="slider-val">+8%</span>
+</div>
+</div>
+<div class="o-input">
+<label>Nhiệt độ màu (Temperature)</label>
+<div class="slider-group">
+<input max="100" min="-100" type="range" value="-10"/>
+<span class="slider-val">5800K</span>
+</div>
+</div>
+<div style="margin-top: 10px;">
+<label style="font-size: 11px; color: var(--chu-mo); display: block; margin-bottom: 6px;">Cân bằng màu (Lift / Gamma / Gain)</label>
+<div class="color-wheels">
+<div class="wheel-item">
+<div class="wheel-circle"><div class="wheel-dot"></div></div>
+<span class="wheel-label">Vùng tối (Shadows)</span>
+</div>
+<div class="wheel-item">
+<div class="wheel-circle"><div class="wheel-dot" style="top:42%; left:55%;"></div></div>
+<span class="wheel-label">Vùng trung (Midtones)</span>
+</div>
+<div class="wheel-item">
+<div class="wheel-circle"><div class="wheel-dot" style="top:48%; left:48%;"></div></div>
+<span class="wheel-label">Vùng sáng (Highlights)</span>
+</div>
+</div>
+</div>
+</div>
+<!-- NHÓM 3: ÂM LƯỢNG & KHỬ NHIỄU -->
+<div class="nhom-thuoc-tinh">
+<div class="tieu-de-nhom">
+<span>Âm thanh &amp; Lọc tạp âm AI</span>
+</div>
+<div class="o-input">
+<label>Âm lượng Clip (Volume)</label>
+<div class="slider-group">
+<input max="200" min="0" type="range" value="100"/>
+<span class="slider-val">0.0 dB</span>
+</div>
+</div>
+<div class="o-input" style="margin-top: 10px;">
+<div style="display: flex; align-items: center; justify-content: space-between;">
+<span style="font-size: 12px; color: var(--chu);">Khử ồn thông minh (AI Denoise)</span>
+<input checked="" style="accent-color: var(--nhan);" type="checkbox"/>
+</div>
+<span style="font-size: 10.5px; color: var(--nhan); margin-top: 2px;">Loại bỏ 98% tiếng gió và tạp âm nền</span>
+</div>
+</div>
+</aside>
+</div>
+<!-- ================= THANH PHÁT DƯỚI CÙNG (BOTTOM DOCK BAR) ================= -->
+<footer class="thanh-duoi-phat">
+<!-- Cực trái: Info clip đang đọc -->
+<div class="clip-dang-phat-info">
+<div class="mini-thumb">
+<span class="ms">movie</span>
+</div>
+<div>
+<div style="font-size: 12.5px; font-weight: 600; color: var(--chu);">Scene 2: Hosting_Infra_4K</div>
+<div style="font-size: 11px; color: var(--chu-mo);">Timeline Master · Khung hình 00:04:18</div>
+</div>
+</div>
+<!-- Cực giữa: Bộ nút điều khiển phát nhạc & thanh thời gian Spotify style -->
+<div class="dieu-khien-trung-tam">
+<div class="cac-nut-media">
+<button class="nut-icon" title="Cảnh trước"><span class="ms">skip_previous</span></button>
+<button class="nut-icon" title="Lùi 5s"><span class="ms">replay_5</span></button>
+<button class="nut-play-chinh" title="Phát video"><span class="ms" style="font-size: 24px;">play_arrow</span></button>
+<button class="nut-icon" title="Tiến 5s"><span class="ms">forward_5</span></button>
+<button class="nut-icon" title="Cảnh kế tiếp"><span class="ms">skip_next</span></button>
+</div>
+<div class="tua-thoi-gian">
+<span>04:18</span>
+<div class="thanh-tua-mini">
+<div class="tien-do"></div>
+</div>
+<span>15:00</span>
+</div>
+</div>
+<!-- Cực phải: Tiện ích âm lượng & góc nhìn -->
+<div class="tien-ich-phai">
+<button class="nut-icon" title="Bật/Tắt âm lượng Master"><span class="ms">volume_up</span></button>
+<div style="width: 70px;">
+<input class="thanh-truot-zoom" style="width: 100%;" type="range" value="80"/>
+</div>
+<div class="phan-cach"></div>
+<button class="nut-icon" title="Tách cửa sổ xem trước"><span class="ms">picture_in_picture_alt</span></button>
+<button class="nut-icon kich-hoat" title="Lưới căn chỉnh"><span class="ms">grid_view</span></button>
+</div>
+</footer>
+</div>
+<script>
+  // Tab switching inside Left Panel
+  document.querySelectorAll('.tabs-tai-nguyen .tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tabs-tai-nguyen .tab-btn').forEach(b => b.classList.remove('kich-hoat'));
+      btn.classList.add('kich-hoat');
+    });
+  });
+
+  // Tab switching inside Right Inspector
+  document.querySelectorAll('.tabs-inspector .tab-ins-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tabs-inspector .tab-ins-btn').forEach(b => b.classList.remove('kich-hoat'));
+      btn.classList.add('kich-hoat');
+    });
+  });
+
+  // Timeline Clip selection visual effect
+  document.querySelectorAll('.clip-khoi').forEach(clip => {
+    clip.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.querySelectorAll('.clip-khoi').forEach(c => c.classList.remove('selected'));
+      clip.classList.add('selected');
+    });
+  });
+</script>
+</body></html>

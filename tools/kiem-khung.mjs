@@ -170,9 +170,20 @@ try {
 
   dat('thẻ "Khung nhấn" hiện ra cho clip đời cũ',
     await trang.evaluate(() => !document.getElementById('the-khung').classList.contains('an')));
-  dat('mở sẵn vào thẻ đó',
+  /*
+   * ĐỔI Ý CÓ CHỦ Ý: trước đây chỗ này đòi trình sửa TỰ NHẢY vào thẻ Khung nhấn.
+   * Bỏ, vì thẻ đó thay luôn sân khấu ở giữa — chọn một clip đời cũ là rơi vào ô
+   * đen "clip này chưa chỉnh khung được", còn chính cái clip thì không thấy đâu.
+   * Nay clip đời cũ đứng ở khung xem (chạy và tua được), thẻ Khung nhấn vẫn có
+   * đó để bấm. Xem `tools/kiem-doi-cu.mjs`.
+   */
+  dat('KHÔNG tự nhảy vào thẻ đó — khung xem phải còn thấy',
     await trang.evaluate(() =>
-      document.getElementById('the-khung').getAttribute('aria-selected') === 'true'));
+      document.getElementById('the-khung').getAttribute('aria-selected') !== 'true'
+      && !document.getElementById('san-clip').classList.contains('an')));
+
+  await trang.click('#the-khung');
+  await trang.waitForTimeout(600);
 
   const soHang = await trang.evaluate(() => document.querySelectorAll('.khung-hang').length);
   dat('cột phải liệt kê đủ các khung của bản đầu', soHang === ban.lop.length, `${soHang} hàng`);

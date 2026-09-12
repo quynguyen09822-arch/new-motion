@@ -100,6 +100,54 @@ function cungLuc(a, b, dai) {
 }
 
 /**
+ * NỀN THẬT SỰ NẰM DƯỚI TỪNG MÓN — một bản đồ, tính theo THỨ TỰ VẼ.
+ *
+ * Đây là quy tắc CHUNG, không riêng của phép soát màu: bảng lớp cũng phải biết
+ * món này đứng trên nền gì thì mới vẽ được ảnh nhỏ đúng như lúc trình chiếu.
+ * Trước đây ảnh nhỏ đọc `--bg` của body — biến đó không tồn tại nên rơi về màu
+ * nền của chính trang sửa, và mọi ô ảnh đều sai nền.
+ *
+ * Thứ tự trong mảng là thứ tự vẽ, nên khối đứng SAU món là khối nằm ĐÈ LÊN món
+ * — đó là vật che, không phải nền. Lẫn hai thứ này là báo sai hàng loạt: cảnh 4
+ * của `thu-trien-khai-html` bật một cửa sổ nền đen đè lên tấm thẻ trắng, và nếu
+ * tính nó là nền thì bốn dòng chữ đen trên thẻ trắng đều bị kêu là chìm vào nền.
+ *
+ * Đã mắc đủ hai chiều: lấy khối ĐẦU TIÊN khớp thì khối nền phủ kín khung luôn
+ * thắng (150 lời báo sai/clip); lấy khối SAU CÙNG thì vật che thắng.
+ *
+ * @returns {Map<string, {mau: string, ten: string}>} theo id món
+ */
+export function banDoNen(canh, meta = {}) {
+  const ra = new Map();
+  if (!canh || !Array.isArray(canh.elements)) return ra;
+  const dai = so(canh.duration) || 0;
+  const khoiTruoc = [];   // khối màu đã vẽ, theo thứ tự
+
+  for (const { el } of duyet(canh.elements)) {
+    let mau = meta.bg, ten = 'nền clip';
+    const khung = khungChac(el);
+    if (khung) {
+      for (const k of khoiTruoc) {
+        if (khung.x >= k.khung.x && khung.y >= k.khung.y
+            && khung.x2 <= k.khung.x2 && khung.y2 <= k.khung.y2
+            && cungLuc(el, k.el, dai)) {
+          mau = k.el.fill; ten = `khối "${k.el.id}"`;
+        }
+      }
+    }
+    if (el.id != null) ra.set(el.id, { mau, ten });
+
+    /* Ghi khối màu vào sổ SAU khi đã xét xong món này — để một khối không bao
+       giờ được tính là nền của chính nó, và của những món vẽ trước nó. */
+    if (el.kind === 'panel' && typeof el.fill === 'string' && docMau(el.fill)) {
+      const k = khungChac(el);
+      if (k) khoiTruoc.push({ el, khung: k });
+    }
+  }
+  return ra;
+}
+
+/**
  * Soát một kịch bản.
  * @returns {{ok: boolean, loi: Array, soNang: number, soNhe: number}}
  *   mỗi lỗi: { ma, muc, canhId, monId, cau, goiY, nang }
@@ -122,19 +170,8 @@ export function soatChatLuong(doc) {
     const canhTen = `Cảnh ${iCanh + 1}`;
     const dsMon = duyet(canh.elements);
 
-    /*
-     * KHỐI NỀN CỦA MỘT MÓN CHỮ = khối màu vẽ NGAY TRƯỚC nó và bao lấy nó.
-     *
-     * Thứ tự trong mảng là thứ tự vẽ, nên khối đứng SAU chữ là khối nằm ĐÈ LÊN
-     * chữ — đó là vật che, không phải nền. Lẫn hai thứ này là báo sai hàng loạt:
-     * cảnh 4 của `thu-trien-khai-html` bật một cửa sổ trình duyệt nền đen đè lên
-     * tấm thẻ trắng, và nếu tính nó là nền thì bốn dòng chữ đen trên thẻ trắng
-     * đều bị kêu là chìm vào nền.
-     *
-     * Đã mắc đủ hai chiều: lấy khối ĐẦU TIÊN khớp thì khối nền phủ kín khung
-     * luôn thắng (150 lời báo sai/clip); lấy khối SAU CÙNG thì vật che thắng.
-     */
-    const khoiTruoc = [];   // khối màu đã vẽ, theo thứ tự
+    // Nền dưới từng món — quy tắc chung, dùng lại ở bảng lớp (xem `banDoNen`).
+    const nenMon = banDoNen(canh, meta);
 
     for (const { el, cha } of dsMon) {
       const monTen = el.id || el.kind || '?';
@@ -173,17 +210,8 @@ export function soatChatLuong(doc) {
         // Màu chữ: của chính nó → của cụm cha → của cả clip.
         const chu = el.ink || cha?.ink || meta.ink;
         // Nền: khối màu nằm dưới nó (nếu đo chắc được) → nền cả clip.
-        const khung = khungChac(el);
-        let nen = meta.bg, tenNen = 'nền clip';
-        if (khung) {
-          for (const k of khoiTruoc) {
-            if (khung.x >= k.khung.x && khung.y >= k.khung.y
-                && khung.x2 <= k.khung.x2 && khung.y2 <= k.khung.y2
-                && cungLuc(el, k.el, dai)) {
-              nen = k.el.fill; tenNen = `khối "${k.el.id}"`;
-            }
-          }
-        }
+        const { mau: nen, ten: tenNen } = nenMon.get(el.id) || { mau: meta.bg, ten: 'nền clip' };
+
         /*
          * HAI MỨC, không phải một. Đo theo đúng WCAG (4,5:1) nhưng chỉ mức dưới
          * mới là chuyện phải sửa ngay.
@@ -211,13 +239,6 @@ export function soatChatLuong(doc) {
             'Đọc được nhưng hơi nhạt. Nếu đây là màu của sản phẩm thật thì bỏ qua.',
             false);
         }
-      }
-
-      /* Ghi khối màu vào sổ SAU khi đã xét xong món này — để một khối không bao
-         giờ được tính là nền của chính nó, và của những món vẽ trước nó. */
-      if (el.kind === 'panel' && typeof el.fill === 'string' && docMau(el.fill)) {
-        const k = khungChac(el);
-        if (k) khoiTruoc.push({ el, khung: k });
       }
 
       /* ---------- video chưa chọn file ---------- */

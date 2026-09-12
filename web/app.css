@@ -1,18 +1,46 @@
-/* Giao diện trình sửa clip. Nền tối để khung hình clip nổi lên, giống mọi công
-   cụ dựng phim — mắt bám vào khung hình chứ không bám vào vỏ phần mềm. */
+/* Giao diện trình sửa clip.
+
+   NGÔN NGỮ THIẾT KẾ — theo bản dựng Stitch `stitch_d_n_kh_i_nghi_p/`.
+   Ba điều làm nên cái nhìn đó, và cả ba đều nằm ở đây chứ không rải rác:
+
+    1. KHỐI NỔI TRÊN NỀN ĐEN. Nền trang là đen tuyệt đối, còn mỗi cột là một
+       khối xám bo góc nổi lên, cách nhau 8px. Trước đây các cột dán liền nhau
+       và ngăn bằng một sợi chỉ 1px — mắt phải tự đi tìm ranh giới.
+    2. NHẤN XANH LÁ, CHỮ ĐEN TRÊN NHẤN. Xanh dương cũ trùng với màu chữ liên
+       kết và với chính màu thương hiệu trong nhiều clip, nên khung chọn lẫn vào
+       nội dung. Xanh lá không xuất hiện trong clip nào.
+    3. XÁM TRUNG TÍNH, KHÔNG ÁM XANH. Bảng màu cũ ám xanh dương ở mọi cấp
+       (#0e1420, #263349…). Vỏ phần mềm ám màu thì màu thật của clip bị đọc
+       lệch — đúng thứ không được phép xảy ra ở công cụ chỉnh màu.
+
+   Nền tối để khung hình clip nổi lên, giống mọi công cụ dựng phim — mắt bám
+   vào khung hình chứ không bám vào vỏ phần mềm. */
 
 :root {
-  --nen: #0e1420;
-  --nen-2: #151d2c;
-  --nen-3: #1c2637;
-  --vach: #263349;
-  --chu: #e8edf5;
-  --chu-mo: #8ba0bd;
-  --nhan: #4a9eff;
-  --cam: #ed7225;
-  --do: #e3272c;
-  --xanh: #2ecc71;
-  --bo: 10px;
+  --trang-nen: #000000;   /* nền sâu nhất, khe giữa các khối */
+  --nen:    #121212;      /* khối chính: cột, thanh */
+  --nen-2:  #181818;      /* thẻ con, thanh công cụ */
+  --nen-3:  #242424;      /* rê chuột, ô nhập */
+  --nen-4:  #333333;      /* viền rõ, rãnh thanh trượt */
+  --vach:   #262626;
+
+  --chu:      #ffffff;
+  --chu-mo:   #b3b3b3;
+  --chu-mo-2: #727272;
+
+  --nhan:      #31d975;
+  --nhan-sang: #44f38b;
+  --nhan-nhe:  rgba(49, 217, 117, .15);
+  --tren-nhan: #06140c;   /* chữ nằm TRÊN màu nhấn */
+
+  --cam: #f97316;
+  --do:  #ef4444;
+  --xanh: #31d975;
+
+  --bo-nho: 4px;
+  --bo: 8px;
+  --bo-khoi: 10px;
+  --bo-tron: 999px;
 
   /* NHỊP CHUNG. Mọi chuyển động trong vỏ phần mềm dùng đúng bộ này, để cả giao
      diện chạy cùng một nhịp thay vì mỗi chỗ một kiểu.
@@ -22,6 +50,10 @@
   --nhip: 220ms;
   --da-vao: cubic-bezier(.22, 1, .36, 1);
   --da-ra: cubic-bezier(.4, 0, 1, 1);
+  /* Phông chữ tải từ Google Fonts, KÈM ĐỦ đường lùi hệ thống: mạng hỏng thì
+     giao diện vẫn đúng, chỉ khác nét chữ. Không đưa phông vào clip — clip phải
+     đo được cỡ chữ trên mọi máy, xem `measureFit()` của bộ dựng. */
+  --font: "Be Vietnam Pro", system-ui, "Segoe UI", Roboto, "Noto Sans", sans-serif;
   color-scheme: dark;
 }
 
@@ -29,24 +61,53 @@
 
 body {
   margin: 0;
-  background: var(--nen);
+  background: var(--trang-nen);
   color: var(--chu);
-  font: 14px/1.55 system-ui, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  font: 13px/1.5 var(--font);
   height: 100vh;
   overflow: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
-#app { display: flex; flex-direction: column; height: 100vh; }
+/* Khối nổi trên nền đen: 8px đệm ngoài, 8px khe giữa các khối. */
+#app {
+  display: flex; flex-direction: column; height: 100vh;
+  padding: 8px; gap: 8px;
+}
+
+/* Thanh cuộn mảnh, chỉ hiện khi rê vào — như mọi công cụ dựng phim. */
+.ds-canh, .ds-lop, .bang-tt, .video-ds, .khung-ds, .menu-them {
+  scrollbar-width: thin; scrollbar-color: transparent transparent;
+}
+.ds-canh:hover, .ds-lop:hover, .bang-tt:hover, .video-ds:hover, .khung-ds:hover {
+  scrollbar-color: var(--nen-4) transparent;
+}
+.ds-canh::-webkit-scrollbar, .ds-lop::-webkit-scrollbar,
+.bang-tt::-webkit-scrollbar, .menu-them::-webkit-scrollbar { width: 7px; height: 7px; }
+.ds-canh::-webkit-scrollbar-thumb, .ds-lop::-webkit-scrollbar-thumb,
+.bang-tt::-webkit-scrollbar-thumb, .menu-them::-webkit-scrollbar-thumb {
+  background: transparent; border-radius: var(--bo-tron);
+}
+.ds-canh:hover::-webkit-scrollbar-thumb, .ds-lop:hover::-webkit-scrollbar-thumb,
+.bang-tt:hover::-webkit-scrollbar-thumb { background: var(--nen-4); }
 
 /* ---------- thanh trên ---------- */
 .thanh-tren {
-  display: flex; align-items: center; gap: 14px;
-  padding: 10px 16px;
-  background: var(--nen-2);
-  border-bottom: 1px solid var(--vach);
+  display: flex; align-items: center; gap: 12px;
+  height: 48px; padding: 0 14px;
+  background: var(--nen);
+  border-radius: var(--bo-khoi);
   flex: none;
 }
-.hieu { font-weight: 700; font-size: 15px; letter-spacing: .2px; }
+/* Ô hiệu: chữ tắt của Mắt Bão, chỗ neo mắt ở góc trái — giống mọi phần mềm
+   dựng phim, và cũng là chỗ duy nhất trong vỏ được dùng màu thương hiệu. */
+.o-hieu {
+  width: 28px; height: 28px; flex: none;
+  border-radius: 7px; background: linear-gradient(135deg, var(--nhan), #0ea5e9);
+  color: #000; font-weight: 800; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+}
+.hieu { font-weight: 700; font-size: 13.5px; letter-spacing: .1px; }
 .day { flex: 1; }
 .phu { color: var(--chu-mo); font-size: 13px; }
 .lien-ket { color: var(--chu-mo); text-decoration: none; font-size: 13px; }
@@ -60,35 +121,39 @@ body {
 .chon:focus-visible { outline: 2px solid var(--nhan); outline-offset: 1px; }
 
 /* ---------- thân ---------- */
-.than { display: flex; flex: 1; min-height: 0; }
+.than { display: flex; flex: 1; min-height: 0; gap: 8px; }
 
 .cot-trai, .cot-phai {
-  width: 260px; flex: none;
-  background: var(--nen-2);
+  flex: none;
+  background: var(--nen);
+  border-radius: var(--bo-khoi);
   display: flex; flex-direction: column; min-height: 0;
+  overflow: hidden;
 }
-.cot-trai { border-right: 1px solid var(--vach); }
-.cot-phai { border-left: 1px solid var(--vach); }
+.cot-trai { width: 272px; }
+.cot-phai { width: 316px; }
 
 .tieu-de-cot {
-  padding: 11px 14px; font-size: 12px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: .07em;
+  padding: 10px 12px; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
   color: var(--chu-mo); border-bottom: 1px solid var(--vach); flex: none;
+  background: var(--nen-2);
 }
 
 .ds-canh { list-style: none; margin: 0; padding: 6px; overflow-y: auto; flex: 1; }
 .ds-canh li {
-  padding: 9px 11px; border-radius: 8px; cursor: pointer;
+  padding: 8px 10px; border-radius: var(--bo); cursor: pointer;
   display: flex; justify-content: space-between; gap: 8px; align-items: baseline;
+  border: 1px solid transparent;
 }
 .ds-canh li { transition: background var(--nhip-nhanh) var(--da-ra); }
-.ds-canh li:hover { background: var(--nen-3); }
-.ds-canh li[aria-current="true"] { background: var(--nhan); color: #061018; font-weight: 600; }
-.ds-canh li[aria-current="true"] .giay-canh { color: #061018; opacity: .75; }
+.ds-canh li:hover { background: var(--nen-3); border-color: rgba(255,255,255,.08); }
+.ds-canh li[aria-current="true"] { background: var(--nhan); color: var(--tren-nhan); font-weight: 600; }
+.ds-canh li[aria-current="true"] .giay-canh { color: var(--tren-nhan); opacity: .75; }
 .ds-canh .giay-canh { color: var(--chu-mo); font-size: 12px; font-variant-numeric: tabular-nums; }
 
 .trong { padding: 16px 14px; color: var(--chu-mo); font-size: 13px; }
-.ghi-chu { color: #6b7f9c; font-size: 12px; margin: 10px 0 0; }
+.ghi-chu { color: var(--chu-mo-2); font-size: 12px; margin: 10px 0 0; }
 
 /* ---------- giữa ---------- */
 .giua { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
@@ -130,24 +195,36 @@ body {
 .thanh-tua { flex: 1; accent-color: var(--nhan); cursor: pointer; }
 .dong-ho { color: var(--chu-mo); font-variant-numeric: tabular-nums; font-size: 13px; min-width: 130px; text-align: right; }
 
+/* Nút dạng viên thuốc — bo tròn hẳn, không viền, chữ đậm và nhỏ. Đây là thứ
+   đổi nhiều nhất so với bản cũ, và cũng là thứ thấy đầu tiên. */
 .nut {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   background: var(--nen-3); color: var(--chu);
-  border: 1px solid var(--vach); border-radius: 8px;
-  padding: 8px 16px; font: inherit; cursor: pointer; white-space: nowrap;
+  border: 0; border-radius: var(--bo-tron);
+  padding: 7px 15px; font: 600 12px/1 var(--font);
+  cursor: pointer; white-space: nowrap;
 }
 .nut { transition: background var(--nhip-nhanh) var(--da-ra),
                    border-color var(--nhip-nhanh) var(--da-ra),
                    transform var(--nhip-nhanh) var(--da-vao); }
-.nut:hover:not(:disabled) { background: #24344c; }
+.nut:hover:not(:disabled) { background: var(--nen-4); transform: scale(1.02); }
 /* Lún xuống một chút khi bấm. Không đổi kích thước ô, chỉ transform — nên không
    làm xô lệch những thứ xung quanh. */
 .nut:active:not(:disabled) { transform: scale(.97); }
 .nut:disabled { opacity: .45; cursor: default; }
-.nut.chinh { min-width: 104px; font-weight: 600; }
+.nut.chinh {
+  background: var(--nhan); color: var(--tren-nhan); font-weight: 700;
+}
+.nut.chinh:hover:not(:disabled) {
+  background: var(--nhan-sang); box-shadow: 0 0 16px rgba(49, 217, 117, .38);
+}
+.nut.vien { background: transparent; border: 1px solid var(--nen-4); }
+.nut.vien:hover:not(:disabled) { background: transparent; border-color: var(--chu); }
 
 /* ---------- lời nhắc ---------- */
 .bao {
-  position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+  /* Nằm TRÊN thanh phát, không đè lên: thanh phát cao 62px + 8px khe ngoài. */
+  position: fixed; left: 50%; bottom: 82px; transform: translateX(-50%);
   background: var(--nen-3); border: 1px solid var(--vach);
   padding: 11px 18px; border-radius: var(--bo);
   box-shadow: 0 10px 30px rgba(0, 0, 0, .55);
@@ -165,7 +242,7 @@ body {
 .bao.hong { border-color: var(--do); background: #2c1416; color: #ffd9da; }
 
 .ds-canh .khong-the {
-  color: #6b7f9c; font-size: 12px; cursor: default; padding: 12px 11px; line-height: 1.5;
+  color: var(--chu-mo-2); font-size: 12px; cursor: default; padding: 12px 11px; line-height: 1.5;
 }
 .ds-canh .khong-the:hover { background: none; }
 
@@ -181,20 +258,20 @@ body {
   border: 1.5px solid var(--nhan); border-radius: 2px;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, .35);
 }
-.khung-re { border-color: rgba(74, 158, 255, .5); border-style: solid; }
+.khung-re { border-color: rgba(49, 217, 117, .55); border-style: solid; }
 
 /* Ba kiểu viền cho ba trạng thái — nhìn là biết kéo được hay không. */
 .khung-chon[data-kieu="tu"]  { border-style: solid; }
 .khung-chon[data-kieu="dat"] { border-style: dashed; }
-.khung-chon[data-kieu="con"] { border-style: dotted; border-color: #9fb3cd; }
+.khung-chon[data-kieu="con"] { border-style: dotted; border-color: #a3a3a3; }
 
 .khung-nhan {
   position: absolute; left: -1.5px; top: -21px;
-  background: var(--nhan); color: #061018;
+  background: var(--nhan); color: var(--tren-nhan);
   font-size: 11px; font-weight: 600; line-height: 1;
   padding: 4px 7px; border-radius: 4px 4px 0 0; white-space: nowrap;
 }
-.khung-chon[data-kieu="con"] .khung-nhan { background: #9fb3cd; }
+.khung-chon[data-kieu="con"] .khung-nhan { background: #a3a3a3; }
 
 /* ============ DANH SÁCH THÀNH PHẦN ============ */
 .ds-lop { overflow-y: auto; flex: 1; padding: 5px 0 10px; min-height: 90px; }
@@ -204,12 +281,12 @@ body {
 }
 .lop-hang { transition: background var(--nhip-nhanh) var(--da-ra); }
 .lop-hang:hover { background: var(--nen-3); }
-.lop-hang.dang { background: var(--nhan); color: #061018; }
-.lop-cham { width: 7px; height: 7px; border-radius: 2px; background: #5d7794; flex: none; }
-.lop-hang.dang .lop-cham { background: #061018; }
+.lop-hang.dang { background: var(--nhan); color: var(--tren-nhan); }
+.lop-cham { width: 7px; height: 7px; border-radius: 2px; background: var(--chu-mo-2); flex: none; }
+.lop-hang.dang .lop-cham { background: var(--tren-nhan); }
 .lop-ten { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lop-dau { margin-left: auto; font-size: 10px; color: #6b7f9c; flex: none; }
-.lop-hang.dang .lop-dau { color: #061018; opacity: .7; }
+.lop-dau { margin-left: auto; font-size: 10px; color: var(--chu-mo-2); flex: none; }
+.lop-hang.dang .lop-dau { color: var(--tren-nhan); opacity: .7; }
 .cot-trai .ds-canh { flex: 0 0 auto; max-height: 34%; }
 
 /* ============ BẢNG THUỘC TÍNH ============ */
@@ -227,24 +304,26 @@ body {
 }
 .chi-o:hover { background: var(--nen-3); color: var(--chu); }
 .chi-o.dang { color: var(--chu); font-weight: 600; }
-.chi-mui { color: #4a5d78; }
+.chi-mui { color: var(--nen-4); }
 
 .muc { padding: 12px 12px 4px; border-bottom: 1px solid var(--vach); }
 .muc-ten {
-  margin: 0 0 10px; font-size: 11px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: .07em; color: var(--chu-mo);
+  margin: 0 0 11px; font-size: 11.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .05em; color: var(--chu);
 }
 
 .num { margin-bottom: 12px; }
 .num-nhan { display: block; font-size: 12px; color: var(--chu-mo); margin-bottom: 4px; }
 .num-nhan.an-nhan { display: none; }
-.num-goi { margin: 4px 0 0; font-size: 11px; color: #6b7f9c; line-height: 1.45; }
+.num-goi { margin: 4px 0 0; font-size: 11px; color: var(--chu-mo-2); line-height: 1.45; }
 
 .o-nhap {
-  width: 100%; background: var(--nen); color: var(--chu);
-  border: 1px solid var(--vach); border-radius: 7px;
-  padding: 6px 9px; font: inherit; font-size: 13px;
+  width: 100%; background: var(--nen-3); color: var(--chu);
+  border: 1px solid transparent; border-radius: var(--bo-nho);
+  padding: 6px 9px; font: inherit; font-size: 12px;
+  font-variant-numeric: tabular-nums;
 }
+.o-nhap:focus { border-color: var(--nhan); }
 .o-nhap:focus-visible { outline: 2px solid var(--nhan); outline-offset: -1px; border-color: var(--nhan); }
 .o-van { resize: vertical; line-height: 1.5; font-family: inherit; }
 .o-so { text-align: right; }
@@ -264,7 +343,7 @@ body {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .doan-o[aria-pressed="true"], .nac-o[aria-pressed="true"] {
-  background: var(--nhan); border-color: var(--nhan); color: #061018; font-weight: 600;
+  background: var(--nhan); border-color: var(--nhan); color: var(--tren-nhan); font-weight: 600;
 }
 .nac-o { flex: 0 0 calc(25% - 3px); }
 
@@ -281,13 +360,13 @@ body {
   margin-top: 7px; background: var(--nen); border: 1px solid var(--vach);
   border-radius: 7px; padding: 7px; min-height: 40px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 11px; color: #6b7f9c;
+  font-size: 11px; color: var(--chu-mo-2);
 }
 .num-anh .anh-xem img { max-width: 100%; max-height: 90px; display: block; }
 
 .nhac {
   margin: 0 0 10px; padding: 8px 10px; font-size: 12px; line-height: 1.5;
-  background: var(--nen); border-left: 2px solid #6b7f9c;
+  background: var(--nen); border-left: 2px solid var(--chu-mo-2);
   border-radius: 0 6px 6px 0; color: var(--chu-mo);
 }
 .nut.nho { padding: 6px 11px; font-size: 12px; }
@@ -326,17 +405,18 @@ body {
   color: var(--chu); font: inherit; font-size: 13px;
   padding: 6px 12px; border-radius: 6px; cursor: pointer; white-space: nowrap;
 }
-.menu-them button:hover { background: var(--nhan); color: #061018; }
+.menu-them button:hover { background: var(--nhan); color: var(--tren-nhan); }
 
 /* ============ THẺ CỘT PHẢI ============ */
-.the-hang { display: flex; border-bottom: 1px solid var(--vach); flex: none; }
+.the-hang { display: flex; gap: 2px; padding: 6px 8px 0; background: var(--nen-2);
+  border-bottom: 1px solid var(--vach); flex: none; }
 .the {
   flex: 1; background: none; border: 0; border-bottom: 2px solid transparent;
-  color: var(--chu-mo); font: inherit; font-size: 12px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: .06em;
-  padding: 11px 6px; cursor: pointer;
+  color: var(--chu-mo); font: 600 11.5px/1 var(--font);
+  letter-spacing: .02em;
+  padding: 11px 6px; cursor: pointer; border-radius: var(--bo-nho) var(--bo-nho) 0 0;
 }
-.the[aria-selected="true"] { color: var(--chu); border-bottom-color: var(--nhan); }
+.the[aria-selected="true"] { color: var(--nhan); border-bottom-color: var(--nhan); background: var(--nen-3); }
 .the { transition: color var(--nhip-nhanh) var(--da-ra),
                    border-color var(--nhip) var(--da-vao); }
 .the:hover { color: var(--chu); }
@@ -376,10 +456,10 @@ body {
 .khung-hop {
   position: absolute; display: none; cursor: move;
   border: 3px solid var(--cam); border-radius: 12px;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, .5), 0 0 0 9999px rgba(6, 12, 20, .34);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .5), 0 0 0 9999px rgba(0, 0, 0, .5);
 }
 .khung-hop[data-loai="che"]  { border-color: #7c5cff; }
-.khung-hop[data-loai="xoa"]  { border-color: #2ecc71; border-style: dashed; }
+.khung-hop[data-loai="xoa"]  { border-color: var(--xanh); border-style: dashed; }
 
 .khung-tay {
   position: absolute; width: 13px; height: 13px;
@@ -405,14 +485,14 @@ body {
   padding: 6px 8px; border-radius: 6px; cursor: pointer; text-align: left;
 }
 .khung-hang:hover:not(:disabled) { background: var(--nen-3); }
-.khung-hang.dang { background: var(--nhan); color: #061018; }
+.khung-hang.dang { background: var(--nhan); color: var(--tren-nhan); }
 .khung-hang:disabled { opacity: .38; cursor: default; }
 .khung-cham { width: 8px; height: 8px; border-radius: 2px; flex: none; background: var(--cam); }
 .khung-cham[data-loai="che"] { background: #7c5cff; }
-.khung-cham[data-loai="xoa"] { background: #2ecc71; }
+.khung-cham[data-loai="xoa"] { background: var(--xanh); }
 .khung-ten { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .khung-thoi { color: var(--chu-mo); font-size: 11px; flex: none; font-variant-numeric: tabular-nums; }
-.khung-hang.dang .khung-thoi { color: #061018; opacity: .75; }
+.khung-hang.dang .khung-thoi { color: var(--tren-nhan); opacity: .75; }
 .khung-canh {
   padding: 10px 8px 4px; font-size: 11px; font-weight: 600;
   text-transform: uppercase; letter-spacing: .06em; color: var(--chu-mo);
@@ -457,11 +537,11 @@ body {
   padding: 7px 8px; border-radius: 7px; cursor: pointer; text-align: left;
 }
 .video-hang:hover { background: var(--nen-3); }
-.video-hang.dang { background: var(--nhan); color: #061018; }
+.video-hang.dang { background: var(--nhan); color: var(--tren-nhan); }
 .video-cot { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
 .video-ten { font-size: 12px; font-variant-numeric: tabular-nums; }
 .video-phu { font-size: 11px; color: var(--chu-mo); }
-.video-hang.dang .video-phu { color: #061018; opacity: .75; }
+.video-hang.dang .video-phu { color: var(--tren-nhan); opacity: .75; }
 .video-nhan-hang { display: flex; flex-direction: column; gap: 3px; align-items: flex-end; flex: none; }
 
 .the-nho {
@@ -471,7 +551,7 @@ body {
 }
 .the-nho.tieng { border-color: #2b6b45; background: #13291d; color: #7fd6a0; }
 .the-nho.cam { border-color: #6b4a1c; background: #2a1f12; color: #e0a86a; }
-.video-hang.dang .the-nho { background: rgba(6,16,24,.18); border-color: rgba(6,16,24,.3); color: #061018; }
+.video-hang.dang .the-nho { background: rgba(0,0,0,.2); border-color: rgba(0,0,0,.32); color: var(--tren-nhan); }
 .video-boc .nut { text-decoration: none; text-align: center; }
 
 .ly-do { max-width: 520px; text-align: left; color: var(--chu-mo); font-size: 13px; }
@@ -577,3 +657,215 @@ body {
    dày cộp và bóng loang lổ ở mức 400%. */
 .boc-khung.dang-phong { border-radius: 0; box-shadow: none; }
 #san-clip.dang-doi { cursor: grabbing; }
+
+/* ---------- ảnh nhỏ của thành phần (kiểu bảng lớp Photoshop) ---------- */
+.lop-anh {
+  width: 34px; height: 34px; flex: none;
+  border-radius: 5px; border: 1px solid var(--vach);
+  background:
+    /* ô cờ vua nhạt để thấy phần trong suốt, như mọi phần mềm đồ hoạ */
+    linear-gradient(45deg, #202020 25%, transparent 25%, transparent 75%, #202020 75%) 0 0/10px 10px,
+    linear-gradient(45deg, #202020 25%, transparent 25%, transparent 75%, #202020 75%) 5px 5px/10px 10px,
+    #161616;
+  overflow: hidden; position: relative;
+}
+.lop-hang.dang .lop-anh { border-color: rgba(0, 0, 0, .45); }
+.lop-hang { gap: 9px; padding: 5px 10px; align-items: center; }
+
+.lop-xem-lon {
+  position: fixed; z-index: 200;
+  width: 168px; height: 168px;
+  border-radius: 10px; border: 1px solid var(--vach);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, .6);
+  overflow: hidden; pointer-events: none;
+  animation: bao-hien var(--nhip-nhanh) var(--da-vao);
+}
+
+/* ---------- bong bóng hướng dẫn tại chỗ ---------- */
+/* Nút hỏi nằm im lìm cho tới khi cần: hiện mờ, rõ hẳn khi rê vào hàng núm. Bày
+   chín mươi dấu hỏi sáng rực ra cùng lúc thì chính nó lại thành thứ gây rối. */
+.hd-nut {
+  width: 15px; height: 15px; margin-left: 6px; padding: 0;
+  border: 0; border-radius: 50%;
+  background: var(--nen-3); color: var(--chu-mo);
+  font: 600 10px/15px system-ui; text-align: center;
+  cursor: help; opacity: .45; vertical-align: middle;
+  transition: opacity var(--nhip-nhanh) var(--da-ra),
+              background var(--nhip-nhanh) var(--da-ra),
+              color var(--nhip-nhanh) var(--da-ra);
+}
+.num:hover .hd-nut { opacity: .85; }
+.hd-nut:hover, .hd-nut[aria-describedby] { opacity: 1; background: var(--nhan); color: var(--tren-nhan); }
+.hd-nut:focus-visible { outline: 2px solid var(--nhan); outline-offset: 2px; opacity: 1; }
+
+.hd {
+  position: fixed; z-index: 300; width: 300px;
+  padding: 12px 14px; border-radius: 12px;
+  background: color-mix(in srgb, var(--nen-2) 88%, transparent);
+  backdrop-filter: blur(18px);
+  border: 1px solid var(--vach);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .62);
+  animation: hd-hien var(--nhip) var(--da-vao);
+}
+@keyframes hd-hien { from { opacity: 0; transform: translateY(6px) scale(.98); } }
+.hd-de { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--chu); }
+.hd-mo { margin: 0; font-size: 12.5px; line-height: 1.55; color: var(--chu-mo); }
+.hd-demo { margin-top: 10px; border-radius: 8px; overflow: hidden; background: #000; }
+
+/* ============================================================================
+   GIAO DIỆN MỚI — các mảnh chỉ có trong bản dựng Stitch
+   ==========================================================================*/
+
+/* Chữ chỉ dành cho trình đọc màn hình. Không dùng `display:none`: thứ đó bị
+   trình đọc bỏ qua luôn, mà đây đúng là thứ cần đọc lên. */
+.chi-doc {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+
+/* ---------- thanh trên ---------- */
+.chon {
+  background: var(--nen-3); color: var(--chu);
+  border: 1px solid transparent; border-radius: var(--bo-tron);
+  padding: 6px 12px; font: 500 12px/1.4 var(--font); min-width: 240px;
+}
+.chon:hover { background: var(--nen-4); }
+
+/* Hai mẩu tin nhỏ cạnh nhau: kích thước khung hình, và "chưa lưu".
+   Cùng dáng viên thuốc nhưng khác màu — cái xám là sự thật nguội, cái cam là
+   việc phải làm. */
+.chip-tin {
+  font-size: 11px; color: var(--chu-mo);
+  background: var(--nen-3); padding: 3px 10px; border-radius: var(--bo-tron);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.dau-ban {
+  font-size: 11px; font-weight: 600; color: var(--cam);
+  background: rgba(249, 115, 22, .14); padding: 3px 10px;
+  border-radius: var(--bo-tron); white-space: nowrap;
+}
+
+.nhom-nut { display: flex; gap: 2px; }
+.nut-tron {
+  width: 30px; height: 30px; padding: 0; flex: none;
+  border: 0; border-radius: 50%; background: transparent; color: var(--chu-mo);
+  cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+  transition: color var(--nhip-nhanh) var(--da-ra),
+              background var(--nhip-nhanh) var(--da-ra),
+              transform var(--nhip-nhanh) var(--da-vao);
+}
+.nut-tron svg {
+  width: 15px; height: 15px; fill: none; stroke: currentColor;
+  stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
+}
+.nut-tron:hover:not(:disabled) { color: var(--chu); background: rgba(255, 255, 255, .08); transform: scale(1.06); }
+.nut-tron:disabled { opacity: .3; cursor: default; }
+.nut-tron:focus-visible { outline: 2px solid var(--nhan); outline-offset: 2px; }
+
+/* ---------- ô lọc thành phần ---------- */
+.hop-tim {
+  position: relative; display: flex; align-items: center;
+  padding: 8px 10px; border-bottom: 1px solid var(--vach); flex: none;
+}
+.tim-kinh {
+  position: absolute; left: 19px; width: 13px; height: 13px; pointer-events: none;
+  fill: none; stroke: var(--chu-mo-2); stroke-width: 1.5; stroke-linecap: round;
+}
+.nhap-tim {
+  flex: 1; min-width: 0;
+  background: var(--nen-3); color: var(--chu);
+  border: 1px solid transparent; border-radius: var(--bo-tron);
+  padding: 6px 30px 6px 28px; font: inherit; font-size: 12px; outline: none;
+}
+.nhap-tim::placeholder { color: var(--chu-mo-2); }
+.nhap-tim:focus { border-color: var(--chu-mo); background: var(--nen-2); }
+.tim-dem {
+  position: absolute; right: 20px; font-size: 11px; color: var(--chu-mo-2);
+  font-variant-numeric: tabular-nums; pointer-events: none;
+}
+
+/* ---------- khu giữa ---------- */
+.giua {
+  background: var(--nen); border-radius: var(--bo-khoi); overflow: hidden;
+}
+.san-khau { background: #0a0a0a; }
+.bang-bao { margin: 10px 12px 0; }
+
+/* ---------- thanh phát dưới cùng ---------- */
+.thanh-duoi {
+  height: 62px; flex: none;
+  background: var(--nen); border-radius: var(--bo-khoi);
+  display: grid; grid-template-columns: minmax(140px, 1fr) minmax(0, 2.2fr) minmax(60px, 1fr);
+  align-items: center; gap: 14px; padding: 0 16px;
+}
+.dang-phat { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.anh-canh {
+  width: 40px; height: 40px; flex: none; border-radius: var(--bo);
+  background: var(--nen-3); display: flex; align-items: center; justify-content: center;
+}
+.dang-phat-chu { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ten-canh {
+  font-size: 12.5px; font-weight: 600; color: var(--chu);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.phu-canh { font-size: 11px; color: var(--chu-mo); white-space: nowrap; }
+
+.dieu-khien { display: flex; align-items: center; gap: 12px; padding: 0; min-width: 0; }
+
+/* Nút chạy: tròn, trắng, chữ đen — thứ sáng nhất trên cả thanh, vì nó là việc
+   người dùng bấm nhiều nhất. */
+.nut-phat {
+  width: 34px; height: 34px; flex: none; padding: 0;
+  border: 0; border-radius: 50%; background: var(--chu); color: #000;
+  display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: transform var(--nhip-nhanh) var(--da-vao), background var(--nhip-nhanh) var(--da-ra);
+}
+.nut-phat:hover:not(:disabled) { transform: scale(1.08); }
+.nut-phat:disabled { opacity: .35; cursor: default; }
+.nut-phat:focus-visible { outline: 2px solid var(--nhan); outline-offset: 3px; }
+.nut-phat svg { width: 15px; height: 15px; fill: currentColor; stroke: none; }
+.nut-phat .hinh-dung { display: none; }
+.nut-phat[data-chay="1"] .hinh-chay { display: none; }
+.nut-phat[data-chay="1"] .hinh-dung { display: block; }
+
+/* ---------- thanh trượt: rãnh mảnh, núm tròn nhỏ ---------- */
+.thanh-tua, .num-so .truot {
+  -webkit-appearance: none; appearance: none;
+  height: 4px; border-radius: var(--bo-tron);
+  background: var(--nen-4); outline: none; cursor: pointer;
+}
+.thanh-tua::-webkit-slider-thumb, .num-so .truot::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%;
+  background: var(--chu); cursor: pointer; border: 0;
+}
+.thanh-tua:hover::-webkit-slider-thumb,
+.num-so .truot:hover::-webkit-slider-thumb { background: var(--nhan); }
+.thanh-tua::-moz-range-thumb, .num-so .truot::-moz-range-thumb {
+  width: 12px; height: 12px; border-radius: 50%; background: var(--chu); border: 0;
+}
+.dong-ho { font-size: 11.5px; min-width: 118px; }
+.tien-ich-phai { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+
+/* ---------- khung chọn trên khung hình: chấm kéo ở bốn góc ---------- */
+/* Bản cũ chỉ có đường viền. Thêm bốn chấm là nói thẳng ra "cái này kéo được" —
+   không phải thử mới biết. */
+.khung-chon[data-kieu="tu"]::before, .khung-chon[data-kieu="tu"]::after,
+.khung-chon[data-kieu="dat"]::before, .khung-chon[data-kieu="dat"]::after {
+  content: ''; position: absolute; width: 7px; height: 7px;
+  background: var(--nhan); border-radius: 50%; box-shadow: 0 0 0 2px rgba(0, 0, 0, .8);
+}
+.khung-chon::before { left: -4px; top: -4px; }
+.khung-chon::after { right: -4px; bottom: -4px; }
+.anh-canh svg {
+  width: 17px; height: 17px; fill: none; stroke: var(--chu-mo-2);
+  stroke-width: 1.3; stroke-linejoin: round;
+}
+
+/* ---------- thanh trên không được đẩy tràn ngang ---------- */
+/* Ô chọn clip có `min-width` cố định, mà tên clip đời cũ thì dài
+   ("VH-03 · CEO / Sales Leader — số liệu không phải đợi ai"). Không cho co thì
+   cả thanh đội rộng ra, đẩy nút Lưu khỏi mép phải và sinh cuộn ngang. */
+.thanh-tren > * { min-width: 0; }
+.chon { flex: 0 1 auto; min-width: 140px; max-width: 46vw; }
+.hieu { flex: none; }
+.o-hieu { flex: none; }

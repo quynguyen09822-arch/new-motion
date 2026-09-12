@@ -22,19 +22,23 @@ import { taoBangXuat } from './exportpanel.js';
 import { taoKhung } from './khung.js';
 import { taoBangVideo } from './videos.js';
 import { taoZoom } from './zoom.js';
+import { taoAnhNho } from './anhnho.js';
 
 const $ = (id) => document.getElementById(id);
 const chonClip = $('chon-clip'), dangClip = $('dang-clip'), dsCanhEl = $('ds-canh');
 const bangDoiCu = $('bang-doi-cu'), bocKhung = $('boc-khung'), lopBat = $('lop-bat');
+const khungEl = $('khung');
 const nutChay = $('nut-chay'), thanhTua = $('thanh-tua'), dongHo = $('dong-ho'), baoEl = $('bao');
 const nutLui = $('nut-lui'), nutToi = $('nut-toi'), nutLuu = $('nut-luu'), dauBan = $('dau-ban');
 
-const player = taoPlayer($('khung'));
+const player = taoPlayer(khungEl);
 const kho = taoKho();
 const doMon = taoDo(player);
 const lopPhu = taoLopPhu($('lop-phu'), player);
 const bang = taoBang($('bang-thuoc-tinh'), kho, player);
+const anhNho = taoAnhNho(player);
 const dsLop = taoDanhSach($('ds-lop'), {
+  anhNho,
   onChon: (c) => datChon(c),
   onRe: (c) => lopPhu.veRe(c.canhId, c.monId),
   onThoiRe: () => lopPhu.xoaRe(),
@@ -160,6 +164,7 @@ bang.khiChonKhac(datChon);
 let henSoat = null;
 function soatLai() {
   clearTimeout(henSoat);
+  dsLop.veLaiAnh();
   henSoat = setTimeout(() => {
     const kq = bangXuat.veSoat();
     const n = kq?.soNang || 0;
@@ -325,6 +330,7 @@ async function moClip(slug) {
   bangDoiCu.classList.toggle('an', c.doi !== 1);
   bocKhung.style.setProperty('--ti-le', c.doi === 2 && c.rong ? `${c.rong} / ${c.cao}` : '16 / 9');
   dangClip.textContent = c.doi === 2 ? `${c.rong}×${c.cao}` : 'đời cũ';
+  datDangPhat(c.ten || c.slug, c.doi === 2 ? `${c.soCanh} cảnh · ${giay1(c.giay)}s` : 'clip đời cũ');
   dsCanhEl.innerHTML = '';
   $('ds-lop').innerHTML = '';
   $('bang-thuoc-tinh').innerHTML = '';
@@ -337,23 +343,43 @@ async function moClip(slug) {
   // Lăn chuột NGAY TRÊN khung hình chỉ tới được nếu nghe từ bên trong iframe —
   // sự kiện chuột không vượt qua ranh giới iframe. Gắn lại sau mỗi lần mở.
   zoom.noiVaoKhung();
+  anhNho.napLai();      // mỗi clip một bảng màu và một bộ CSS riêng
 
   if (c.doi !== 2) {
-    khoaDieuKhien(true);
+    /*
+     * CLIP ĐỜI CŨ = CHỈ XEM, nhưng XEM CHO RA XEM.
+     *
+     * Trước đây chỗ này ép mở thẻ "Khung nhấn", mà thẻ đó thay luôn sân khấu ở
+     * giữa — nên chọn một clip đời cũ là rơi vào một ô đen ghi "clip này chưa
+     * chỉnh khung được", còn chính cái clip thì không thấy đâu. Người dùng muốn
+     * liếc qua một clip cũ thì phải đi mở file nguồn, nhanh hơn ở đây.
+     *
+     * Nay: đứng nguyên ở khung xem, và nếu trang phơi `__clip` (cả 12 clip đời
+     * cũ đều phơi) thì MỞ HẲN nút Chạy với thanh tua. Thẻ Khung nhấn vẫn hiện
+     * ra để bấm, chỉ không tự nhảy vào nữa.
+     */
     lopBat.style.display = 'none';
     dsCanhEl.innerHTML = '<li class="khong-the">Clip đời cũ không tách được ra từng cảnh.</li>';
-    $('bang-thuoc-tinh').innerHTML =
-      '<div class="trong">Clip đời cũ chưa sửa trực tiếp được.</div>';
-    // Nhưng khung nhấn thì SỬA ĐƯỢC: toạ độ của chúng là số viết thẳng trong
-    // mảng, tính theo pixel ảnh mockup — không phải do code tính lúc chạy.
-    // Luôn mở thẻ Khung nhấn cho clip đời cũ: chỉnh được thì cho chỉnh, không
-    // chỉnh được thì bày lý do ra. Ẩn thẻ đi là bắt người dùng đi hỏi.
-    const kq = await bangKhung.mo(slug).catch(() => ({ ok: false, thieu: [] }));
+    const laiDuoc = player.san();
+    $('bang-thuoc-tinh').innerHTML = laiDuoc
+      ? '<div class="trong">Clip đời cũ — <b>chỉ xem</b>. Chạy và tua được, nhưng '
+        + 'không sửa trực tiếp được: vị trí mọi thứ do code tính lúc chạy.</div>'
+      : '<div class="trong">Clip đời cũ chưa sửa trực tiếp được, và trang này cũng '
+        + 'không cho tua — nó tự chạy lấy.</div>';
+    khoaDieuKhien(!laiDuoc);
+    // `khoaDieuKhien` vừa ghi đè đồng hồ thành "0,0 / 0,0 giây". Clip đời cũ
+    // đứng yên nên không có nhịp nào chạy tới để sửa lại — phải gọi thẳng.
+    if (laiDuoc) capNhat();
+    vuaKhoTho();
+    // Khung nhấn thì SỬA ĐƯỢC: toạ độ của chúng là số viết thẳng trong mảng,
+    // tính theo pixel ảnh mockup — không phải do code tính lúc chạy. Nên vẫn
+    // bày thẻ ra, chỉ không cướp chỗ của khung xem nữa.
+    await bangKhung.mo(slug).catch(() => ({ ok: false, thieu: [] }));
     $('the-khung').classList.remove('an');
-    doiThe('khung');
-    bao(kq.ok
-      ? `Đã mở "${c.ten}". Chỉ xem được, nhưng khung nhấn thì chỉnh được.`
-      : `Đã mở "${c.ten}" — clip này chưa chỉnh khung được, lý do ở cột bên phải.`);
+    doiThe('tt');
+    bao(laiDuoc
+      ? `Đã mở "${c.ten}" — chỉ xem, nhưng chạy và tua được.`
+      : `Đã mở "${c.ten}" — chỉ xem, trang này tự chạy lấy.`);
     trangThai('san-sang');
     return;
   }
@@ -361,6 +387,7 @@ async function moClip(slug) {
 
   lopBat.style.display = '';
   khoaDieuKhien(false);
+  thoiKhoTho();
 
   const kq = await (await fetch(`/api/clip/${slug}`)).json();
   if (!kq.ok) { bao(kq.loi, true); trangThai('hong'); return; }
@@ -390,11 +417,60 @@ async function moClip(slug) {
   trangThai('san-sang');
 }
 
+/* NHÃN NÚT CHẠY/DỪNG.
+ *
+ * Nút là hình tam giác/hai vạch vẽ bằng SVG, nhưng chữ "Chạy"/"Dừng" vẫn phải
+ * có thật trong cây DOM: trình đọc màn hình cần nó, và `kiem-chay-dung.mjs`
+ * cũng đọc đúng chữ đó để biết nút có kẹt nhãn không. Ghi vào SPAN con chứ
+ * không ghi vào chính cái nút — ghi vào nút là xoá mất cả hai hình SVG.
+ */
+function datNhanChay(dangChay) {
+  nutChay.dataset.chay = dangChay ? '1' : '0';
+  const nhan = nutChay.querySelector('.chay-nhan');
+  if (nhan) nhan.textContent = dangChay ? 'Dừng' : 'Chạy';
+  nutChay.setAttribute('aria-label', dangChay ? 'Dừng' : 'Chạy');
+}
+
+/* ---------- khổ gốc của clip đời cũ ---------- */
+/*
+ * Clip đời cũ chạy `export=1` nên trang KHÔNG tự co nữa: sân khấu ra đúng cỡ
+ * gốc rồi tràn khỏi iframe. Trang cha lo phần thu: đặt iframe đúng cỡ gốc rồi
+ * `scale` cả cái iframe cho vừa khung. Thu bằng `transform` nên chữ vẫn nét,
+ * và không phải đụng một dòng nào bên trong iframe.
+ */
+function vuaKhoTho() {
+  const kho = player.khoTho();
+  if (!kho) { thoiKhoTho(); return; }
+  bocKhung.style.setProperty('--ti-le', `${kho.w} / ${kho.h}`);
+  const k = Math.min(bocKhung.clientWidth / kho.w, bocKhung.clientHeight / kho.h) || 1;
+  khungEl.style.width = `${kho.w}px`;
+  khungEl.style.height = `${kho.h}px`;
+  khungEl.style.transformOrigin = 'top left';
+  khungEl.style.transform = `scale(${k})`;
+}
+
+/* Trả iframe về nếp thường. Clip đời mới tự co lấy, đụng vào là hỏng phép đo. */
+function thoiKhoTho() {
+  khungEl.style.width = '';
+  khungEl.style.height = '';
+  khungEl.style.transform = '';
+  khungEl.style.transformOrigin = '';
+}
+
+addEventListener('resize', () => { if (clipDangMo && clipDangMo.doi !== 2) vuaKhoTho(); });
+
 function khoaDieuKhien(khoa) {
   nutChay.disabled = khoa; thanhTua.disabled = khoa;
   nutLuu.disabled = khoa; nutLui.disabled = khoa; nutToi.disabled = khoa;
   dongHo.textContent = khoa ? 'trang tự chạy' : '0,0 / 0,0 giây';
-  if (khoa) nutChay.textContent = '▶ Chạy';
+  if (khoa) datNhanChay(false);
+}
+
+/* Thanh phát dưới cùng: đang đứng ở cảnh nào. Lấy từ dữ liệu thật, không bịa. */
+function datDangPhat(ten, phu) {
+  const a = document.getElementById('ten-canh'), b = document.getElementById('phu-canh');
+  if (a) a.textContent = ten || 'Chưa mở clip';
+  if (b) b.textContent = phu || '';
 }
 
 function veDanhSachCanh(ds) {
@@ -410,8 +486,16 @@ function veDanhSachCanh(ds) {
 
 function danhDauCanh() {
   const canh = chon?.canhId || player.canhHienTai()?.id;
+  let so = 0;
   for (const li of dsCanhEl.children) {
-    if (li.dataset) li.setAttribute('aria-current', String(li.dataset.canh === canh));
+    if (!li.dataset) continue;
+    so++;
+    const dang = li.dataset.canh === canh;
+    li.setAttribute('aria-current', String(dang));
+    if (dang && clipDangMo) {
+      datDangPhat(`Cảnh ${so} · ${clipDangMo.ten || clipDangMo.slug}`,
+        `${clipDangMo.soCanh} cảnh · ${giay1(clipDangMo.giay)}s`);
+    }
   }
 }
 
@@ -421,7 +505,7 @@ function capNhat() {
   const t = player.giay(), dai = player.thoiLuong();
   if (!dangKeoThanh) thanhTua.value = String(dai ? Math.round((t / dai) * 1000) : 0);
   dongHo.textContent = `${giay1(t)} / ${giay1(dai)} giây`;
-  nutChay.textContent = player.dangChay() ? '❚❚ Dừng' : '▶ Chạy';
+  datNhanChay(player.dangChay());
   veLopPhu();
 }
 player.khiDoi(capNhat);
@@ -437,6 +521,20 @@ async function luu() {
 }
 
 /* ---------- điều khiển ---------- */
+/* ---------- lọc danh sách thành phần ---------- */
+/* Một cảnh có tới 156 thành phần, cuộn tay là hết ngày. Lọc ngay khi gõ, hoãn
+   một nhịp ngắn để gõ nhanh không phải dựng lại danh sách theo từng phím. */
+{
+  const oTim = $('tim-lop'), oDem = $('tim-dem');
+  const baoDem = (n, chu) => { oDem.textContent = chu ? `${n}` : ''; };
+  let hen = null;
+  oTim.oninput = () => {
+    clearTimeout(hen);
+    hen = setTimeout(() => dsLop.loc(oTim.value, baoDem), 120);
+  };
+  oTim.onkeydown = (e) => { if (e.key === 'Escape') { oTim.value = ''; dsLop.loc('', baoDem); } };
+}
+
 nutChay.onclick = () => (player.dangChay() ? player.dung() : player.chay());
 nutLuu.onclick = luu;
 nutLui.onclick = () => { const n = kho.hoanTac(); if (n) { bang.ve(); bao(`Đã hoàn tác: ${n}`); } };

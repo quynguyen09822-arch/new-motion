@@ -4,8 +4,9 @@
  * Chia mục theo câu hỏi trong đầu người dùng, không theo cấu trúc dữ liệu:
  * "nó viết gì" → "nó bay vào thế nào" → "lúc nào nó hiện" → "nó nằm đâu".
  */
-import { KHO_CHO, KHO_DA, KHO_RA, KHO_VAO, MAU_MAT_BAO, NUM_MAU, NUM_RIENG, TEN_LOAI } from './schema.js';
+import { DEM_TRONG, HUONG_DAN_CHUNG, HUONG_DAN_MAU, KHE_HO, KHO_CHO, KHO_DA, KHO_RA, KHO_VAO, MAU_MAT_BAO, NHAN_KHE_HO, NUM_HIEU_UNG, NUM_MAU, NUM_RIENG, TEN_LOAI } from './schema.js';
 import { taoNum } from './fields.js';
+import { huongDanChung } from '../huongdan.js';
 import { duongDanMon, timCanh, timMon } from '../store.js';
 
 const el = (the, lop, chu) => {
@@ -141,7 +142,10 @@ export function taoBang(boc, kho, player) {
       };
 
       const boc2 = el('div', 'num');
-      boc2.append(el('label', 'num-nhan', nhanMuc), oChon);
+      const nhanO = el('label', 'num-nhan', nhanMuc);
+      // Hai ô này dựng tay chứ không qua `taoNum`, nên phải tự gắn nút hỏi.
+      huongDanChung().gan(nhanO, HUONG_DAN_CHUNG[huong]);
+      boc2.append(nhanO, oChon);
       if (trung) boc2.appendChild(el('p', 'num-goi', trung.goi));
       m.appendChild(boc2);
 
@@ -149,7 +153,7 @@ export function taoBang(boc, kho, player) {
       // Núm hay dùng nhất — ở ngoài.
       m.appendChild(taoNum(
         { id: 'dur', nhan: 'Nhanh / chậm', kieu: 'so', min: 0.05, max: 2, buoc: 0.05,
-          goi: `${g1(cur.dur ?? (huong === 'in' ? 0.55 : 0.4))} giây` },
+          goi: `${g1(cur.dur ?? (huong === 'in' ? 0.55 : 0.4))} giây`, goiSong: true },
         cur.dur ?? (huong === 'in' ? 0.55 : 0.4),
         (v) => datMon('đổi tốc độ chuyển động', huong, { ...cur, dur: v }), cuChi));
 
@@ -241,7 +245,9 @@ export function taoBang(boc, kho, player) {
     };
     hang.append(bDat, bTu);
     const bocCho = el('div', 'num');
-    bocCho.append(el('label', 'num-nhan', 'Cách đặt'), hang);
+    const nhanCho = el('label', 'num-nhan', 'Cách đặt');
+    huongDanChung().gan(nhanCho, HUONG_DAN_CHUNG.cachDat);
+    bocCho.append(nhanCho, hang);
     m.appendChild(bocCho);
 
     if (dangDat) {
@@ -290,7 +296,9 @@ export function taoBang(boc, kho, player) {
       boc.appendChild(el('div', 'chi-duong', 'Cả clip'));
       const m = muc('Màu của clip');
       for (const c of NUM_MAU) {
-        m.appendChild(taoNum({ ...c, kieu: 'mau' }, doc.meta[c.id],
+        // Tra bảng RIÊNG của màu clip: khoá `ink` ở đây là "màu chữ chung cả
+        // clip", trùng tên với núm "màu chữ riêng" của từng phần tử.
+        m.appendChild(taoNum({ ...c, kieu: 'mau', huongDan: HUONG_DAN_MAU[c.id] }, doc.meta[c.id],
           (v) => datMeta(`đổi ${c.nhan.toLowerCase()}`, c.id, v), cuChi));
       }
       const nut = el('button', 'nut nho', 'Áp bộ màu Mắt Bão');
@@ -320,7 +328,7 @@ export function taoBang(boc, kho, player) {
       boc.appendChild(el('div', 'chi-duong', `Cảnh ${i + 1} — ${canh.id}`));
       const m = muc('Cảnh này');
       m.appendChild(taoNum({ id: 'duration', nhan: 'Dài bao lâu', kieu: 'so',
-        min: 0.5, max: 30, buoc: 0.1, goi: `${g1(canh.duration)} giây` },
+        min: 0.5, max: 30, buoc: 0.1, goi: `${g1(canh.duration)} giây`, goiSong: true },
         canh.duration, (v) => datCanh('đổi độ dài cảnh', 'duration', v), cuChi));
       m.appendChild(taoNum({ id: 'stagger', nhan: 'So le giữa các món', kieu: 'so',
         min: 0, max: 0.6, buoc: 0.01,
@@ -351,30 +359,55 @@ export function taoBang(boc, kho, player) {
 
     const mT = muc('Thời gian');
     mT.appendChild(taoNum({ id: 'at', nhan: 'Chờ rồi mới hiện', kieu: 'so',
-      min: 0, max: 20, buoc: 0.05, goi: 'giây, tính từ đầu cảnh' },
+      min: 0, max: 20, buoc: 0.05 },
       e.at ?? 0, (v) => datMon('đổi lúc hiện', 'at', v), cuChi));
     mT.appendChild(taoNum({ id: 'for', nhan: 'Hiện trong bao lâu', kieu: 'so',
-      min: 0, max: 30, buoc: 0.1, goi: 'bỏ trống = ở tới hết cảnh' },
+      min: 0, max: 30, buoc: 0.1 },
       e.for ?? '', (v) => datMon('đổi thời gian sống', 'for', v), cuChi));
     boc.appendChild(mT);
 
     boc.appendChild(veChoDat(doc, t));
 
+    /*
+     * Chỉ bày núm nào bộ dựng THẬT SỰ nghe — xem `DEM_TRONG`/`KHE_HO` trong
+     * `schema.js`. Bày núm chết còn tệ hơn không bày: bấm vào thì số trong kịch
+     * bản đổi mà khung hình đứng im, và người dùng mất lòng tin vào cả những núm
+     * thật. Và bày bậc mặc định THẬT, không bày 0 rồi để tấm thẻ co lại khi
+     * người dùng bấm đúng cái bậc họ tưởng là "giữ nguyên".
+     */
     const mK = muc('Khoảng cách');
-    if (e.kind === 'group') {
-      mK.appendChild(taoNum({ id: 'gap', nhan: 'Khoảng cách giữa các phần', kieu: 'bac' },
-        e.gap ?? 0, (v) => datMon('đổi khoảng cách trong cụm', 'gap', v), cuChi));
+    if (KHE_HO[e.kind] != null) {
+      mK.appendChild(taoNum(
+        { id: 'gap', nhan: NHAN_KHE_HO[e.kind] || 'Khe hở bên trong', kieu: 'bac' },
+        e.gap ?? KHE_HO[e.kind], (v) => datMon('đổi khe hở bên trong', 'gap', v), cuChi));
     }
-    mK.appendChild(taoNum({ id: 'pad', nhan: 'Đệm trong', kieu: 'bac' },
-      e.pad ?? 0, (v) => datMon('đổi đệm trong', 'pad', v), cuChi));
+    if (DEM_TRONG[e.kind] != null) {
+      mK.appendChild(taoNum({ id: 'pad', nhan: 'Đệm trong', kieu: 'bac' },
+        e.pad ?? DEM_TRONG[e.kind], (v) => datMon('đổi đệm trong', 'pad', v), cuChi));
+    }
     mK.appendChild(taoNum({ id: 'opacity', nhan: 'Độ mờ', kieu: 'so', min: 0, max: 1, buoc: 0.05 },
       e.opacity ?? 1, (v) => datMon('đổi độ mờ', 'opacity', v), cuChi));
     const sauK = nangCao('khoangcach');
     sauK.appendChild(taoNum({ id: 'rotate', nhan: 'Nghiêng', kieu: 'so', min: -180, max: 180,
-      goi: 'độ — đây là số cố định, không phải chuyển động xoay' },
+    },
       e.rotate ?? 0, (v) => datMon('đổi độ nghiêng', 'rotate', v), cuChi));
     mK.appendChild(sauK);
     boc.appendChild(mK);
+
+    /*
+     * HIỆU ỨNG HÌNH — nhoè, bóng đổ, đẩy máy chậm.
+     *
+     * Áp cho MỌI loại: `filter` của trình duyệt không kén loại, và phép nhân vào
+     * `scale` cũng vậy. Nên ở đây KHÔNG có bảng "loại nào nghe" như `pad`/`gap`
+     * — chỗ nào cũng nghe. `tools/kiem-hieu-ung.mjs` đo lại điều đó trên cả 24
+     * loại, để hôm nào bộ dựng đổi ý thì biết ngay.
+     */
+    const mH = muc('Hiệu ứng hình');
+    for (const num of NUM_HIEU_UNG) {
+      mH.appendChild(taoNum(num, e[num.id] ?? (num.kieu === 'bat' ? false : 0),
+        (v) => datMon(`đổi ${num.nhan.toLowerCase()}`, num.id, v), cuChi));
+    }
+    boc.appendChild(mH);
   }
 
   return {
