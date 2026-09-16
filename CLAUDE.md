@@ -248,9 +248,13 @@ node tools/kiem-doi-cu.mjs          # clip đời cũ: thấy được, chạy/t
 node tools/kiem-dem-khe.mjs         # đệm trong / khe hở: không núm chết, không năng lực bị giấu
 node tools/kiem-hieu-ung.mjs        # nhoè / bóng đổ / đẩy máy chậm: bộ dựng còn phần vá không
 node tools/kiem-khe-media.mjs       # ảnh/phim trong màn hình điện thoại & trình duyệt, và ĐỒNG HỒ
+node tools/kiem-keo-cot.mjs         # kéo đổi bề rộng cột: nhớ, chặn, và khung chọn không lệch
+node tools/kiem-kho-hinh.mjs        # đổi khổ hình: nhân đúng khoá px, từ chối khác tỉ lệ
+node tools/soi-doi-kho.mjs          # (đo, không phải kiểm) đổi sang khổ nào thì hỏng bao nhiêu
 ```
 
-Riêng **`node tools/kiem-lichsu.mjs`** chạy bằng Node trần — không cần server,
+Riêng **`npm run kiem:schema                 # CHẶN LỆCH SCHEMA giữa types.ts ↔ schema.js ↔ bộ dựng
+node tools/kiem-lichsu.mjs`** chạy bằng Node trần — không cần server,
 không cần Chromium, vài trăm mili giây. Nó giữ luật "mọi thay đổi đi qua
 `kho.sua()`": làm 20 việc rồi hoàn tác 20 lần thì kịch bản phải về đúng từng
 byte. **Bài này không được phép fail** — fail nghĩa là có đường sửa kịch bản lọt
@@ -300,6 +304,9 @@ từ khối hình học và chạy bốn phép kiểm bố cục (`kiem_trong`, 
   `scene-player.html`** — file của dự án chung, KHÔNG có git. Ai khôi phục file
   đó từ bản sao lưu cũ là núm vẫn còn mà hiệu ứng biến mất, không báo gì.
   `tools/kiem-hieu-ung.mjs` đọc thẳng file ấy để bắt ca đó. Xem `docs/HIEU-UNG-HINH.md`.
+- **Sửa `web/inspector/schema.js` thì chạy `npm run kiem:schema`.** Nó đối soát
+  ba nơi: `types.ts` (hợp đồng) ↔ `schema.js` (núm) ↔ `scene-player.html` (nơi
+  thật sự vẽ). Bắt cả núm ma lẫn năng lực bị giấu. Xem `docs/CHAN-LECH-SCHEMA.md`.
 - **Chỉ bày núm mà bộ dựng THẬT SỰ đọc.** `DEM_TRONG`/`KHE_HO` trong `schema.js`
   là bảng sự thật cho `pad`/`gap`, kèm bậc mặc định thật. Bày núm chết còn tệ hơn
   không bày — bấm vào thì kịch bản đổi mà khung hình đứng im. `tools/kiem-dem-khe.mjs`
@@ -369,6 +376,9 @@ sao cho sửa được bằng chuột), `STITCH.md` (MCP Stitch dựng màn hìn
 nay có núm "Màu chữ riêng" trong bảng thuộc tính, không phải sửa tay JSON nữa),
 `QUY-TAC-ANH-NHO.md` (quy tắc ảnh nhỏ bảng lớp, áp cho mọi clip),
 `GIAO-DIEN.md` (dựng lại giao diện theo bản Stitch, và những gì cố ý không dựng),
+`KEO-COT.md` (kéo đổi bề rộng hai cột, và bẫy khung chọn lệch),
+`DOI-KHO-HINH.md` (đổi khổ cùng tỉ lệ, và vì sao khác tỉ lệ phải xếp lại chứ không nhân được),
+`CHAN-LECH-SCHEMA.md` (đối soát ba nơi khai trường, và ba cái bẫy trong chính phép kiểm),
 `HIEU-UNG-HINH.md` (nhoè, bóng đổ, đẩy máy chậm — có sửa `scene-player.html`),
 `DUNG-CHAY.md` (thêm `pause()`/`paused` vào `scene-player.html`, kèm đường lùi và
 cách khôi phục), `VIDEO-TRONG-CLIP.md` (thành phần `video`, bẫy HEVC, cách đổi

@@ -1,0 +1,247 @@
+{
+  "version": 1,
+  "meta": {
+    "name": "dung-lai",
+    "width": 1280,
+    "height": 720,
+    "density": 1,
+    "bg": "#050608",
+    "accent": "#7fa8b0",
+    "ink": "#e8eef0"
+  },
+  "scenes": [
+    {
+      "id": "canh-1",
+      "duration": 2.25,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.012
+      },
+      "cameraMove": 1.6,
+      "cameraEase": "inOut",
+      "elements": []
+    },
+    {
+      "id": "canh-2",
+      "duration": 1,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.024
+      },
+      "cameraMove": 0.8,
+      "cameraEase": "inOut",
+      "elements": [
+        {
+          "id": "sweep-2-0",
+          "x": 0,
+          "y": 0,
+          "at": 0,
+          "in": {
+            "kind": "left",
+            "ease": "linear",
+            "dur": 0.5,
+            "dist": 1600
+          },
+          "kind": "sweep",
+          "w": 1280,
+          "h": 720,
+          "for": 0.5,
+          "out": {
+            "kind": "left",
+            "ease": "linear",
+            "dur": 0.5,
+            "dist": 1600
+          }
+        }
+      ]
+    },
+    {
+      "id": "canh-3",
+      "duration": 3.25,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.036
+      },
+      "cameraMove": 1.6,
+      "cameraEase": "inOut",
+      "elements": [
+        {
+          "kind": "group",
+          "id": "nhom-khoi-3",
+          "x": 0,
+          "y": 0,
+          "place": "giua",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "kind": "text",
+              "id": "chu-3",
+              "x": 0,
+              "y": 0,
+              "w": 922,
+              "text": "Ngân sách lớn",
+              "size": 83,
+              "align": "center",
+              "gap": 3,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.55
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "canh-4",
+      "duration": 2,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.048
+      },
+      "cameraMove": 1.6,
+      "cameraEase": "inOut",
+      "elements": [
+        {
+          "id": "sweep-4-0",
+          "x": 0,
+          "y": 0,
+          "at": 0,
+          "in": {
+            "kind": "left",
+            "ease": "linear",
+            "dur": 1,
+            "dist": 1600
+          },
+          "kind": "sweep",
+          "w": 1280,
+          "h": 720,
+          "for": 1,
+          "out": {
+            "kind": "left",
+            "ease": "linear",
+            "dur": 1,
+            "dist": 1600
+          }
+        }
+      ]
+    },
+    {
+      "id": "canh-5",
+      "duration": 3,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.048
+      },
+      "cameraMove": 1.6,
+      "cameraEase": "inOut",
+      "elements": []
+    },
+    {
+      "id": "canh-6",
+      "duration": 3.25,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.048
+      },
+      "cameraMove": 1.6,
+      "cameraEase": "inOut",
+      "elements": [
+        {
+          "kind": "group",
+          "id": "nhom-khoi-6",
+          "x": 0,
+          "y": 0,
+          "place": "giua",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "kind": "text",
+              "id": "chu-6",
+              "x": 0,
+              "y": 0,
+              "w": 922,
+              "text": "Đáng Nhớ",
+              "size": 83,
+              "align": "center",
+              "gap": 3,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.55
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "canh-7",
+      "duration": 1.5,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.048
+      },
+      "cameraMove": 1.2000000000000002,
+      "cameraEase": "inOut",
+      "elements": [
+        {
+          "id": "sweep-7-0",
+          "x": 0,
+          "y": 0,
+          "at": 0,
+          "in": {
+            "kind": "left",
+            "ease": "linear",
+            "dur": 0.75,
+            "dist": 1600
+          },
+          "kind": "sweep",
+          "w": 1280,
+          "h": 720,
+          "for": 0.75,
+          "out": {
+            "kind": "left",
+            "ease": "linear",
+            "dur": 0.75,
+            "dist": 1600
+          }
+        }
+      ]
+    },
+    {
+      "id": "canh-8",
+      "duration": 1,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.048
+      },
+      "cameraMove": 0.8,
+      "cameraEase": "inOut",
+      "elements": []
+    }
+  ]
+}

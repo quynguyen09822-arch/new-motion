@@ -1,0 +1,14 @@
+.git
+node_modules
+.drafts
+.hub-video-backups
+.kiem
+.port
+.port.pid
+.port.log
+__pycache__
+# Ảnh dựng mẫu và tài liệu — không cần cho lúc chạy.
+stitch_d_n_kh_i_nghi_p
+clip-15s
+# Bài kiểm cần Chromium + ffmpeg, không chạy trong ảnh này.
+tools

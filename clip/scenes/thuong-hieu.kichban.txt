@@ -1,0 +1,46 @@
+KHUNG: dọc
+THƯƠNG HIỆU: travel.icu
+NHỊP: trôi
+MÀU: nền #f3f4f7, nhấn #2f6bff, nhấn 2 #6b4bf0, chữ #161f3c
+NỀN: nền thương hiệu
+
+CẢNH 1 — 1.6 giây
+
+CẢNH 2 — 4.2 giây
+Nền: nền thương hiệu + chồng tiền
+Bố cục: hơi cao
+Hình: huy hiệu
+Dấu: bóng đèn
+Chữ: Thương hiệu | không bắt đầu từ | *ngân sách khủng*
+Phụ: Đôi khi, nó bắt đầu từ một ý tưởng đủ dễ nhớ.
+
+CẢNH 3 — 4.2 giây
+Bố cục: hơi cao
+Hình: huy hiệu
+Dấu: đích
+Chữ: Một cái tên đáng nhớ | giúp thương hiệu nổi bật | *ngay từ lần đầu tiên*
+Phụ: Khi ngắn gọn, dễ nhớ và khác biệt, | khách hàng sẽ *nhận ra bạn* nhanh hơn.
+
+CẢNH 4 — 4.2 giây
+Hình: quỹ đạo
+Tâm: tên miền
+Chữ: Tên miền không chỉ là | *một địa chỉ website*
+
+CẢNH 5 — 4.4 giây
+Hình: huy hiệu, quỹ đạo có mũi tên và biểu tượng nhỏ, hàng nhãn
+Dấu: cúp
+Tâm: ngôi sao
+Chữ: Tên miền nổi bật | *chính là một lợi thế*
+Nhãn: Ngắn gọn · Dễ nhớ · Khác biệt
+
+CẢNH 6 — 4.4 giây
+Hình: huy hiệu, quỹ đạo, hàng nhãn
+Dấu: cúp
+Tâm: quả cầu
+Chữ: Giúp thương hiệu nổi bật | *giữa hàng nghìn đối thủ*
+Nhãn: Nổi bật · Ghi nhớ · Khác biệt
+
+CẢNH 7 — 3.4 giây
+Hình: hàng nhãn
+Chữ: travel*.icu*
+Nhãn: Ngắn gọn · Dễ nhớ · Nổi bật

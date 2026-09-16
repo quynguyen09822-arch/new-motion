@@ -1,0 +1,37 @@
+KHUNG: dọc
+THƯƠNG HIỆU: Vibe Host
+NHỊP: trôi
+MÀU: nền #0a0b10, nhấn #ff6a1f, chữ #16181d
+CẢNH 1 — 4 giây
+Hình: trang vòng quay đang chạy
+Chữ: "Làm trang minigame *hút khách*"
+Phụ: Cho riêng bạn, trong vài phút
+
+CẢNH 2 — 5 giây
+Hình: vòng quay và thẻ thu thông tin khách
+Chữ: "Vòng quay may mắn *đổi lấy thông tin*"
+
+CẢNH 3 — 5 giây
+Hình: cửa sổ AI, gõ prompt mô tả ý tưởng
+Chữ: "Kể ý tưởng cho *công cụ AI*"
+
+CẢNH 4 — 8 giây
+Hình: AI xuất code rồi preview trang
+Chữ: "AI dựng xong *trang tương tác*"
+
+CẢNH 5 — 8 giây
+Hình: kéo file lên Vibe Host, có SSL và tên miền
+Chữ: "Kéo lên là *lên mạng*"
+Phụ: SSL và tên miền riêng có sẵn
+
+CẢNH 6 — 10 giây
+Hình: mở panel tạo Database và dashboard danh sách người chơi
+Chữ: "Ai đã chơi? *Có hết trên dashboard*"
+
+CẢNH 7 — 6 giây
+Hình: khiên khoá bảo mật chuẩn ngân hàng
+Chữ: "Bảo mật chuẩn ngân hàng, *đặt tại Việt Nam*"
+
+CẢNH 8 — 4 giây
+Hình: logo Mắt Bão và Vibe Host
+Chữ: "Ý tưởng nào cũng *lên mạng được*"

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 276 96" width="276" height="96">
+<!--
+  Logo tên miền .icu — vẽ lại bằng hình học thuần.
+
+  HAI ĐIỀU CỐ Ý:
+
+  1. Ba chữ i·c·u là NÉT BO TRÒN, không phải chữ của một bộ font. Dựng bằng font
+     thì máy nào thiếu phông đó là ba chữ xê dịch — mà logo xê dịch thì hỏng.
+
+  2. Khe trắng chỉ nằm GIỮA các vòng, làm bằng mặt nạ: vòng bên trái bị khoét đúng
+     một miếng theo vòng bên phải. Dùng viền trắng thay cho mặt nạ thì cả rìa ngoài
+     cũng viền trắng theo, đặt lên nền hơi xám là thấy ngay một đường trắng lạ.
+-->
+<defs>
+  <mask id="khoet-i"><rect width="276" height="96" fill="#fff"/><circle cx="151" cy="48" r="49.5" fill="#000"/></mask>
+  <mask id="khoet-c"><rect width="276" height="96" fill="#fff"/><circle cx="224" cy="48" r="49.5" fill="#000"/></mask>
+</defs>
+<circle cx="11"  cy="48" r="10.5" fill="#2f4fa2"/>
+<circle cx="78"  cy="48" r="46" fill="#3a5dab" mask="url(#khoet-i)"/>
+<circle cx="151" cy="48" r="46" fill="#e4185f" mask="url(#khoet-c)"/>
+<circle cx="224" cy="48" r="46" fill="#f0a51e"/>
+<g fill="none" stroke="#fff" stroke-width="11" stroke-linecap="round">
+  <path d="M78 40.5 78 68"/>                                   <!-- i: thân -->
+  <path d="M160.8 36.1 A17 17 0 1 0 160.8 63.9"/>              <!-- c: cung hở phải -->
+  <path d="M215 36 215 52 A9 9 0 0 0 233 52 L233 36"/>         <!-- u -->
+</g>
+<circle cx="78" cy="27" r="6" fill="#fff"/>                     <!-- i: chấm -->
+</svg>

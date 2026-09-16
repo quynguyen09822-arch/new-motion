@@ -1,0 +1,1664 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>ClipVibe · Bộ dựng cảnh</title>
+<!--
+  BỘ DỰNG CẢNH — một trang, chạy được MỌI kịch bản.
+
+  Trang animatic cũ là code viết tay: một video một file, đổi thứ tự cảnh hay
+  đổi câu chữ đều phải sửa code. Trang này thì đọc một file JSON mô tả cảnh rồi
+  diễn — muốn clip khác thì đổi JSON, không đụng vào đây.
+
+  Dùng: scene-player.html?scene=<tên>       → đọc scenes/<tên>.json
+        thêm &export=1 để bộ xuất video lái  (giao kèo window.__clip)
+        thêm &t=4.5   để nhảy thẳng tới giây đó (dùng cho khung xem trước)
+
+  HAI THỨ TRANG NÀY CỐ Ý LÀM CHO CHẶT:
+
+  1. KHOẢNG CÁCH THEO THANG BẬC. Không có số px rải rác. Mọi padding và khe hở
+     đều khai bằng bậc 0..6, quy ra px qua `--s`. Một núm `density` phóng to thu
+     nhỏ toàn bộ khoảng thở của clip mà không phá bố cục.
+
+  2. CHUYỂN ĐỘNG CÓ ĐƯỜNG CONG TỬ TẾ. Không dùng chuyển động tuyến tính (nhìn
+     như máy), mà dùng easing + độ trễ so le giữa các phần tử. Đó là khác biệt
+     giữa "chạy được" và "mượt".
+-->
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#e9e7e3;overflow:hidden}
+/* BỘ CHỮ GHIM CỨNG, không phó mặc `system-ui`.
+   `system-ui` để máy dựng tự chọn, mà máy dựng thì có ngày bị cài thêm/gỡ bớt
+   font — hôm đó cả clip đổi bộ chữ, chữ gãy dòng khác đi, mà chẳng có gì báo.
+   Đã dính một lần: workspace mất bộ font, mọi clip cũ dựng lại ra một mặt chữ
+   khác hẳn. Cần bộ chữ khác thì đổi ở ĐÂY, có chủ đích. */
+body{display:flex;align-items:center;justify-content:center;
+  font-family:Roboto,"Noto Sans","Liberation Sans",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+body.exporting{background:#000}
+
+#stage{position:relative;overflow:hidden;transform-origin:50% 50%;
+  box-shadow:0 24px 70px rgba(0,0,0,.18);border-radius:14px;
+  /* `flex:none` là bắt buộc: body là flex nên sân khấu mặc định CO LẠI khi khung
+     nhìn hẹp hơn nó. Khai width:1280px mà đo ra 760 — và lúc xuất video thì
+     thành sai tỉ lệ khung hình mà chẳng có gì báo. */
+  flex:none}
+body.exporting #stage{box-shadow:none;border-radius:0}
+
+/* Máy quay: một lớp bọc duy nhất, dịch và phóng cả cảnh. Rẻ hơn nhiều so với
+   chỉnh từng phần tử, và giữ mọi thứ đồng bộ tuyệt đối. */
+#cam{position:absolute;inset:0;transform-origin:50% 50%;will-change:transform}
+
+.el{position:absolute;will-change:transform,opacity}
+
+/* KHỐI DÀN — chỗ khoảng cách luôn đúng.
+   Thay vì tính toạ độ từng thành phần rồi hy vọng nó không dính nhau, gom chúng
+   vào một khối flex rồi để trình duyệt dàn theo `gap` lấy từ thang bậc. Đổi độ
+   thoáng là mọi khoảng hở giãn đều, không chỗ nào lệch. */
+.k-group{display:flex}
+.k-group>.el{position:static;flex:0 0 auto}
+
+/* --------------------------------------------------------- kiểu phần tử */
+
+.k-panel{border-radius:var(--r)}
+
+.k-text{display:flex;flex-direction:column;text-align:inherit}
+.k-text .t{font-weight:800;letter-spacing:-.02em;line-height:1.08;color:var(--ink)}
+.k-text .t .d{display:block}
+/* Ảnh nằm giữa dòng chữ: cao theo CỠ CHỮ chứ không phải một con số px, nên đổi cỡ
+   tiêu đề là nó giãn theo, không bao giờ lệch hàng. */
+.k-text .t img.hinh{height:.86em;width:auto;vertical-align:-.11em;display:inline-block}
+.k-text .s img.hinh{height:1.05em;width:auto;vertical-align:-.22em;display:inline-block}
+/* Chữ trong `*sao*` mang màu nhấn. Có `accent2` thì nó chuyển màu dần — đây là
+   thứ làm dòng tiêu đề nhấn trông như đã qua tay người thiết kế. */
+.k-text .t i{font-style:normal;color:var(--accent);
+  background-image:linear-gradient(96deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent}
+.k-text .s i{font-style:normal;color:var(--accent);font-weight:700}
+/* Hai sao = màu NÓNG: dành cho câu kêu gọi hành động, tách hẳn với màu nền nếp. */
+.k-text em{font-style:normal;color:var(--nong);
+  background-image:linear-gradient(96deg,var(--nong),var(--nong2));
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent}
+.k-text .rule{background:var(--accent);border-radius:99px;flex:none}
+.k-text .s{color:var(--ink-mo);line-height:1.45}
+
+.k-card,.k-form,.k-calendar,.k-chip{background:var(--giay);border-radius:var(--r);
+  box-shadow:0 10px 30px rgba(31,24,20,.09),0 1px 2px rgba(31,24,20,.05)}
+/* Nền tối: đổ bóng đen lên nền đen chỉ ra vệt bẩn — đổi sang viền sáng mảnh. */
+body.toi .k-card,body.toi .k-form,body.toi .k-calendar,body.toi .k-chip{
+  box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 12px 34px rgba(0,0,0,.45);
+  border:1px solid var(--vien)}
+body.toi .k-phone{box-shadow:0 22px 50px rgba(0,0,0,.6)}
+
+.k-card{display:flex;flex-direction:column}
+.k-card .h{font-weight:700;color:var(--ink)}
+.k-card .line{background:var(--xam);border-radius:99px}
+.k-card .btn{background:var(--accent);color:#fff;border-radius:var(--r2);
+  display:flex;align-items:center;justify-content:center;font-weight:600}
+
+.k-form{display:flex;flex-direction:column}
+.k-form .h{font-weight:700;color:var(--ink)}
+.k-form .f{display:flex;flex-direction:column}
+.k-form .f .l{color:var(--ink-nhat)}
+.k-form .f .v{border:1px solid var(--vien);border-radius:var(--r2);
+  display:flex;align-items:center;justify-content:space-between;color:var(--ink)}
+.k-form .f .v::after{content:'⌄';color:var(--ink-nhat);transform:translateY(-15%)}
+.k-form .dots{display:flex}
+.k-form .dots i{border-radius:99px;background:var(--accent);display:block}
+
+.k-calendar{display:flex;flex-direction:column}
+.k-calendar .h{display:flex;align-items:center;justify-content:space-between}
+.k-calendar .h b{font-weight:700;color:var(--ink)}
+.k-calendar .h .cta{background:var(--accent);color:#fff;border-radius:99px;font-weight:600}
+.k-calendar .grid{display:grid;grid-template-columns:repeat(7,1fr)}
+.k-calendar .grid span{display:flex;align-items:center;justify-content:center;
+  color:var(--ink-mo);border-radius:99px;aspect-ratio:1}
+.k-calendar .grid span.dow{color:var(--ink-nhat)}
+.k-calendar .grid span.on{background:var(--accent);color:#fff;font-weight:700}
+
+.k-chip{display:flex;flex-direction:column}
+.k-chip .l{color:var(--ink-nhat);text-transform:uppercase;letter-spacing:.08em}
+.k-chip .v{font-weight:700;color:var(--ink)}
+.k-chip .n{color:var(--accent);display:flex;align-items:center}
+.k-chip .n::before{content:'';width:.5em;height:.5em;border-radius:99px;
+  background:currentColor;margin-right:.5em}
+
+.k-phone{border:calc(var(--u)*.9) solid #16181d;border-radius:calc(var(--u)*3.4);
+  background:linear-gradient(180deg,#fdfdfd,#f1f1f3);overflow:hidden;position:relative;
+  box-shadow:0 22px 50px rgba(31,24,20,.22)}
+.k-phone::before{content:'';position:absolute;top:calc(var(--u)*.55);left:50%;
+  transform:translateX(-50%);width:32%;height:calc(var(--u)*1.1);
+  background:#16181d;border-radius:99px}
+.k-phone img,.k-phone video{width:100%;height:100%;object-fit:cover;display:block}
+
+.k-timeline{display:flex;align-items:center;justify-content:space-between;
+  border-top:1px solid var(--vien);color:var(--ink-nhat)}
+
+.k-logo{display:flex;flex-direction:column;align-items:center}
+.k-logo .mark{background:var(--accent-mo);border:2px solid var(--accent);
+  border-radius:calc(var(--u)*1.4);display:flex;align-items:center;justify-content:center;
+  color:var(--accent);font-weight:800}
+.k-logo .nm{font-weight:800;color:var(--ink);letter-spacing:-.02em}
+.k-logo .rule{height:3px;background:var(--accent);border-radius:99px;transform-origin:50% 50%}
+
+/* Vệt sáng quét chéo — dải gradient mềm chạy ngang khung. Không có viền cứng
+   nên nhìn như ánh sáng lướt qua chứ không phải một khối trượt. */
+.k-sweep{pointer-events:none}
+
+.k-video{position:relative;overflow:hidden;border-radius:var(--r)}
+.k-video video{width:100%;height:100%;object-fit:cover;display:block}
+.k-video.vua video{object-fit:contain}
+.k-video .toi{position:absolute;inset:0;background:#000;pointer-events:none}
+.k-image{position:relative}
+.k-image img{width:100%;height:100%;object-fit:cover;display:block;border-radius:var(--r)}
+/* ẢNH TỰ QUYẾT CHIỀU CAO CỦA NÓ.
+   Khai chiều cao bằng một tỉ lệ đoán sẵn thì đổi file ảnh là lệch ngay — hoặc bị
+   cắt, hoặc thừa một dải trống mà chẳng ai thấy. Cho ảnh giữ đúng tỉ lệ gốc rồi
+   ô chứa cao theo nó. `ready()` đã chờ ảnh giải mã xong mới đo bố cục. */
+/* LOGO KHAI BẰNG CHIỀU CAO, bề ngang tự theo tỉ lệ ảnh.
+   Hàng logo thì thứ phải bằng nhau là CHIỀU CAO — khai bề ngang rồi để cao tự
+   tính là hai logo cạnh nhau cao thấp lệch nhau ngay. Và không khai chiều nào cả
+   theo một tỉ lệ đoán sẵn thì đổi file ảnh là xén nhầm. */
+.k-image.cao{width:auto}
+.k-image.cao img{height:100%;width:auto;object-fit:contain}
+.k-image.vua{height:auto}
+.k-image.vua img{width:100%;height:auto;object-fit:contain}
+
+/* QUẦNG SÁNG LÓT SAU LOGO.
+   Logo đứng ở đáy khung, ngay chỗ dải sóng trồi lên — nền tối sau lưng nuốt mất
+   nó. Lót một quầng sáng là logo tách hẳn ra khỏi thứ đứng sau.
+
+   LÀM BẰNG BÓNG ĐỔ, không phải bằng một thẻ tràn ra ngoài. Thẻ tràn ra ngoài thì
+   bộ đo-cho-vừa-khung tính luôn phần tràn vào "nội dung cần chỗ" rồi thu cả khối
+   lại — đã dính: hàng logo bị thu còn 68% mà chẳng ai hiểu vì sao. Bóng đổ thì
+   sơn ra ngoài hộp mà không đụng tới bố cục, và nó bám đúng đường nét của logo
+   chứ không phải một vệt ê-líp quanh nó. */
+.k-image.sang img{filter:
+  drop-shadow(0 0 calc(var(--u)*.5) rgba(255,255,255,.98))
+  drop-shadow(0 0 calc(var(--u)*1.15) rgba(255,255,255,.9))
+  drop-shadow(0 0 calc(var(--u)*2.1) rgba(255,255,255,.7))
+  drop-shadow(0 calc(var(--u)*.3) calc(var(--u)*.8) rgba(31,40,80,.16))}
+
+/* VỆT SÁNG QUÉT QUA LOGO.
+   Mặt nạ lấy CHÍNH file logo, nên vệt sáng chỉ chạy trên nét logo chứ không quét
+   cả ô chữ nhật rỗng quanh nó — đó là khác biệt giữa "logo loé sáng" và "có một
+   thanh trắng bay ngang màn hình". */
+.k-image .quet{position:absolute;inset:0;z-index:2;pointer-events:none;
+  -webkit-mask-size:contain;mask-size:contain;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  -webkit-mask-position:center;mask-position:center;
+  mix-blend-mode:screen}
+
+/* Con trỏ + chớp sáng: giữ đúng id cũ để bộ quét mốc tiếng dùng lại được sau này */
+/* --- thành phần thêm theo nhu cầu kịch bản thật --- */
+
+.k-wheel{position:relative;border-radius:50%;overflow:hidden;
+  box-shadow:0 0 0 calc(var(--u)*.5) var(--giay),0 18px 46px rgba(0,0,0,.35)}
+.k-wheel .nan{position:absolute;inset:0;transform-origin:50% 50%}
+.k-wheel .nut{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  border-radius:50%;background:var(--accent);color:#fff;font-weight:800;
+  display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.1;
+  box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.k-wheel .kim{position:absolute;left:50%;top:calc(var(--u)*-.4);transform:translateX(-50%);
+  width:0;height:0;border-left:calc(var(--u)*.7) solid transparent;
+  border-right:calc(var(--u)*.7) solid transparent;border-top:calc(var(--u)*1.2) solid var(--accent)}
+
+.k-chat{background:var(--giay);border-radius:var(--r);border:1px solid var(--vien);
+  display:flex;flex-direction:column;overflow:hidden}
+.k-chat .thanh{display:flex;align-items:center;gap:.5em;border-bottom:1px solid var(--vien);color:var(--ink-nhat)}
+.k-chat .thanh i{border-radius:99px;background:var(--accent);display:block;font-style:normal}
+.k-chat .bong{background:var(--xam);border-radius:var(--r2);color:var(--ink);align-self:flex-start;max-width:86%}
+.k-chat .go{border:1px solid var(--vien);border-radius:99px;color:var(--ink-mo);
+  display:flex;align-items:center;margin-top:auto}
+.k-chat .go::after{content:'';width:2px;height:1em;background:var(--accent);margin-left:2px;
+  animation:nhay 1s steps(2) infinite}
+@keyframes nhay{50%{opacity:0}}
+
+.k-shield{display:flex;flex-direction:column;align-items:center}
+.k-shield .than{position:relative;background:var(--accent);
+  clip-path:polygon(50% 0,100% 18%,100% 58%,50% 100%,0 58%,0 18%);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800}
+.k-shield .hang{display:flex;flex-wrap:wrap;justify-content:center}
+.k-shield .hang span{border:1px solid var(--vien);border-radius:99px;color:var(--ink-mo);
+  background:var(--giay);white-space:nowrap}
+
+.k-upload{border:2px dashed var(--accent);border-radius:var(--r);background:var(--giay);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--ink-mo);text-align:center}
+.k-upload .mui{color:var(--accent);font-weight:800;line-height:1}
+.k-upload .tep{background:var(--xam);border-radius:var(--r2);color:var(--ink);
+  display:flex;align-items:center}
+
+.k-table{background:var(--giay);border-radius:var(--r);border:1px solid var(--vien);
+  display:flex;flex-direction:column;overflow:hidden}
+.k-table .dau{display:flex;border-bottom:1px solid var(--vien);color:var(--ink-nhat);font-weight:700}
+.k-table .dong{display:flex;border-bottom:1px solid var(--vien);color:var(--ink-mo)}
+.k-table .dong:last-child{border-bottom:0}
+.k-table .o{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.k-table .o:last-child{flex:0 0 28%;text-align:right;color:var(--accent)}
+
+.k-browser{background:var(--giay);border-radius:var(--r);border:1px solid var(--vien);
+  display:flex;flex-direction:column;overflow:hidden}
+.k-browser .chrome{display:flex;align-items:center;gap:.5em;border-bottom:1px solid var(--vien);background:var(--xam)}
+.k-browser .cham{border-radius:99px;background:var(--ink-nhat);display:block;opacity:.5}
+.k-browser .url{flex:1;background:var(--giay);border-radius:99px;color:var(--ink-nhat);
+  overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.k-browser .than{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:.6em}
+.k-browser .than i{display:block;background:var(--xam);border-radius:99px}
+.k-browser .than i.nhan{background:var(--accent);opacity:.85}
+.k-browser .than.co-hinh{padding:0;gap:0;overflow:hidden}
+.k-browser .than.co-hinh img,.k-browser .than.co-hinh video{
+  width:100%;height:100%;object-fit:cover;display:block}
+
+/* --- KHUNG NỀN THƯƠNG HIỆU ---------------------------------------------
+   Lớp trang trí phủ cả khung. Mọi thứ ở đây vẽ bằng gradient / border / SVG
+   chứ không phải ảnh: một tấm PNG nền thì đổi màu thương hiệu là phải sửa file,
+   còn vẽ thế này thì đổi `--accent` là cả bộ đồ nền đổi theo. */
+.k-nen{pointer-events:none;overflow:hidden}
+.k-nen>*{position:absolute}
+
+/* Lưới chấm: một ô gradient lặp lại, rồi che mờ dần bằng mặt nạ. Vẽ từng chấm
+   thành thẻ riêng thì một lưới 10×9 đã là 90 thẻ, hứng khung hình chậm hẳn. */
+.k-nen .cham{color:var(--accent);
+  background-image:radial-gradient(currentColor calc(var(--u)*.155),transparent calc(var(--u)*.175));
+  background-size:calc(var(--u)*1.32) calc(var(--u)*1.32)}
+.k-nen .cham.a{left:2.8%;top:1.8%;width:30%;height:15%;
+  -webkit-mask-image:linear-gradient(140deg,#000 4%,rgba(0,0,0,.45) 34%,transparent 66%);
+          mask-image:linear-gradient(140deg,#000 4%,rgba(0,0,0,.45) 34%,transparent 66%)}
+.k-nen .cham.b{right:2%;top:59.5%;width:9%;height:10.5%;
+  -webkit-mask-image:linear-gradient(220deg,#000 6%,rgba(0,0,0,.4) 40%,transparent 74%);
+          mask-image:linear-gradient(220deg,#000 6%,rgba(0,0,0,.4) 40%,transparent 74%)}
+
+/* Nét bo góc: dùng luôn hai cạnh của một hộp rỗng + bo một góc. Không phải SVG,
+   không phải ảnh — hai dòng border là ra đúng cái nét mảnh gấp khúc đó. */
+.k-nen .net{border-color:var(--accent);border-style:solid;border-width:0}
+.k-nen .net i{position:absolute;display:block;border-radius:99px;background:var(--accent);
+  width:calc(var(--u)*.75);height:calc(var(--u)*.75)}
+.k-nen .net.a{left:77%;top:-3%;width:16%;height:15%;
+  border-left-width:2px;border-bottom-width:2px;border-bottom-left-radius:calc(var(--u)*2.4)}
+.k-nen .net.a i{right:calc(var(--u)*-.375);bottom:calc(var(--u)*-.375)}
+.k-nen .net.b{left:-2.5%;top:48.5%;width:7%;height:11.5%;
+  border-top-width:2px;border-right-width:2px;border-top-right-radius:calc(var(--u)*2.1)}
+.k-nen .net.b i{right:calc(var(--u)*-.375);bottom:calc(var(--u)*-.375)}
+
+/* Khối mềm: mảng bo tròn rất nhạt, chỉ để góc trên phải đỡ trống. */
+.k-nen .khoi{right:-2%;top:17%;width:16%;height:9.5%;border-radius:calc(var(--u)*2.2);
+  background:linear-gradient(155deg,var(--accent-mo),transparent 78%)}
+
+/* Sóng đáy + đường tăng: SVG chung một hệ toạ độ 1000×1778 (đúng tỉ lệ 9:16),
+   nên mọi điểm khai bằng phần nghìn của khung — đổi cỡ khung không phải sửa gì. */
+.k-nen svg{left:0;top:0;width:100%;height:100%;display:block}
+.k-nen .duong-boc{overflow:hidden}
+
+.k-quydao svg{width:100%;height:100%;display:block;overflow:visible}
+
+.k-nut{display:flex;align-items:center;justify-content:center;position:relative;
+  border-radius:99px;background:linear-gradient(102deg,var(--nong),var(--nong2));
+  color:#fff;font-weight:700;letter-spacing:-.01em;white-space:nowrap;
+  box-shadow:0 14px 34px var(--nong-mo),0 3px 10px rgba(0,0,0,.10)}
+.k-nut .mui{border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+.k-nut .mui svg{width:56%;height:56%;overflow:visible}
+.k-nut .vach{position:absolute;pointer-events:none}
+.k-nut .vach i{position:absolute;display:block;border-radius:99px;background:var(--nong)}
+.k-huyhieu{border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:var(--accent-mo);color:var(--accent);line-height:1}
+.k-huyhieu svg{width:52%;height:52%;display:block}
+
+.k-hangnhan{display:flex;align-items:center;color:var(--ink)}
+.k-hangnhan b{font-weight:600}
+.k-hangnhan i{display:block;border-radius:99px;background:var(--accent);font-style:normal}
+
+#cursor{position:absolute;width:0;height:0;z-index:50;pointer-events:none;opacity:0}
+#cursor::after{content:'';position:absolute;width:calc(var(--u)*1.5);height:calc(var(--u)*1.5);
+  background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M5 2l14 9-6 1.2 3.2 6.4-2.6 1.3-3.2-6.4L5 18z' fill='%23222' stroke='white' stroke-width='1.3'/></svg>") center/contain no-repeat;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,.25))}
+#flash{position:absolute;border-radius:99px;background:var(--accent);opacity:0;
+  z-index:49;pointer-events:none;transform:translate(-50%,-50%)}
+</style>
+</head>
+<body>
+<div id="stage"><div id="cam"></div><div id="cursor"></div><div id="flash"></div></div>
+
+<script>
+(function(){
+'use strict';
+const P = new URLSearchParams(location.search);
+const EXPORTING = P.get('export') === '1';
+if (EXPORTING) document.body.classList.add('exporting');
+
+const $stage = document.getElementById('stage');
+const $cam = document.getElementById('cam');
+const $cursor = document.getElementById('cursor');
+const $flash = document.getElementById('flash');
+
+/* ------------------------------------------------------------- đường cong
+ * Chuyển động tuyến tính nhìn ra ngay là máy làm. Bốn đường dưới đây đủ cho
+ * mọi thứ trong clip giao diện: vào thì `out` (nhanh rồi chậm dần), máy quay
+ * thì `inOut` (êm cả hai đầu), nhấn mạnh thì `back` (vọt qua rồi lùi lại).
+ */
+const EASE = {
+  linear: t => t,
+  out:    t => 1 - Math.pow(1 - t, 3),
+  inOut:  t => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3)/2,
+  back:   t => { const c = 1.70158, u = t - 1; return 1 + (c+1)*u*u*u + c*u*u; },
+};
+const cl = (v, a, b) => v < a ? a : v > b ? b : v;
+
+/* ---- màu: đủ dùng để suy ra bảng màu nền tối, không cần thư viện ---- */
+function rgb(hex) {
+  const h = String(hex).replace('#', '');
+  const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
+  const n = parseInt(full.slice(0, 6), 16);
+  return isFinite(n) ? [(n >> 16) & 255, (n >> 8) & 255, n & 255] : [246, 243, 239];
+}
+function luminance(hex) {
+  const [r, g, b] = rgb(hex);
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+}
+function mix(a, b, t) {
+  const x = rgb(a), y = rgb(b);
+  const c = x.map((v, i) => Math.round(v + (y[i] - v) * t));
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+/** Tiến độ 0→1 của một quãng, đã bẻ cong. */
+function seg(t, t0, t1, ease) {
+  if (t1 <= t0) return t >= t1 ? 1 : 0;
+  return (EASE[ease] || EASE.out)(cl((t - t0) / (t1 - t0), 0, 1));
+}
+
+/* ------------------------------------------------------------- dữ liệu */
+
+const FALLBACK = {
+  meta: { name: 'Trống', width: 1280, height: 720, density: 1,
+          bg: '#f6f3ef', accent: '#ef5f5f', ink: '#16181d' },
+  scenes: [{ id: 's1', duration: 3, elements: [
+    { id: 't', kind: 'text', x: 640, y: 360, w: 800, align: 'center',
+      text: 'Chưa nạp được kịch bản', size: 44 }] }],
+};
+
+async function loadDoc() {
+  const name = P.get('scene');
+  if (!name) return FALLBACK;
+  const url = /^https?:|^\//.test(name) ? name : `scenes/${name}.json`;
+  try {
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.json();
+  } catch (e) {
+    console.error('Không đọc được kịch bản:', e);
+    return { ...FALLBACK, scenes: [{ id: 'err', duration: 3, elements: [
+      { id: 't', kind: 'text', x: 640, y: 360, w: 900, align: 'center', size: 34,
+        text: 'Không đọc được ' + url, sub: String(e && e.message || e) }] }] };
+  }
+}
+
+/* --------------------------------------------------------- thang bậc
+ * MỌI khoảng cách trong clip đi qua đây. Không có px rải rác trong dữ liệu
+ * cảnh — nhờ vậy đổi một núm `density` là cả clip thoáng ra hoặc chặt lại mà
+ * không phá tương quan giữa các phần tử.
+ */
+const STEP = [0, 4, 8, 12, 16, 24, 32, 48];
+let U = 12;            // đơn vị gốc, suy từ chiều cao sân khấu
+let DENSITY = 1;
+const sp = (n) => Math.round((STEP[cl(n | 0, 0, 7)] || 0) * DENSITY * (U / 12));
+
+/* ------------------------------------------------- hiệu ứng hình (điện ảnh)
+ * Ba núm dưới đây đều là BẬC, không phải điểm ảnh — cùng lối với `sp`, để đổi
+ * khổ clip thì hiệu ứng giãn theo chứ không giữ nguyên số px rồi lệch.
+ *
+ * Vì sao lái bằng `t` chứ không dùng `filter` trong CSS + @keyframes: bộ xuất
+ * video nhảy thẳng tới từng mốc giây, còn animation CSS chạy theo đồng hồ thật.
+ * Dùng CSS là cùng một giây mỗi lần xuất lại ra một khung khác nhau.
+ */
+const MO = [0, 2, 4, 8, 14, 22];                 // bậc nhoè → px ở cỡ gốc
+const moPx = (n) => (MO[cl(n | 0, 0, 5)] || 0) * (U / 12);
+const BONG = [                                   // bậc bóng đổ
+  '', '0 1px 2px rgba(0,0,0,.18)', '0 4px 10px rgba(0,0,0,.20)',
+  '0 10px 24px rgba(0,0,0,.24)', '0 20px 44px rgba(0,0,0,.28)',
+  '0 34px 70px rgba(0,0,0,.34)'];
+const DAY = [0, .03, .06, .10, .16];             // bậc đẩy máy → phóng thêm bao nhiêu
+
+/**
+ * Chuỗi `filter` của một phần tử tại thời điểm đang vẽ.
+ * `softIn` là cú lấy nét: vào khung còn nhoè, nét dần cho tới khi vào xong.
+ */
+function locHinh(el, pIn) {
+  const ra = [];
+  const mo = moPx(el.soft || 0) + moPx(el.softIn || 0) * (1 - pIn);
+  if (mo > .05) ra.push(`blur(${mo.toFixed(2)}px)`);
+  const bong = BONG[cl((el.shadow | 0), 0, 5)];
+  if (bong) ra.push(`drop-shadow(${bong})`);
+  return ra.join(' ');
+}
+
+/* --------------------------------------------------------- dựng phần tử */
+
+/**
+ * KHE MEDIA — một chỗ trống trong món khác (màn hình điện thoại, cửa sổ trình
+ * duyệt) nhận được CẢ ảnh LẪN phim.
+ *
+ * Đoán theo đuôi file chứ không bắt khai thêm một núm "đây là ảnh hay phim":
+ * người dùng chọn file xong là xong, đỡ một chỗ để khai sai.
+ *
+ * ⚠️ Thẻ `<video>` sinh ra ở đây KHÔNG tự phát. Nó phải chạy theo đồng hồ của
+ * clip, và `applyEl` lo việc đó — xem chỗ gọi `TICK.video` cho món không phải
+ * kind `video`. Cho nó tự phát là mỗi lần xuất video ra một khung khác nhau.
+ */
+const DUOI_PHIM = /\.(mp4|webm|mov|m4v|ogv)(\?|#|$)/i;
+function khePhim(src, lap) {
+  if (!src) return '';
+  return DUOI_PHIM.test(src)
+    ? `<video src="${src}" muted playsinline preload="auto"${lap === false ? '' : ' loop'}></video>`
+    : `<img src="${src}" alt="">`;
+}
+
+/** `Xin chào *bạn*` → `Xin chào <i>bạn</i>` (phần trong sao mang màu nhấn). */
+function rich(s) {
+  return String(s == null ? '' : s)
+    .replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))
+    // `**x**` phải khớp TRƯỚC `*x*`, không thì luật một sao ăn mất hai dấu ngoài
+    // rồi để lại một dấu sao lạc giữa câu.
+    .replace(/\*\*([^*]+)\*\*/g, '<em>$1</em>')
+    .replace(/\*([^*]+)\*/g, '<i>$1</i>')
+    // Chỗ ngắt dòng của một tiêu đề là quyết định bố cục, không phải chuyện để
+    // mặc bề rộng khung tự bẻ. Người viết kịch bản đặt `|` là ngắt đúng ở đó.
+    .replace(/\s*\|\s*|\n/g, '<br>')
+    // `[[đường/dẫn.svg]]` → một tấm ảnh nằm GIỮA dòng chữ, cao theo cỡ chữ. Dùng
+    // để đặt logo vào đúng chỗ đang là chữ, mà vẫn giữ nguyên nhịp của câu.
+    // Chỉ nhận ký tự an toàn của đường dẫn — chuỗi lạ thì bỏ qua, không dựng thẻ.
+    .replace(/\[\[([\w./-]+)\]\]/g, '<img class="hinh" src="$1" alt="">');
+}
+const px = (v) => (v == null ? null : v + 'px');
+
+/* --- hình vẽ của khung nền -------------------------------------------------
+ * Ba mảng dưới đây là hình học thuần: cùng một khung nhìn 1000×1778, toạ độ là
+ * phần nghìn của khung. Tách khỏi BUILD để đọc được đường nét mà không phải lội
+ * qua chuyện dựng thẻ.
+ */
+const VBOX = '0 0 1000 1778';
+
+/** Hai đồi sóng chồng nhau ở đáy khung + vài nét trắng mảnh chạy theo sườn. */
+function songDay(thap) {
+  // `thap` hạ cả dải sóng xuống 5% chiều cao khung. Poster nhiều nội dung cần chỗ
+  // cho dòng cuối (logo, nút) đứng trên nền sáng — sóng cao là nó đè lên.
+  const dich = thap ? 140 : 0;
+  return `<svg viewBox="${VBOX}" preserveAspectRatio="none"><g transform="translate(0 ${dich})">
+    <defs>
+      <linearGradient id="song-sau" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="var(--accent)" stop-opacity=".55"/>
+        <stop offset="1" stop-color="var(--accent2)" stop-opacity=".95"/>
+      </linearGradient>
+      <linearGradient id="song-truoc" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="var(--accent)" stop-opacity=".95"/>
+        <stop offset="1" stop-color="var(--accent2)" stop-opacity=".7"/>
+      </linearGradient>
+    </defs>
+    <path fill="url(#song-sau)"
+      d="M0 1700 C120 1672 260 1614 420 1602 C600 1588 700 1502 830 1480
+         C900 1468 962 1472 1000 1482 L1000 1778 L0 1778 Z"/>
+    <path fill="url(#song-truoc)"
+      d="M0 1628 C140 1560 300 1520 470 1566 C620 1606 706 1668 826 1682
+         C900 1690 962 1686 1000 1678 L1000 1778 L0 1778 Z"/>
+    <g fill="none" stroke="#fff" stroke-opacity=".28" stroke-width="2.4">
+      <path d="M0 1666 C140 1598 300 1558 470 1604 C620 1644 706 1706 826 1720"/>
+      <path d="M0 1702 C140 1634 300 1594 470 1640"/>
+    </g>
+  </g></svg>`;
+}
+
+/**
+ * Đường tăng trưởng nét đứt: một chấm đặc ở khúc giữa, một vòng rỗng ở đầu mút.
+ *
+ * Hai chấm nằm ĐÚNG trên đường vì chúng chính là điểm nối của hai cung — đặt
+ * chấm bằng toạ độ đoán thì mỗi lần chỉnh đường là chấm lại rơi ra ngoài.
+ */
+const DUONG_NOI = { x: 525, y: 1557 };
+const DUONG_CUOI = { x: 785, y: 1341 };
+function duongTang() {
+  return `<div class="duong-boc" style="inset:0"><svg viewBox="${VBOX}" preserveAspectRatio="none">
+    <path d="M410 1627 Q475 1600 ${DUONG_NOI.x} ${DUONG_NOI.y} Q620 1476 ${DUONG_CUOI.x} ${DUONG_CUOI.y}"
+      fill="none" stroke="var(--accent)" stroke-width="2.6" stroke-linecap="round"
+      stroke-dasharray="5.5 9"/>
+    <circle class="nut" cx="${DUONG_NOI.x}" cy="${DUONG_NOI.y}" r="12" fill="var(--accent)"/>
+    <circle class="dich" cx="${DUONG_CUOI.x}" cy="${DUONG_CUOI.y}" r="15"
+      fill="none" stroke="var(--accent)" stroke-width="2.6"/>
+  </svg></div>`;
+}
+
+/**
+ * Chồng tiền mờ ở nửa dưới — nền của tấm "ngân sách".
+ *
+ * Cố ý rất nhạt: nó là hình nền, đậm lên một chút là nuốt mất chữ. Mỗi xấp là
+ * vài phiến xếp chồng, phiến trên cùng có mặt trên nghiêng cho ra khối.
+ */
+const XAP = [
+  [2, 62, 22, 8, 4], [0, 72, 25, 9, 5], [18, 66, 22, 7, 4], [30, 59, 20, 7, 4],
+  [26, 74, 25, 9, 5], [46, 68, 22, 8, 4], [42, 79, 24, 9, 5], [61, 62, 20, 7, 4],
+  [66, 72, 23, 9, 5], [80, 66, 19, 7, 4], [76, 78, 22, 9, 5],
+];
+function chongTien() {
+  return '<div style="inset:0;opacity:.38">' + XAP.map(([x, y, w, h, n]) => {
+    // Phần trăm BÊN TRONG một xấp tính theo chiều cao của chính xấp đó, không
+    // phải của khung. Lấy nhầm gốc quy chiếu thì cả chồng tiền dẹp lại thành mấy
+    // vạch kẻ mảnh — trông như lỗi hiển thị chứ không ra hình gì.
+    const cao = 100 / n;
+    const phien = Array.from({ length: n }, (_, i) =>
+      `<div style="position:absolute;left:0;right:0;bottom:${(i * cao).toFixed(2)}%;height:${(cao * .84).toFixed(2)}%;
+        background:linear-gradient(180deg,#fff,rgba(255,255,255,.35));
+        border:1px solid rgba(120,140,190,.11);border-radius:2px"></div>`).join('');
+    return `<div style="position:absolute;left:${x}%;top:${y}%;width:${w}%;height:${h}%">${phien}
+      <div style="position:absolute;left:0;right:0;top:0;height:${(cao * .5).toFixed(2)}%;
+        background:rgba(255,255,255,.9);border:1px solid rgba(120,140,190,.09);
+        transform:skewX(-42deg);transform-origin:0 100%"></div></div>`;
+  }).join('') + '</div>';
+}
+
+/**
+ * Biểu tượng cho huy hiệu — nét vẽ, ăn theo màu thương hiệu.
+ *
+ * Cố ý KHÔNG dùng emoji: emoji do hệ điều hành vẽ nên nó mang màu riêng (bóng
+ * đèn vàng, hồng tâm đỏ) cãi nhau với bảng màu, và mỗi máy lại ra một kiểu — cả
+ * hai đều là thứ không chấp nhận được trên một tấm poster thương hiệu.
+ */
+const ICON = {
+  'bong-den': `<circle cx="12" cy="10" r="5.1"/><path d="M9.7 15.3v2.2h4.6v-2.2"/>
+    <path d="M10.3 19.1h3.4"/><path d="M12 2.6v1.6M5.2 5.2l1.2 1.2M18.8 5.2l-1.2 1.2M2.5 11h1.6M19.9 11h1.6"/>
+    <path d="M12 7.9v4.3M10.3 10h3.4"/>`,
+  'cup': `<path d="M7.4 3.6h9.2v5.1a4.6 4.6 0 0 1-9.2 0V3.6Z"/>
+    <path d="M7.4 5.2H4.9a.9.9 0 0 0-.9.9v.7a3.5 3.5 0 0 0 3.5 3.5"/>
+    <path d="M16.6 5.2h2.5a.9.9 0 0 1 .9.9v.7a3.5 3.5 0 0 1-3.5 3.5"/>
+    <path d="M12 13.3v3.1"/><path d="M8.6 20.4h6.8l-.8-4H9.4l-.8 4Z"/>
+    <path d="M12 5.4l.8 1.6 1.8.26-1.3 1.27.31 1.79L12 9.47l-1.61.85.3-1.79-1.29-1.27L11.2 7 12 5.4Z"/>`,
+  'dich': `<circle cx="10.8" cy="13.2" r="8"/><circle cx="10.8" cy="13.2" r="4.3"/>
+    <circle cx="10.8" cy="13.2" r=".9" fill="currentColor" stroke="none"/>
+    <path d="M10.8 13.2 20.2 3.8"/><path d="M16.6 3.9 20.4 3.6 20.1 7.4"/>`,
+};
+
+/* --- CỤM MINH HOẠ QUỸ ĐẠO ---------------------------------------------------
+ * Một vật ở tâm, vài vòng elip nét đứt nghiêng quanh nó, chấm chạy trên vòng,
+ * quả cầu trôi lơ lửng, ánh lấp lánh nhấp nháy.
+ *
+ * Cả cụm vẽ trong một khung toạ độ cố định 400×320 nên mọi điểm khai bằng phần
+ * nghìn của cụm — đổi cỡ khung không phải sửa một con số nào.
+ */
+const QD_W = 400, QD_H = 320, QD_X = 200, QD_Y = 160;
+
+/** `toc` = giây cho một vòng; âm là quay ngược. `cham` = vị trí chấm trên vòng (0..1). */
+const VONG = [
+  { rx: 176, ry: 58, goc: -20, toc: 26, cham: [0.12, 0.61] },
+  { rx: 150, ry: 44, goc: 17, toc: -34, cham: [0.42] },
+  { rx: 112, ry: 88, goc: -62, toc: 21, cham: [0.78] },
+];
+/** [x, y, bán kính, độ đậm, biên độ trôi, lệch pha] */
+const CAU_TROI = [
+  [56, 214, 30, 1, 7, 0], [346, 96, 24, 1, 6, 1.9], [94, 74, 13, .72, 5, 3.4],
+  [360, 206, 11, .72, 4, 0.8], [250, 44, 9, .5, 4, 2.6], [300, 268, 15, .45, 5, 4.4],
+];
+const LAP_LANH = [[300, 66, 13, 0], [112, 150, 10, 1.7], [356, 158, 8, 3.1], [168, 272, 11, 4.6]];
+
+/** Ngôi sao bốn cánh — nét cong nên nhìn như ánh sáng, không phải hình thoi. */
+function canhSao(x, y, s) {
+  const c = s * 0.16;
+  return `M${x} ${y - s} Q${x + c} ${y - c} ${x + s} ${y} Q${x + c} ${y + c} ${x} ${y + s}` +
+         ` Q${x - c} ${y + c} ${x - s} ${y} Q${x - c} ${y - c} ${x} ${y - s} Z`;
+}
+
+/** Ngôi sao năm cánh cho vật ở tâm kiểu "sao". */
+function saoNamCanh(x, y, s) {
+  const p = [];
+  for (let i = 0; i < 10; i++) {
+    const r = i % 2 ? s * 0.42 : s;
+    const a = -Math.PI / 2 + (i * Math.PI) / 5;
+    p.push(`${(x + r * Math.cos(a)).toFixed(1)} ${(y + r * Math.sin(a)).toFixed(1)}`);
+  }
+  return `M${p.join('L')}Z`;
+}
+
+/** Vật ở tâm — ba kiểu, tương ứng ba tấm poster đang dựng. */
+function veTam(kieu, nhan, id, truy, logo) {
+  if (kieu === 'web') {
+    const kinh = [];
+    for (const rx of [26, 52]) kinh.push(`<ellipse cx="200" cy="152" rx="${rx}" ry="76" />`);
+    for (const dy of [-34, 0, 34]) kinh.push(`<line x1="124" y1="${152 + dy}" x2="276" y2="${152 + dy}" />`);
+    return `
+      <circle cx="200" cy="152" r="76" fill="url(#cau-${id})" opacity=".5"/>
+      <g fill="none" stroke="var(--accent)" stroke-opacity=".3" stroke-width="1.3">
+        <circle cx="200" cy="152" r="76"/>${kinh.join('')}</g>
+      <g>
+        <rect x="118" y="138" width="176" height="112" rx="11" fill="#fff"
+          stroke="rgba(120,140,190,.22)"/>
+        <path d="M118 149a11 11 0 0 1 11-11h154a11 11 0 0 1 11 11v17H118Z" fill="url(#nghieng-${id})"/>
+        <g fill="#fff">${[134, 148, 162].map((x) => `<circle cx="${x}" cy="${152}" r="3.6"/>`).join('')}</g>
+        <rect x="134" y="184" width="144" height="34" rx="17" fill="#fff" stroke="rgba(120,140,190,.3)"/>
+        <text x="158" y="207" font-size="21" font-weight="700" fill="var(--ink)"
+          font-family="inherit">${nhan || 'www.'}</text>
+      </g>
+      <g class="dau-tick"><circle cx="286" cy="238" r="27" fill="url(#nghieng-${id})"/>
+        <path d="M274 238l8 9 15-17" fill="none" stroke="#fff" stroke-width="4.4"
+          stroke-linecap="round" stroke-linejoin="round"/></g>`;
+  }
+  if (kieu === 'tim') {
+    // TÊN MIỀN ĐI TỪ KỊCH BẢN VÀO, không nằm cứng ở đây.
+    //
+    // Trước đây `.iQ` gõ thẳng vào hai chỗ trong khối vẽ này, nên sửa kịch bản
+    // cũng không đổi được — mà đó lại là dữ liệu SAI đi thẳng ra video. Giờ chỉ
+    // nhận MỘT chuỗi rồi tự tách phần đuôi, khỏi phải khai hai chỗ rồi lệch nhau.
+    const day_du = nhan || 'ten-mien.com';
+    const cham = day_du.lastIndexOf('.');
+    const duoi = cham > 0 ? day_du.slice(cham) : '';
+    // Ô TÌM KIẾM MẶC ĐỊNH ĐỂ TRỐNG. Điền sẵn một tên miền vào đó là mời người xem
+    // đọc cái tên đó, trong khi cả tấm poster đang mời họ đi tìm tên CỦA HỌ.
+    const go = truy || '';
+    const cham2 = go.lastIndexOf('.');
+    const ten2 = cham2 > 0 ? go.slice(0, cham2) : go;
+    const duoi2 = cham2 > 0 ? go.slice(cham2) : '';
+    return `
+      <circle cx="196" cy="150" r="86" fill="url(#cau-${id})" opacity=".26"/>
+      <g>
+        <rect x="128" y="70" width="180" height="132" rx="12" fill="#fff" stroke="rgba(120,140,190,.2)"/>
+        ${logo
+          ? `<image href="${logo}" x="146" y="96" width="144" height="50"
+              preserveAspectRatio="xMidYMid meet"/>`
+          : `<text x="218" y="140" text-anchor="middle" font-size="${duoi.length > 4 ? 42 : 52}"
+              font-weight="800" fill="url(#nong-${id})" font-family="inherit">${rich(duoi)}</text>`}
+        <circle cx="152" cy="164" r="12" fill="none" stroke="var(--accent)" stroke-opacity=".45" stroke-width="1.6"/>
+        <ellipse cx="152" cy="164" rx="5" ry="12" fill="none" stroke="var(--accent)" stroke-opacity=".45" stroke-width="1.4"/>
+        <g fill="rgba(120,140,190,.28)">
+          <rect x="174" y="156" width="118" height="7" rx="3.5"/>
+          <rect x="174" y="170" width="96" height="7" rx="3.5"/>
+        </g>
+      </g>
+      <g class="o-tim">
+        <rect x="76" y="196" width="270" height="52" rx="26" fill="#fff" stroke="rgba(120,140,190,.22)"/>
+        <g fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round">
+          <circle cx="106" cy="222" r="9"/><path d="M113 229l7 7"/></g>
+        ${go ? `<text x="134" y="230" font-size="${go.length > 11 ? 24 : 27}" font-weight="700"
+          fill="var(--ink)" font-family="inherit">${rich(ten2)}<tspan
+          fill="url(#nong-${id})">${rich(duoi2)}</tspan></text>` : ''}
+        <rect x="286" y="200" width="56" height="44" rx="20" fill="var(--accent)"/>
+        <g fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round">
+          <circle cx="311" cy="219" r="8"/><path d="M317 225l6 6"/></g>
+      </g>
+      <g class="dau-tick"><circle cx="300" cy="176" r="25" fill="url(#nong-${id})"/>
+        <path d="M289 176l7 8 14-16" fill="none" stroke="#fff" stroke-width="4.2"
+          stroke-linecap="round" stroke-linejoin="round"/></g>`;
+  }
+  if (kieu === 'sao') {
+    return `
+      <g class="buc">${[[286, 92, 24], [266, 84, 21], [246, 76, 19]].map(([cy, rx, ry], i) =>
+        `<ellipse cx="200" cy="${cy}" rx="${rx}" ry="${ry}" fill="url(#nghieng-${id})"
+          opacity="${(0.42 + i * 0.2).toFixed(2)}"/>`).join('')}</g>
+      <circle cx="200" cy="146" r="58" fill="url(#cau-${id})"/>
+      <path d="${saoNamCanh(200, 143, 36)}" fill="#fff" opacity=".95"/>`;
+  }
+  return `<circle cx="200" cy="160" r="72" fill="url(#cau-${id})"/>`;
+}
+
+/** Nhãn tròn nhỏ bay quanh: dấu tích, cột biểu đồ. */
+const NHAN_NHO = {
+  check: '<path d="M-7 0l5 6 9-11" fill="none" stroke="var(--accent)" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>',
+  cot: '<g fill="var(--accent)">' + [[-9, 4], [-2, 8], [5, 12]].map(([x, h]) =>
+    `<rect x="${x}" y="${-h}" width="5" height="${h}" rx="1.6"/>`).join('') + '</g>',
+};
+
+function veQuyDao(el) {
+  const id = String(el.id || 'qd').replace(/[^\w-]/g, '');
+  // PHA MÀU NÓNG: vòng giữa và mấy quả cầu lẻ mang màu nóng, còn lại giữ màu nền
+  // nếp. Đồng loạt một màu thì cụm bẹt; pha hết hai màu thì loạn. Cứ xen kẽ.
+  const nong = Boolean(el.warm);
+  const mau = (i) => (nong && i % 2 === 1 ? 'var(--nong)' : 'var(--accent)');
+  const vong = VONG.map((v, i) => {
+    const cham = v.cham.map((p, k) =>
+      `<circle class="cham" data-v="${i}" data-p="${p}" r="${k ? 6 : 7.5}" fill="${mau(i)}"/>`).join('');
+    return `<g transform="rotate(${v.goc} ${QD_X} ${QD_Y})">
+      <ellipse class="vong" data-i="${i}" cx="${QD_X}" cy="${QD_Y}" rx="${v.rx}" ry="${v.ry}"
+        fill="none" stroke="${mau(i)}" stroke-opacity=".4" stroke-width="1.7"
+        stroke-dasharray="${i === 1 && nong ? '0 0' : '6 9'}"/>
+      ${cham}</g>`;
+  }).join('');
+
+  const cau = CAU_TROI.map(([x, y, r, dam], i) =>
+    `<circle class="cau-troi" data-i="${i}" cx="${x}" cy="${y}" r="${r}"
+      fill="url(#${nong && i % 2 === 1 ? 'cau-nong-' : 'cau-'}${id})" opacity="${dam}"/>`).join('');
+
+  // Vẽ tại gốc toạ độ rồi ĐẶT bằng transform. Vẽ sẵn ở đúng chỗ thì lệnh phóng
+  // to sau đó lấy gốc SVG làm tâm, ánh sáng bị bắn văng ra khỏi khung.
+  const lap = LAP_LANH.map(([x, y, s], i) =>
+    `<path class="lap-lanh" data-i="${i}" d="${canhSao(0, 0, s)}" fill="var(--accent)"
+      transform="translate(${x} ${y})"/>`).join('');
+
+  const nhan = (el.chips || []).slice(0, 2).map((ten, i) => {
+    const [x, y] = i === 0 ? [104, 258] : [332, 62];
+    return `<g class="nhan-nho" data-x="${x}" data-y="${y}" transform="translate(${x} ${y})">
+      <circle r="26" fill="var(--accent-mo)"/>${NHAN_NHO[ten] || ''}</g>`;
+  }).join('');
+
+  const muiTen = el.arrow
+    ? `<g class="mui-ten"><path d="M262 288C316 274 346 226 350 168" fill="none"
+         stroke="url(#nghieng-${id})" stroke-width="13" stroke-linecap="round"/>
+       <path d="M330 178l20-24 18 27Z" fill="url(#nghieng-${id})"/></g>`
+    : '';
+
+  return `<svg viewBox="0 0 ${QD_W} ${QD_H}" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <radialGradient id="hao-${id}" cx=".5" cy=".5" r=".5">
+        <stop offset="0" stop-color="var(--accent)" stop-opacity=".14"/>
+        <stop offset="1" stop-color="var(--accent)" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="cau-${id}" cx=".32" cy=".28" r=".8">
+        <stop offset="0" stop-color="#fff" stop-opacity=".95"/>
+        <stop offset=".45" stop-color="var(--accent)" stop-opacity=".75"/>
+        <stop offset="1" stop-color="var(--accent2)"/>
+      </radialGradient>
+      <linearGradient id="nghieng-${id}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="var(--accent)"/>
+        <stop offset="1" stop-color="var(--accent2)"/>
+      </linearGradient>
+      <linearGradient id="nong-${id}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="var(--nong)"/>
+        <stop offset="1" stop-color="var(--nong2)"/>
+      </linearGradient>
+      <radialGradient id="cau-nong-${id}" cx=".32" cy=".28" r=".8">
+        <stop offset="0" stop-color="#fff" stop-opacity=".95"/>
+        <stop offset=".45" stop-color="var(--nong)" stop-opacity=".8"/>
+        <stop offset="1" stop-color="var(--nong2)"/>
+      </radialGradient>
+    </defs>
+    <circle cx="${QD_X}" cy="${QD_Y}" r="142" fill="url(#hao-${id})"/>
+    <g class="vet" fill="var(--accent)" opacity=".07">
+      <rect x="52" y="150" width="300" height="72" rx="36" transform="rotate(-19 200 186)"/>
+      <rect x="96" y="112" width="230" height="56" rx="28" transform="rotate(-19 200 140)"/>
+    </g>
+    ${vong}${cau}${muiTen}
+    <g class="tam">${veTam(el.core || 'cau', el.label, id, el.query, el.logo)}</g>
+    ${lap}${nhan}
+  </svg>`;
+}
+
+const BUILD = {
+  group(el, n) {
+    n.style.flexDirection = el.dir === 'ngang' ? 'row' : 'column';
+    n.style.alignItems = { dau: 'flex-start', giua: 'center', cuoi: 'flex-end' }[el.align || 'giua'];
+    n.style.justifyContent = { dau: 'flex-start', giua: 'center', cuoi: 'flex-end' }[el.justify || 'giua'];
+    n.style.gap = px(sp(el.gap != null ? el.gap : 4));
+    if (el.pad != null) n.style.padding = px(sp(el.pad));
+  },
+  panel(el, n) {
+    n.style.background = el.fill || 'rgba(239,95,95,.10)';
+    n.style.setProperty('--r', px(el.radius != null ? el.radius : 0));
+  },
+  text(el, n) {
+    const size = el.size || 40;
+    // Mỗi dòng một thẻ riêng thay vì `<br>`: nhìn ra kết quả y hệt, nhưng có thẻ
+    // thì mới cho từng dòng hiện lệch nhau được — mà đó là cách một tấm poster
+    // thật sự chuyển động, chứ không phải cả khối chữ cùng bật lên một lúc.
+    const dong = String(el.text == null ? '' : el.text).split(/\s*\|\s*|\n/);
+    n.innerHTML = `<b class="t">${dong.map((d) => `<span class="d">${rich(d)}</span>`).join('')}</b>`
+      + (el.rule ? '<span class="rule"></span>' : '')
+      + (el.sub ? `<span class="s">${rich(el.sub)}</span>` : '');
+    const rl = n.querySelector('.rule');
+    if (rl) { rl.style.width = px(Math.round(size * 1.5)); rl.style.height = px(Math.max(2, Math.round(U * .25))); }
+    n.style.textAlign = el.align || 'left';
+    n.style.alignItems = el.align === 'center' ? 'center' : el.align === 'right' ? 'flex-end' : 'flex-start';
+    n.style.gap = px(sp(el.gap != null ? el.gap : 3));
+    n.querySelector('.t').style.fontSize = px(size);
+    if (el.sub) n.querySelector('.s').style.fontSize = px(Math.round(size * (el.subScale != null ? el.subScale : .34)));
+  },
+  card(el, n) {
+    const pad = sp(el.pad != null ? el.pad : 5);
+    n.style.padding = px(pad);
+    n.style.gap = px(sp(el.gap != null ? el.gap : 3));
+    n.innerHTML =
+      (el.title ? `<div class="h">${rich(el.title)}</div>` : '') +
+      Array.from({ length: el.rows || 0 }, (_, i) =>
+        `<div class="line" style="height:${sp(3)}px;width:${i === (el.rows - 1) ? 68 : 100}%"></div>`).join('') +
+      (el.button ? `<div class="btn">${rich(el.button)}</div>` : '');
+    const h = n.querySelector('.h'); if (h) h.style.fontSize = px(Math.round(U * 1.3));
+    const b = n.querySelector('.btn');
+    if (b) { b.style.height = px(sp(6)); b.style.fontSize = px(Math.round(U * 1.05)); b.style.marginTop = px(sp(2)); }
+  },
+  form(el, n) {
+    n.style.padding = px(sp(el.pad != null ? el.pad : 5));
+    n.style.gap = px(sp(el.gap != null ? el.gap : 4));
+    n.innerHTML =
+      (el.title ? `<div class="h">${rich(el.title)}</div>` : '') +
+      (el.fields || []).map((f) =>
+        `<div class="f"><span class="l">${rich(f.label)}</span><span class="v">${rich(f.value)}</span></div>`).join('') +
+      (el.dots ? `<div class="dots"></div>` : '');
+    const h = n.querySelector('.h'); if (h) h.style.fontSize = px(Math.round(U * 1.25));
+    n.querySelectorAll('.f').forEach((f) => { f.style.gap = px(sp(1)); });
+    n.querySelectorAll('.l').forEach((l) => { l.style.fontSize = px(Math.round(U * .78)); });
+    n.querySelectorAll('.v').forEach((v) => {
+      v.style.fontSize = px(Math.round(U * .95));
+      v.style.padding = `${sp(2)}px ${sp(3)}px`;
+      v.style.setProperty('--r2', px(Math.round(U * .6)));
+    });
+    const d = n.querySelector('.dots');
+    if (d) { d.style.gap = px(sp(1)); d.innerHTML = Array.from({ length: el.dots }, () => '<i></i>').join('');
+      d.querySelectorAll('i').forEach((i, k) => { i.style.width = i.style.height = px(sp(4)); i.style.opacity = 1 - k * .22; }); }
+  },
+  calendar(el, n) {
+    n.style.padding = px(sp(el.pad != null ? el.pad : 5));
+    n.style.gap = px(sp(el.gap != null ? el.gap : 3));
+    const dows = ['CN','T2','T3','T4','T5','T6','T7'];
+    const days = el.days || 35;
+    n.innerHTML =
+      `<div class="h"><b>${rich(el.month || '')}</b>${el.cta ? `<span class="cta">${rich(el.cta)}</span>` : ''}</div>` +
+      `<div class="grid">${dows.map((d) => `<span class="dow">${d}</span>`).join('')}` +
+      Array.from({ length: days }, (_, i) =>
+        `<span class="${i + 1 === el.highlight ? 'on' : ''}">${((i + el.offset || i) % 31) + 1}</span>`).join('') + '</div>';
+    n.querySelector('.h b').style.fontSize = px(Math.round(U * 1.25));
+    const cta = n.querySelector('.cta');
+    if (cta) { cta.style.fontSize = px(Math.round(U * .78)); cta.style.padding = `${sp(1)}px ${sp(3)}px`; }
+    const g = n.querySelector('.grid');
+    g.style.gap = px(sp(1));
+    g.style.fontSize = px(Math.round(U * .82));
+  },
+  chip(el, n) {
+    n.style.padding = px(sp(el.pad != null ? el.pad : 4));
+    n.style.gap = px(sp(el.gap != null ? el.gap : 1));
+    n.innerHTML =
+      (el.label ? `<span class="l">${rich(el.label)}</span>` : '') +
+      `<span class="v">${rich(el.value)}</span>` +
+      (el.note ? `<span class="n">${rich(el.note)}</span>` : '');
+    const l = n.querySelector('.l'); if (l) l.style.fontSize = px(Math.round(U * .62));
+    n.querySelector('.v').style.fontSize = px(Math.round(U * 1.4));
+    const nt = n.querySelector('.n'); if (nt) nt.style.fontSize = px(Math.round(U * .68));
+    if (el.outline) n.style.border = `2px solid ${getComputedStyle(document.body).getPropertyValue('--accent')}`;
+  },
+  phone(el, n) {
+    if (el.src) n.innerHTML = khePhim(el.src, el.loop);
+  },
+  timeline(el, n) {
+    n.style.paddingTop = px(sp(el.pad != null ? el.pad : 2));
+    n.style.fontSize = px(Math.round(U * .72));
+    n.innerHTML = (el.labels || []).map((l) => `<span>${rich(l)}</span>`).join('');
+  },
+  logo(el, n) {
+    n.style.gap = px(sp(el.gap != null ? el.gap : 3));
+    n.innerHTML =
+      `<span class="mark">${rich(el.mark || '••')}</span>` +
+      `<span class="nm">${rich(el.name || '')}</span>` +
+      `<span class="rule"></span>`;
+    const m = n.querySelector('.mark');
+    m.style.width = m.style.height = px(sp(7));
+    m.style.fontSize = px(Math.round(U * 1.1));
+    n.querySelector('.nm').style.fontSize = px(el.size || Math.round(U * 2.4));
+    n.querySelector('.rule').style.width = px(sp(7));
+  },
+  /**
+   * VIDEO — nền động, hoặc một đoạn phim lồng trong khung điện thoại.
+   *
+   * `muted` là BẮT BUỘC, không phải tuỳ chọn: trình duyệt chặn tự phát mọi video
+   * có tiếng, nên thiếu nó là khung hình đứng im ở giây 0 mà không báo lỗi gì.
+   *
+   * Bộ xuất hứng hình bằng cách quay màn hình theo thời gian thật, nên video cứ
+   * phát bình thường là nó vào phim — không cần khoá màu rồi lồng bằng ffmpeg
+   * sau như `tools/ghep-bg.mjs` phải làm.
+   */
+  video(el, n) {
+    const lap = el.loop === false ? '' : ' loop';
+    n.innerHTML = `<video src="${el.src || ''}" muted playsinline preload="auto"${lap}></video>`
+      + (el.dim ? '<i class="toi"></i>' : '');
+    n.style.setProperty('--r', px(el.radius != null ? el.radius : 0));
+    if (el.fit === 'contain') n.classList.add('vua');
+    const v = n.querySelector('video');
+    v.muted = true;                       // đặt cả thuộc tính, không chỉ mỗi attribute
+    if (el.blur) v.style.filter = `blur(${el.blur}px)`;
+    const toi = n.querySelector('.toi');
+    if (toi) toi.style.opacity = String(el.dim);
+  },
+  image(el, n) {
+    n.innerHTML = `<img src="${el.src || ''}" alt="">` + (el.shine ? '<i class="quet"></i>' : '');
+    n.style.setProperty('--r', px(el.radius != null ? el.radius : 12));
+    if (el.fit === 'contain') n.classList.add(el.h != null && el.w == null ? 'cao' : 'vua');
+    if (el.glow) n.classList.add('sang');
+    const q = n.querySelector('.quet');
+    if (q && el.src) {
+      const u = `url("${el.src}")`;
+      q.style.webkitMaskImage = u;
+      q.style.maskImage = u;
+    }
+  },
+  /**
+   * Vòng quay may mắn. Nan vẽ bằng `conic-gradient` chứ không phải mười hai thẻ
+   * xoay — nhẹ hơn hẳn khi bộ xuất video hứng từng khung.
+   */
+  wheel(el, n) {
+    const nan = el.slices || 10;
+    const colors = el.colors || ['#f0a', '#ffb020', '#20c997', '#4dabf7', '#ff6a1f', '#845ef7'];
+    const stops = Array.from({ length: nan }, (_, i) => {
+      const c = colors[i % colors.length];
+      return `${c} ${(i * 360) / nan}deg ${((i + 1) * 360) / nan}deg`;
+    }).join(',');
+    n.innerHTML = `<div class="nan"></div><div class="nut">${rich(el.label || 'QUAY')}</div><div class="kim"></div>`;
+    const dia = n.querySelector('.nan');
+    dia.style.background = `conic-gradient(${stops})`;
+    if (el.spin) dia.style.transform = `rotate(${el.spin}deg)`;
+    const nut = n.querySelector('.nut');
+    const size = (el.w || U * 20) * 0.3;
+    nut.style.width = nut.style.height = px(Math.round(size));
+    nut.style.fontSize = px(Math.round(size * 0.22));
+  },
+
+  chat(el, n) {
+    n.style.padding = px(sp(el.pad != null ? el.pad : 4));
+    n.style.gap = px(sp(el.gap != null ? el.gap : 3));
+    n.innerHTML =
+      `<div class="thanh"><i></i>${rich(el.title || 'Trợ lý AI')}</div>` +
+      (el.lines || []).map((l) => `<div class="bong">${rich(l)}</div>`).join('') +
+      `<div class="go">${rich(el.typing || '')}</div>`;
+    const th = n.querySelector('.thanh');
+    th.style.paddingBottom = px(sp(2));
+    th.style.fontSize = px(Math.round(U * 0.85));
+    th.querySelector('i').style.width = th.querySelector('i').style.height = px(sp(2));
+    n.querySelectorAll('.bong').forEach((b) => {
+      b.style.padding = `${sp(2)}px ${sp(3)}px`;
+      b.style.fontSize = px(Math.round(U * 0.95));
+    });
+    const go = n.querySelector('.go');
+    go.style.padding = `${sp(2)}px ${sp(3)}px`;
+    go.style.fontSize = px(Math.round(U * 0.9));
+  },
+
+  shield(el, n) {
+    n.style.gap = px(sp(el.gap != null ? el.gap : 4));
+    n.innerHTML =
+      `<div class="than">${rich(el.mark || '🔒')}</div>` +
+      `<div class="hang">${(el.badges || []).map((b) => `<span>${rich(b)}</span>`).join('')}</div>`;
+    const than = n.querySelector('.than');
+    const size = el.w || U * 12;
+    than.style.width = px(Math.round(size * 0.62));
+    than.style.height = px(Math.round(size * 0.74));
+    than.style.fontSize = px(Math.round(size * 0.26));
+    const hang = n.querySelector('.hang');
+    hang.style.gap = px(sp(2));
+    hang.querySelectorAll('span').forEach((sp2) => {
+      sp2.style.padding = `${sp(1)}px ${sp(3)}px`;
+      sp2.style.fontSize = px(Math.round(U * 0.75));
+    });
+  },
+
+  upload(el, n) {
+    n.style.padding = px(sp(el.pad != null ? el.pad : 5));
+    n.style.gap = px(sp(el.gap != null ? el.gap : 3));
+    n.innerHTML =
+      `<div class="mui">↑</div>` +
+      `<div>${rich(el.label || 'Kéo file vào đây')}</div>` +
+      (el.file ? `<div class="tep">${rich(el.file)}</div>` : '');
+    n.querySelector('.mui').style.fontSize = px(Math.round(U * 2.4));
+    n.style.fontSize = px(Math.round(U * 0.92));
+    const tep = n.querySelector('.tep');
+    if (tep) { tep.style.padding = `${sp(2)}px ${sp(3)}px`; tep.style.fontSize = px(Math.round(U * 0.85)); }
+  },
+
+  table(el, n) {
+    const cols = el.columns || ['Tên', 'Điện thoại', 'Lúc'];
+    const rows = el.rows || 4;
+    n.innerHTML =
+      `<div class="dau">${cols.map((c) => `<span class="o">${rich(c)}</span>`).join('')}</div>` +
+      Array.from({ length: rows }, (_, i) =>
+        `<div class="dong">${cols.map((_, j) => `<span class="o">${j === 0 ? 'Người chơi ' + (i + 1) : j === cols.length - 1 ? (9 + i) + ':0' + i : '09xx xxx ' + (100 + i)}</span>`).join('')}</div>`).join('');
+    const pad = `${sp(2)}px ${sp(3)}px`;
+    n.querySelectorAll('.dau,.dong').forEach((r) => { r.style.padding = pad; r.style.gap = px(sp(2)); });
+    n.style.fontSize = px(Math.round(U * 0.82));
+  },
+
+  browser(el, n) {
+    n.innerHTML =
+      `<div class="chrome"><i class="cham"></i><i class="cham"></i><i class="cham"></i>` +
+      `<span class="url">${rich(el.url || 'https://trang-cua-ban.vn')}</span></div>` +
+      (el.src
+        ? `<div class="than co-hinh">${khePhim(el.src, el.loop)}</div>`
+        : `<div class="than"><i class="nhan"></i><i></i><i></i></div>`);
+    const chrome = n.querySelector('.chrome');
+    chrome.style.padding = `${sp(2)}px ${sp(3)}px`;
+    chrome.style.fontSize = px(Math.round(U * 0.75));
+    chrome.querySelectorAll('.cham').forEach((c) => { c.style.width = c.style.height = px(sp(2)); });
+    n.querySelector('.url').style.padding = `${sp(1)}px ${sp(3)}px`;
+    const than = n.querySelector('.than');
+    if (el.src) return;                 // có hình thật thì bỏ mấy vạch giả đi
+    than.style.padding = px(sp(5));
+    than.querySelectorAll('i').forEach((i, k) => {
+      i.style.height = px(sp(k === 0 ? 5 : 3));
+      i.style.width = k === 0 ? '58%' : k === 1 ? '86%' : '70%';
+    });
+  },
+
+  sweep(el, n) {
+    const goc = el.angle != null ? el.angle : -35;
+    const rong = el.width != null ? el.width : 46;
+    // Đủ sáng để thật sự thấy là một luồng sáng quét qua. Để mờ quá thì trên nền
+    // tối gần như không nhìn ra gì — đo trên video mẫu, quãng quét sáng chiếm
+    // khoảng 10–20% số điểm ảnh của khung.
+    const mau = el.color || 'rgba(255,255,255,.55)';
+    // Ba chặng: trong suốt → sáng → trong suốt. Chặng giữa hẹp nên ra vệt, còn
+    // rộng quá thì thành cả khung sáng lên, mất cảm giác "quét".
+    n.style.background =
+      `linear-gradient(${goc}deg, transparent ${50 - rong / 2}%, ${mau} 50%, transparent ${50 + rong / 2}%)`;
+  },
+
+  /**
+   * KHUNG NỀN THƯƠNG HIỆU.
+   *
+   * Hệ toạ độ SVG cố định 1000×1778 (đúng 9:16) nên mọi điểm khai bằng phần
+   * nghìn của khung — đổi từ 720p sang 1080p không phải sửa một con số nào.
+   */
+  nen(el, n) {
+    const co = new Set(el.parts && el.parts.length ? el.parts : ['cham', 'net', 'khoi', 'song', 'duong']);
+    const H = [];
+    if (co.has('cham')) H.push('<div class="cham a"></div><div class="cham b"></div>');
+    if (co.has('net')) H.push('<div class="net a"><i></i></div><div class="net b"><i></i></div>');
+    if (co.has('khoi')) H.push('<div class="khoi"></div>');
+    if (co.has('tien')) H.push(chongTien());
+    if (co.has('song')) H.push(songDay(el.waveLow));
+    if (co.has('duong')) H.push(duongTang());
+    n.innerHTML = H.join('');
+  },
+
+  /**
+   * Cụm minh hoạ quỹ đạo. Gom sẵn thẻ con vào chính thẻ cha ngay lúc dựng —
+   * bảng TICK chạy 30 lần mỗi giây, dò lại DOM từng khung là phí không cần thiết.
+   */
+  quydao(el, n) {
+    n.innerHTML = veQuyDao(el);
+    n.__phan = {
+      vong: [...n.querySelectorAll('.vong')],
+      cham: [...n.querySelectorAll('.cham')],
+      cau: [...n.querySelectorAll('.cau-troi')],
+      lap: [...n.querySelectorAll('.lap-lanh')],
+      tam: n.querySelector('.tam'),
+      nhan: [...n.querySelectorAll('.nhan-nho')],
+      tick: n.querySelector('.dau-tick'),
+      muiTen: n.querySelector('.mui-ten'),
+    };
+  },
+
+  /**
+   * Nút kêu gọi hành động. Mũi tên nằm trong vòng trắng nên nó nổi trên nền
+   * gradient — vẽ mũi tên thẳng lên nền cam thì độ tương phản không đủ.
+   */
+  nut(el, n) {
+    const co = el.size || Math.round(U * 1.7);
+    const cao = Math.round(co * 2.6);
+    n.style.height = px(cao);
+    n.style.fontSize = px(co);
+    n.style.padding = `0 ${Math.round(cao * 0.44)}px`;
+    n.style.gap = px(Math.round(co * 0.9));
+    const d = Math.round(cao * 0.62);
+    n.innerHTML = `<span>${rich(el.label || '')}</span>` +
+      `<span class="mui" style="width:${d}px;height:${d}px">
+         <svg viewBox="0 0 24 24" fill="none" stroke="var(--nong)" stroke-width="3"
+           stroke-linecap="round" stroke-linejoin="round">
+           <path d="M4 12h15"/><path d="M13 6l6 6-6 6"/></svg></span>` +
+      (el.ticks === false ? '' : `<span class="vach">
+         <i style="left:-14%;top:-38%;width:${Math.round(co*.16)}px;height:${Math.round(co*.5)}px;transform:rotate(18deg)"></i>
+         <i style="left:-9%;top:-58%;width:${Math.round(co*.16)}px;height:${Math.round(co*.34)}px;transform:rotate(-6deg)"></i>
+         <i style="right:-11%;top:-42%;width:${Math.round(co*.16)}px;height:${Math.round(co*.46)}px;transform:rotate(-18deg)"></i>
+       </span>`);
+    const v = n.querySelector('.vach');
+    if (v) { v.style.inset = '0'; }
+  },
+
+  huyhieu(el, n) {
+    const d = el.w || Math.round(U * 8);
+    n.style.width = n.style.height = px(d);
+    const ve = ICON[el.mark];
+    if (ve) {
+      n.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.55"
+        stroke-linecap="round" stroke-linejoin="round">${ve}</svg>`;
+    } else {
+      n.style.fontSize = px(Math.round(d * (el.size != null ? el.size : 0.46)));
+      n.textContent = el.mark || '◆';
+    }
+  },
+
+  hangnhan(el, n) {
+    const co = el.size || Math.round(U * 1.15);
+    n.style.gap = px(sp(el.gap != null ? el.gap : 4));
+    n.style.fontSize = px(co);
+    n.innerHTML = (el.items || [])
+      .map((x) => `<b>${rich(x)}</b>`)
+      .join(`<i style="width:${Math.round(co * .34)}px;height:${Math.round(co * .34)}px"></i>`);
+  },
+
+  pointer() { /* con trỏ vẽ riêng ở lớp trên, không nằm trong #cam */ },
+};
+
+/* --------------------------------------------------------- dựng cả cảnh */
+
+let DOC = FALLBACK, SCENES = [], ELS = [], DUR = 0, POINTERS = [];
+
+function layout(doc) {
+  const m = doc.meta || {};
+  const W = m.width || 1280, H = m.height || 720;
+  U = Math.round(H / 60);                    // 12px ở khung 720p
+  DENSITY = m.density != null ? m.density : 1;
+
+  /* NỀN TỐI TỰ NHẬN RA.
+     Kịch bản chỉ khai màu nền; nếu nền tối mà thẻ vẫn trắng thì cả clip hỏng.
+     Suy độ sáng của nền rồi tự chọn màu giấy, đường kẻ, chữ phụ cho hợp. Người
+     viết kịch bản không phải khai bảy màu chỉ để đổi sang nền tối. */
+  const dark = luminance(m.bg || '#f6f3ef') < 0.42;
+  const D = dark
+    ? { paper: mix(m.bg || '#0a0b10', '#ffffff', 0.07), line: 'rgba(255,255,255,.12)',
+        skeleton: 'rgba(255,255,255,.10)', inkSoft: '#b7bdc9', inkFaint: '#7b8494' }
+    : { paper: '#ffffff', line: '#eae6e1', skeleton: '#eeeae5', inkSoft: '#6b6560', inkFaint: '#a8a29c' };
+  document.body.classList.toggle('toi', dark);
+
+  document.body.style.setProperty('--u', U + 'px');
+  document.body.style.setProperty('--accent', m.accent || '#ef5f5f');
+  document.body.style.setProperty('--accent-mo', (m.accent || '#ef5f5f') + '1f');
+  document.body.style.setProperty('--accent2', m.accent2 || m.accent || '#ef5f5f');
+  document.body.style.setProperty('--nong', m.hot || m.accent || '#ef5f5f');
+  document.body.style.setProperty('--nong2', m.hot2 || m.hot || m.accent || '#ef5f5f');
+  document.body.style.setProperty('--nong-mo', (m.hot || m.accent || '#ef5f5f') + '22');
+  document.body.style.setProperty('--ink', m.ink || '#16181d');
+  document.body.style.setProperty('--ink-mo', m.inkSoft || D.inkSoft);
+  document.body.style.setProperty('--ink-nhat', m.inkFaint || D.inkFaint);
+  document.body.style.setProperty('--giay', m.paper || D.paper);
+  document.body.style.setProperty('--vien', m.line || D.line);
+  document.body.style.setProperty('--xam', m.skeleton || D.skeleton);
+  document.body.style.setProperty('--r', Math.round(U * 1.15) + 'px');
+  document.body.style.setProperty('--r2', Math.round(U * .7) + 'px');
+
+  $stage.style.width = W + 'px';
+  $stage.style.height = H + 'px';
+  $stage.style.background = m.bg || '#f6f3ef';
+  fit();
+
+  $cam.innerHTML = '';
+  ELS = [];
+  POINTERS = [];
+  let start = 0;
+  SCENES = (doc.scenes || []).map((sc) => {
+    const rec = { ...sc, start, end: start + (sc.duration || 3) };
+    let order = 0;
+    /** Dựng một phần tử; khối thì dựng luôn các con bên trong nó. */
+    const make = (el, parent, absolute) => {
+      if (el.kind === 'pointer') { POINTERS.push({ el, scene: rec }); return; }
+      const node = document.createElement('div');
+      node.className = 'el k-' + el.kind;
+      // Nhãn nhận dạng: mọi cảnh đều nằm sẵn trong DOM (chỉ ẩn/hiện), nên soi
+      // bằng selector kiểu `.k-text` sẽ vớ nhầm phần tử của cảnh khác.
+      node.dataset.el = el.id;
+      node.dataset.scene = sc.id;
+      if (absolute) {
+        // Chỉ khối ngoài cùng mới đặt toạ độ. Con nằm trong khối thì flex lo,
+        // không được đặt left/top — đặt vào là hỏng cả cách dàn.
+        if (el.place) place(node, el.place, el.margin);
+        else { node.style.left = px(el.x || 0); node.style.top = px(el.y || 0); }
+      }
+      if (el.w != null) node.style.width = px(el.w);
+      if (el.h != null) node.style.height = px(el.h);
+      /*
+       * MÀU CHỮ RIÊNG CHO MỘT KHỐI.
+       *
+       * `--ink` vốn đặt một lần trên `body` từ `meta.ink`, nên mọi chữ trong
+       * clip dùng chung đúng một màu — trong khi `panel` thì có `fill` riêng.
+       * Hệ quả: một clip không thể vừa có chữ đen trên nền sáng vừa có chữ
+       * trắng trên nền tối, mà giao diện thật nào cũng có cả hai (thanh bên tối
+       * + khung chat trắng).
+       *
+       * Đặt biến ngay trên nút thì con cháu nó thừa hưởng. Không khai `ink` thì
+       * không đặt gì — mọi clip đã dựng giữ nguyên từng pixel.
+       */
+      if (el.ink) {
+        node.style.setProperty('--ink', el.ink);
+        node.style.setProperty('--ink-mo', el.inkSoft
+          || `color-mix(in srgb, ${el.ink} 74%, transparent)`);
+        node.style.setProperty('--ink-nhat', el.inkFaint
+          || `color-mix(in srgb, ${el.ink} 50%, transparent)`);
+      }
+      (BUILD[el.kind] || BUILD.panel)(el, node);
+      parent.appendChild(node);
+      ELS.push({ el, node, scene: rec, index: order++ });
+      if (el.kind === 'group') for (const child of el.children || []) make(child, node, false);
+    };
+    (sc.elements || []).forEach((el) => make(el, $cam, true));
+    start = rec.end;
+    return rec;
+  });
+  DUR = start;
+}
+
+/**
+ * ĐẶT THEO VỊ TRÍ CÓ TÊN, không phải toạ độ.
+ *
+ * `place: 'giua'` thì khối phủ cả sân khấu và tự căn giữa; `'trai'` thì chiếm
+ * nửa trái. Lề an toàn lấy từ THANG BẬC nên đổi độ thoáng là lề giãn theo.
+ *
+ * Đây là chỗ khiến "padding đúng" thành mặc định chứ không phải thành quả của
+ * việc ngồi dò từng con số: không ai gõ toạ độ thì không ai gõ sai toạ độ.
+ */
+function place(node, where, marginStep) {
+  const m = sp(marginStep != null ? marginStep : 7);
+  const set = (l, t, r, b) => {
+    node.style.left = px(l); node.style.top = px(t);
+    node.style.width = `calc(100% - ${l + r}px)`;
+    node.style.height = `calc(100% - ${t + b}px)`;
+  };
+  const W = $stage.offsetWidth || 1280;
+  const half = Math.round(W / 2);
+  switch (where) {
+    case 'trai':  set(m, m, half + Math.round(m / 2), m); break;
+    case 'phai':  node.style.left = px(half + Math.round(m / 2));
+                  node.style.top = px(m);
+                  node.style.width = `calc(100% - ${half + Math.round(m / 2) + m}px)`;
+                  node.style.height = `calc(100% - ${m * 2}px)`; break;
+    case 'tren':  set(m, m, m, m); node.style.height = `calc(50% - ${m}px)`; break;
+    case 'duoi':  node.style.left = px(m); node.style.top = '50%';
+                  node.style.width = `calc(100% - ${m * 2}px)`;
+                  node.style.height = `calc(50% - ${m}px)`; break;
+    // Poster dọc gần như luôn cần chỗ này: khối chữ nhỉnh lên trên tâm khung để
+    // chừa phần đáy cho hình nền. Căn đúng giữa thì chữ đè lên đáy, mà đẩy hẳn
+    // lên nửa trên thì lại hẫng — nên có một nấc riêng ở giữa hai cái đó.
+    case 'cao':   set(m, m, m, m); node.style.height = `calc(74% - ${m}px)`; break;
+    case 'day':   set(0, 0, 0, 0); break;
+    default:      set(m, m, m, m); break;   // 'giua'
+  }
+}
+
+/**
+ * THU KHỐI QUÁ KHỔ CHO VỪA SÂN KHẤU.
+ *
+ * Bố cục theo thang bậc bảo đảm khoảng cách đúng, nhưng không bảo đảm nội dung
+ * vừa khung: nhồi ba thành phần vào một cảnh dọc là cao quá màn hình. Trước đây
+ * nó tràn ra ngoài và người ta chỉ phát hiện khi xem lại video.
+ *
+ * Ở đây đo nội dung thật rồi thu nhỏ cả khối cho vừa — thu đều nên tương quan và
+ * khoảng cách giữ nguyên, chỉ nhỏ lại. Thà chữ nhỏ hơn một chút còn hơn mất chữ.
+ */
+function measureFit() {
+  for (const rec of ELS) {
+    rec.fit = 1;
+    if (rec.el.kind !== 'group') continue;
+    const node = rec.node;
+    const box = { w: node.clientWidth, h: node.clientHeight };
+    if (!box.w || !box.h) continue;
+    const prev = node.style.transform;
+    node.style.transform = 'none';
+    const need = { w: node.scrollWidth, h: node.scrollHeight };
+    node.style.transform = prev;
+    const k = Math.min(1, box.w / Math.max(1, need.w), box.h / Math.max(1, need.h));
+    // Dưới 0.55 thì thu tiếp cũng không cứu được — cảnh đó nhồi quá nhiều thứ.
+    rec.fit = k < 0.999 ? Math.max(0.55, k) : 1;
+  }
+}
+
+/** Vừa khung trình duyệt — chỉ để xem, lúc xuất video thì hiện đúng 1:1. */
+function fit() {
+  const W = $stage.offsetWidth || 1280, H = $stage.offsetHeight || 720;
+  if (EXPORTING) { $stage.style.transform = 'none'; return; }
+  const k = Math.min(innerWidth / W, innerHeight / H, 1);
+  $stage.style.transform = `scale(${k})`;
+}
+addEventListener('resize', fit);
+
+/* --------------------------------------------------------- diễn theo t */
+
+const MOTION = {
+  none:  () => ({ dx: 0, dy: 0, s: 1 }),
+  fade:  () => ({ dx: 0, dy: 0, s: 1 }),
+  rise:  (d) => ({ dx: 0, dy: d, s: 1 }),
+  fall:  (d) => ({ dx: 0, dy: -d, s: 1 }),
+  left:  (d) => ({ dx: d, dy: 0, s: 1 }),
+  right: (d) => ({ dx: -d, dy: 0, s: 1 }),
+  pop:   () => ({ dx: 0, dy: 0, s: .88 }),
+  /* Vào bằng cách THU LẠI từ lớn hơn — cú đẩy máy quen thuộc của phim, khác hẳn
+     `pop` (nở ra từ nhỏ). Dùng cho ảnh và khối lớn, đừng dùng cho chữ nhỏ. */
+  nen:   () => ({ dx: 0, dy: 0, s: 1.14 }),
+};
+
+/* --- CHUYỂN ĐỘNG BÊN TRONG PHẦN TỬ ------------------------------------------
+ * Vài phần tử có phần tự chạy bên trong: đường tăng trưởng vẽ dần ra chứ không
+ * hiện nguyên cái. Lái bằng CHÍNH `t` của clip, tuyệt đối không dùng animation
+ * của CSS — bộ xuất video nhảy thẳng tới từng mốc giây, còn animation CSS chạy
+ * theo đồng hồ thật, nên cùng một giây mỗi lần xuất lại ra một khung khác nhau.
+ */
+const VE_TU = 40, VE_DEN = 81;          // đường tăng nằm gọn trong quãng này (% bề ngang)
+const TICK = {
+  /**
+   * ĐỒNG BỘ VIDEO VỚI ĐỒNG HỒ CỦA CLIP.
+   *
+   * Hai chế độ, vì hai việc khác nhau:
+   *  · Đang DỪNG (kể cả lúc người dùng kéo thanh tua) → ghim `currentTime` đúng
+   *    khung. Không ghim thì tua tới giây 12 mà nền vẫn đứng ở giây 0.
+   *  · Đang CHẠY → để video tự phát cho mượt, chỉ kéo lại khi trôi xa quá 0,3
+   *    giây. Gán `currentTime` mỗi khung lúc đang chạy sẽ làm video giật cục,
+   *    vì mỗi lần gán là một lần trình duyệt phải dò lại khung hình gần nhất.
+   */
+  video(el, node, local, at) {
+    const v = node.querySelector('video');
+    if (!v || !v.duration || !isFinite(v.duration)) return;
+    const nhanh = el.rate || 1;
+    let can = (local - (at || 0)) * nhanh + (el.start || 0);
+    if (can < 0) can = 0;
+    can = el.loop === false ? Math.min(can, v.duration - 0.001) : can % v.duration;
+
+    if (DUNG) {
+      if (!v.paused) v.pause();
+      if (Math.abs(v.currentTime - can) > 0.02) v.currentTime = can;
+      return;
+    }
+    if (v.playbackRate !== nhanh) v.playbackRate = nhanh;
+    if (v.paused) v.play().catch(() => {});
+    if (Math.abs(v.currentTime - can) > 0.3) v.currentTime = can;
+  },
+  nen(el, node, local) {
+    const boc = node.querySelector('.duong-boc');
+    if (!boc) return;
+    const dai = el.draw != null ? el.draw : 0;
+    const p = dai > 0 ? (EASE.inOut || EASE.out)(cl((local - (el.at || 0)) / dai, 0, 1)) : 1;
+    const x = VE_TU + p * (VE_DEN - VE_TU);
+    boc.style.clipPath = `inset(0 ${(100 - x).toFixed(2)}% 0 0)`;
+    // Hai chấm sáng lên ngay khi nét vẽ chạy qua chỗ chúng đứng.
+    const hien = (sel, tai) => {
+      const c = node.querySelector(sel);
+      if (c) c.setAttribute('opacity', cl((x - tai) / 2.5, 0, 1).toFixed(3));
+    };
+    hien('.nut', DUONG_NOI.x / 10);
+    hien('.dich', DUONG_CUOI.x / 10);
+  },
+
+  /**
+   * QUỸ ĐẠO QUAY.
+   *
+   * Nét đứt trôi dọc vòng, chấm chạy trên vòng, quả cầu trôi lên xuống lệch pha
+   * nhau, ánh lấp lánh nhấp nháy. Mỗi thứ một chu kỳ KHÁC NHAU và không chia hết
+   * cho nhau — trùng chu kỳ thì cả cụm đập cùng một nhịp, nhìn ra ngay là máy làm.
+   *
+   * Chấm đi theo phương trình elip chứ không phải xoay cả vòng: xoay cả vòng thì
+   * mặt phẳng quỹ đạo lắc lư, mất hẳn cảm giác "vật đang bay quanh".
+   */
+  quydao(el, node, local) {
+    const P = node.__phan;
+    if (!P) return;
+    const t = local;
+
+    P.vong.forEach((v, i) => {
+      const r = VONG[i];
+      // Nét đứt trôi đúng bằng tốc độ chấm chạy: chu vi elip chia cho thời gian
+      // một vòng. Bịa một con số thì nét và chấm đi hai tốc độ, nhìn ra ngay là
+      // hai thứ rời rạc chứ không phải một quỹ đạo.
+      const toc = (Math.PI * (r.rx + r.ry)) / r.toc;
+      v.style.strokeDashoffset = String((-t * toc).toFixed(2));
+    });
+
+    P.cham.forEach((c) => {
+      const r = VONG[Number(c.dataset.v)];
+      const goc = (Number(c.dataset.p) + t / r.toc) * Math.PI * 2;
+      c.setAttribute('cx', (QD_X + r.rx * Math.cos(goc)).toFixed(2));
+      c.setAttribute('cy', (QD_Y + r.ry * Math.sin(goc)).toFixed(2));
+      // Nửa vòng xa thì mờ đi — đó là thứ làm quỹ đạo có chiều sâu.
+      c.setAttribute('opacity', (0.45 + 0.55 * (0.5 + 0.5 * Math.sin(goc))).toFixed(3));
+    });
+
+    P.cau.forEach((c, i) => {
+      const [, , , , bien, pha] = CAU_TROI[i];
+      const dy = Math.sin(t * 0.9 + pha) * bien;
+      c.setAttribute('transform', `translate(0 ${dy.toFixed(2)})`);
+    });
+
+    P.lap.forEach((l, i) => {
+      const [x, y, , pha] = LAP_LANH[i];
+      const k = 0.55 + 0.45 * Math.sin(t * 1.7 + pha);
+      l.setAttribute('opacity', (0.28 + 0.72 * k).toFixed(3));
+      l.setAttribute('transform', `translate(${x} ${y}) scale(${(0.7 + 0.5 * k).toFixed(3)})`);
+    });
+
+    if (P.tam) P.tam.setAttribute('transform', `translate(0 ${(Math.sin(t * 0.75) * 5).toFixed(2)})`);
+    P.nhan.forEach((g, i) => {
+      const dy = Math.sin(t * 1.1 + i * 2.2) * 6;
+      g.setAttribute('transform', `translate(${g.dataset.x} ${(Number(g.dataset.y) + dy).toFixed(2)})`);
+    });
+  },
+
+  /**
+   * VỆT SÁNG QUÉT QUA LOGO.
+   *
+   * Quét một nhát rồi NGHỈ, chứ không quét liên tục: quét không ngừng thì thành
+   * cái đèn nhấp nháy, mắt bỏ qua ngay. Có quãng nghỉ thì mỗi nhát mới là một sự
+   * kiện, và đó mới là thứ kéo được sự chú ý.
+   */
+  image(el, node, local, at) {
+    if (!el.shine) return;
+    const q = node.querySelector('.quet');
+    if (!q) return;
+    // Chờ logo vào xong đã rồi mới quét — quét lúc nó đang bay vào thì chẳng ai kịp thấy.
+    const t = local - (at || 0) - 0.5;
+    if (t < 0) { q.style.opacity = '0'; return; }
+    const chu_ky = el.shine;
+    const p = (t % chu_ky) / chu_ky;
+    const NHAT = 0.34;                       // phần chu kỳ dành cho một nhát quét
+    if (p > NHAT) { q.style.opacity = '0'; return; }
+    const x = -22 + (p / NHAT) * 150;        // tâm vệt đi từ ngoài mép trái sang ngoài mép phải
+    q.style.opacity = '1';
+    // Trắng .72 chứ không phải .95: đủ để thấy loé sáng, mà nét cam của thương
+    // hiệu vẫn còn màu. Sáng hết cỡ thì trong khoảnh khắc đó logo mất luôn màu —
+    // vệt sáng lẽ ra để KHOE logo lại thành ra xoá nó đi.
+    q.style.background =
+      `linear-gradient(102deg,transparent ${(x - 13).toFixed(1)}%,` +
+      `rgba(255,255,255,.72) ${x.toFixed(1)}%,transparent ${(x + 13).toFixed(1)}%)`;
+  },
+
+  /**
+   * NÚT ĐẬP NHỊP.
+   *
+   * Chỉ phóng to 2,5% — đủ để mắt bắt được là nó còn sống, chưa đủ để thành cái
+   * nút nhấp nháy rẻ tiền. Mũi tên nhích sang phải theo cùng nhịp nhưng LỆCH pha
+   * một chút, nên nó ra một cử chỉ "mời bấm" chứ không phải cả nút phình ra co vào.
+   */
+  nut(el, node, local) {
+    const k = Math.sin(local * 2.2);
+    node.style.setProperty('--dap', (1 + 0.025 * k).toFixed(4));
+    const mui = node.querySelector('.mui svg');
+    if (mui) mui.style.transform = `translateX(${(Math.sin(local * 2.2 - 0.7) * 1.6).toFixed(2)}px)`;
+  },
+
+  /**
+   * Tiêu đề hiện DẦN TỪNG DÒNG, rồi tới gạch, rồi tới câu phụ.
+   *
+   * Cả khối chữ bật lên một lúc thì nhìn như một tấm ảnh được bật đèn. Cho từng
+   * dòng lệch nhau một nhịp ngắn là mắt người đọc theo được, và đó chính là thứ
+   * phân biệt một clip có người dựng với một cái ảnh biết nhấp nháy.
+   */
+  text(el, node, local, at) {
+    const so_le = el.lineStagger;
+    if (!so_le) return;
+    const phan = node.querySelectorAll('.t .d, .rule, .s');
+    const dai = 0.5;
+    phan.forEach((it, i) => {
+      const t0 = at + i * so_le;
+      const p = seg(local, t0, t0 + dai, 'out');
+      it.style.opacity = String(p);
+      it.style.transform = `translateY(${((1 - p) * U * 1.5).toFixed(2)}px)`;
+    });
+  },
+};
+
+function applyEl(rec, t) {
+  const { el, node, scene, index } = rec;
+  const live = t >= scene.start - .001 && t < scene.end;
+  if (!live) { node.style.opacity = '0'; node.style.visibility = 'hidden'; return; }
+  node.style.visibility = 'visible';
+
+  const local = t - scene.start;
+  const stagger = (scene.stagger || 0) * index;
+  const at = (el.at || 0) + stagger;
+  const mIn = el.in || {};
+  const dIn = mIn.dur != null ? mIn.dur : .55;
+  const pIn = seg(local, at, at + dIn, mIn.ease || 'out');
+
+  // Ra: hoặc theo `for` của phần tử, hoặc theo cuối cảnh.
+  const outAt = el.for != null ? at + el.for : (scene.duration || 3) - ((el.out && el.out.dur) || .4);
+  const mOut = el.out || {};
+  const dOut = mOut.dur != null ? mOut.dur : .4;
+  const pOut = el.out || el.for != null ? seg(local, outAt, outAt + dOut, mOut.ease || 'inOut') : 0;
+
+  const gIn = (MOTION[mIn.kind] || MOTION.rise)(mIn.dist != null ? mIn.dist : Math.round(U * 2.2));
+  const gOut = (MOTION[mOut.kind] || MOTION.fade)(mOut.dist != null ? mOut.dist : Math.round(U * 1.6));
+
+  const dx = gIn.dx * (1 - pIn) - gOut.dx * pOut;
+  const dy = gIn.dy * (1 - pIn) - gOut.dy * pOut;
+  const sc = (gIn.s + (1 - gIn.s) * pIn) * (1 - (1 - gOut.s) * pOut);
+
+  node.style.opacity = String(cl(pIn * (1 - pOut) * (el.opacity != null ? el.opacity : 1), 0, 1));
+  const fit = rec.fit != null ? rec.fit : 1;
+  const tick = TICK[el.kind];
+  if (tick) tick(el, node, local, at);
+
+  /* Phim nằm TRONG một món khác — màn hình điện thoại, cửa sổ trình duyệt —
+     cũng phải chạy theo đồng hồ của clip. Bỏ bước này là nó tự phát theo đồng
+     hồ thật: xem trong trình sửa thì tưởng đúng, mà mỗi lần xuất video lại ra
+     một khung khác nhau, và tua tới giây nào nền cũng đứng ở giây 0. */
+  if (el.kind !== 'video' && el.src && node.querySelector('video')) {
+    TICK.video(el, node, local, at);
+  }
+
+  // `--dap` do TICK đặt (nút CTA). Nhân vào đây chứ không ghi đè `transform`:
+  // ghi đè thì phần tử mất luôn chuyển động vào và phép thu cho vừa khung.
+  const dap = Number(node.style.getPropertyValue('--dap')) || 1;
+
+  /* ĐẨY MÁY CHẬM (Ken Burns): phóng rất chậm suốt cả cảnh. Nhân vào `scale`
+     chứ không ghi đè, để chuyển động vào và phép thu cho vừa khung còn nguyên. */
+  let day = 1;
+  if (el.push) {
+    const dai = scene.duration || 3;
+    const q = cl(local / dai, 0, 1);
+    const bien = DAY[cl(el.push | 0, 0, 4)] || 0;
+    day = 1 + bien * (el.pushOut ? (1 - q) : q);
+  }
+
+  node.style.transform =
+    `translate(${dx.toFixed(2)}px,${dy.toFixed(2)}px) scale(${(sc * fit * dap * day).toFixed(4)})` +
+    (el.rotate ? ` rotate(${el.rotate}deg)` : '');
+
+  /* Chỉ đụng `filter` khi phần tử CÓ khai hiệu ứng. Cảnh nặng nhất có 229 phần
+     tử; ghi một chuỗi rỗng vào cả 229 nút mỗi khung hình là phí không cần. */
+  if (el.soft || el.softIn || el.shadow) node.style.filter = locHinh(el, pIn);
+}
+
+function applyCamera(t) {
+  const i = SCENES.findIndex((s) => t < s.end);
+  const cur = SCENES[i < 0 ? SCENES.length - 1 : i];
+  if (!cur) return;
+  const prev = SCENES[SCENES.indexOf(cur) - 1];
+  const to = cur.camera || { x: 0, y: 0, scale: 1 };
+  const from = (prev && prev.camera) || to;
+  const move = cur.cameraMove != null ? cur.cameraMove : .9;
+  const p = prev ? seg(t, cur.start, cur.start + move, cur.cameraEase || 'inOut') : 1;
+  const lerp = (a, b) => a + (b - a) * p;
+  const x = lerp(from.x || 0, to.x || 0), y = lerp(from.y || 0, to.y || 0);
+  const s = lerp(from.scale != null ? from.scale : 1, to.scale != null ? to.scale : 1);
+  $cam.style.transform = `scale(${s.toFixed(4)}) translate(${(-x).toFixed(2)}px,${(-y).toFixed(2)}px)`;
+}
+
+function applyPointer(t) {
+  let shown = false;
+  for (const { el, scene } of POINTERS) {
+    if (t < scene.start || t >= scene.end) continue;
+    const local = t - scene.start;
+    const keys = el.path || [];
+    if (keys.length === 0) continue;
+    let a = keys[0], b = keys[0];
+    for (let i = 0; i < keys.length; i++) { if (local >= keys[i].t) { a = keys[i]; b = keys[i + 1] || keys[i]; } }
+    const p = b.t > a.t ? seg(local, a.t, b.t, 'inOut') : 1;
+    const x = a.x + (b.x - a.x) * p, y = a.y + (b.y - a.y) * p;
+    $cursor.style.opacity = '1';
+    $cursor.style.transform = `translate(${x}px,${y}px)`;
+    shown = true;
+
+    // chớp sáng tại chỗ bấm
+    const click = (el.clicks || []).find((c) => local >= c.t && local < c.t + .45);
+    if (click) {
+      const q = seg(local, click.t, click.t + .45, 'out');
+      $flash.style.opacity = String((1 - q) * .35);
+      const r = sp(4) + q * sp(7);
+      $flash.style.width = $flash.style.height = px(r * 2);
+      $flash.style.left = px(click.x != null ? click.x : x);
+      $flash.style.top = px(click.y != null ? click.y : y);
+    } else { $flash.style.opacity = '0'; }
+  }
+  if (!shown) { $cursor.style.opacity = '0'; $flash.style.opacity = '0'; }
+}
+
+let t = 0, DUNG = true, last = 0;
+
+function render(now) {
+  t = cl(now, 0, DUR);
+  applyCamera(t);
+  for (const rec of ELS) applyEl(rec, t);
+  applyPointer(t);
+}
+
+function loop(now) {
+  if (!DUNG) { const dt = (now - last) / 1000; last = now; render(t + dt); if (t >= DUR) DUNG = true; }
+  requestAnimationFrame(loop);
+}
+
+/* ------------------------------------------------------------ khởi động */
+
+loadDoc().then(async (doc) => {
+  DOC = doc;
+  layout(doc);
+  document.title = 'ClipVibe · ' + ((doc.meta && doc.meta.name) || 'cảnh');
+
+  // Đo sau khi phông chữ xong, không thì đo phải cỡ chữ dự phòng rồi thu sai.
+  await document.fonts.ready.catch(() => {});
+  measureFit();
+  const jump = parseFloat(P.get('t'));
+  render(isFinite(jump) ? jump : 0);
+
+  /* GIAO KÈO với tools/export-video.mjs, shots-18s.mjs, scan-sfx-cues.mjs.
+     Giữ y nguyên hình dạng của trang animatic cũ nên cả dây chuyền hiện tại
+     lái được trang này mà không phải sửa công cụ nào. */
+  window.__clip = {
+    get duration() { return DUR; },
+    ready: async () => {
+      await document.fonts.ready;
+      await Promise.all([...document.images].filter((i) => i.src).map((i) => i.decode().catch(() => {})));
+      /* Chờ video có đủ dữ liệu để vẽ. Bộ xuất bắt đầu quay NGAY sau `ready()`,
+         nên thiếu bước này thì mấy giây đầu của phim ra khung đen — mà chỉ phát
+         hiện lúc xem lại video đã dựng xong. Chờ tối đa 8 giây rồi đi tiếp: một
+         file hỏng không được phép treo cả bộ xuất. */
+      await Promise.all([...document.querySelectorAll('video')].filter((v) => v.src).map((v) =>
+        v.readyState >= 2 ? null : new Promise((xong) => {
+          const g = setTimeout(xong, 8000);
+          v.addEventListener('loadeddata', () => { clearTimeout(g); xong(); }, { once: true });
+          v.addEventListener('error', () => { clearTimeout(g); xong(); }, { once: true });
+        })));
+      fit(); measureFit(); render(t);
+    },
+    play: () => { DUNG = false; last = performance.now(); },
+    /* Dừng tại chỗ. `seek` KHÔNG dừng — nó chỉ vẽ lại một khung hình, rồi vòng
+       lặp chạy tiếp ngay nhịp sau. Thiếu hàm này thì nút Dừng của trình sửa bấm
+       xong phim vẫn chạy. Thuần bổ sung: không công cụ nào đang gọi `pause`. */
+    pause: () => { DUNG = true; },
+    /* Đang chạy hay đang đứng — để trình sửa vẽ đúng nhãn nút, thay vì tự đoán
+       bằng một lá cờ riêng rồi lệch khi phim tự hết. */
+    get paused() { return DUNG; },
+    at: () => t,
+    seek: (s) => render(s),
+    step: (s) => render(s),
+    /* Dành cho khung xem trước trong studio: nạp kịch bản khác mà không tải lại trang. */
+    load: (next) => { DOC = next; layout(next); measureFit(); render(0); return DUR; },
+    /**
+     * Ranh giới từng cảnh — để công cụ bên ngoài biết chụp ảnh ở đâu.
+     * `giua` là lúc cảnh đã vào xong, chưa bắt đầu ra: chụp ở đó thì được khung
+     * hình đại diện chứ không phải lúc mọi thứ còn đang bay vào.
+     */
+    scenes: () => SCENES.map((s) => ({
+      id: s.id,
+      start: Math.round(s.start * 100) / 100,
+      duration: s.duration,
+      giua: Math.round(Math.min(s.start + Math.max(0.9, s.duration * 0.45), s.end - 0.15) * 100) / 100,
+    })),
+  };
+  requestAnimationFrame(loop);
+});
+})();
+</script>
+</body>
+</html>

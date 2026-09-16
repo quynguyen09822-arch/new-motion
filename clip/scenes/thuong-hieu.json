@@ -1,0 +1,594 @@
+{
+  "version": 1,
+  "meta": {
+    "name": "thuong-hieu",
+    "width": 720,
+    "height": 1280,
+    "density": 1,
+    "bg": "#f3f4f7",
+    "accent": "#2f6bff",
+    "accent2": "#6b4bf0",
+    "ink": "#161f3c"
+  },
+  "scenes": [
+    {
+      "id": "canh-1",
+      "duration": 1.6,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.012
+      },
+      "cameraMove": 1.2800000000000002,
+      "cameraEase": "inOut",
+      "elements": [
+        {
+          "kind": "nen",
+          "id": "nen-1",
+          "x": 0,
+          "y": 0,
+          "place": "day",
+          "parts": [
+            "cham",
+            "net",
+            "khoi",
+            "song",
+            "duong"
+          ],
+          "draw": 1.3,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "id": "canh-2",
+      "duration": 4.2,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.024
+      },
+      "cameraMove": 1.6,
+      "cameraEase": "inOut",
+      "elements": [
+        {
+          "kind": "nen",
+          "id": "nen-2",
+          "x": 0,
+          "y": 0,
+          "place": "day",
+          "parts": [
+            "cham",
+            "net",
+            "khoi",
+            "song",
+            "duong",
+            "tien"
+          ],
+          "draw": 0,
+          "in": {
+            "kind": "none",
+            "dur": 0.001
+          }
+        },
+        {
+          "kind": "group",
+          "id": "nhom-khoi-2",
+          "x": 0,
+          "y": 0,
+          "place": "cao",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "id": "huyhieu-2-0",
+              "x": 0,
+              "y": 0,
+              "at": 0,
+              "in": {
+                "kind": "pop",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "huyhieu",
+              "w": 99,
+              "h": 99,
+              "mark": "bong-den"
+            },
+            {
+              "kind": "text",
+              "id": "chu-2",
+              "x": 0,
+              "y": 0,
+              "w": 648,
+              "text": "Thương hiệu | không bắt đầu từ | *ngân sách khủng*",
+              "sub": "Đôi khi, nó bắt đầu từ một ý tưởng đủ dễ nhớ.",
+              "rule": true,
+              "size": 60,
+              "align": "center",
+              "gap": 4,
+              "lineStagger": 0.12,
+              "in": {
+                "kind": "none",
+                "dur": 0.001
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "canh-3",
+      "duration": 4.2,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.036
+      },
+      "cameraMove": 1.6,
+      "cameraEase": "inOut",
+      "elements": [
+        {
+          "kind": "nen",
+          "id": "nen-3",
+          "x": 0,
+          "y": 0,
+          "place": "day",
+          "parts": [
+            "cham",
+            "net",
+            "khoi",
+            "song",
+            "duong"
+          ],
+          "draw": 0,
+          "in": {
+            "kind": "none",
+            "dur": 0.001
+          }
+        },
+        {
+          "kind": "group",
+          "id": "nhom-khoi-3",
+          "x": 0,
+          "y": 0,
+          "place": "cao",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "id": "huyhieu-3-0",
+              "x": 0,
+              "y": 0,
+              "at": 0,
+              "in": {
+                "kind": "pop",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "huyhieu",
+              "w": 99,
+              "h": 99,
+              "mark": "dich"
+            },
+            {
+              "kind": "text",
+              "id": "chu-3",
+              "x": 0,
+              "y": 0,
+              "w": 648,
+              "text": "Một cái tên đáng nhớ | giúp thương hiệu nổi bật | *ngay từ lần đầu tiên*",
+              "sub": "Khi ngắn gọn, dễ nhớ và khác biệt, | khách hàng sẽ *nhận ra bạn* nhanh hơn.",
+              "rule": true,
+              "size": 52,
+              "align": "center",
+              "gap": 4,
+              "lineStagger": 0.12,
+              "in": {
+                "kind": "none",
+                "dur": 0.001
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "canh-4",
+      "duration": 4.2,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.048
+      },
+      "cameraMove": 1.6,
+      "cameraEase": "inOut",
+      "elements": [
+        {
+          "kind": "nen",
+          "id": "nen-4",
+          "x": 0,
+          "y": 0,
+          "place": "day",
+          "parts": [
+            "cham",
+            "net",
+            "khoi",
+            "song",
+            "duong"
+          ],
+          "draw": 0,
+          "in": {
+            "kind": "none",
+            "dur": 0.001
+          }
+        },
+        {
+          "kind": "group",
+          "id": "nhom-khoi-4",
+          "x": 0,
+          "y": 0,
+          "place": "giua",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "kind": "text",
+              "id": "chu-4",
+              "x": 0,
+              "y": 0,
+              "w": 648,
+              "text": "Tên miền không chỉ là | *một địa chỉ website*",
+              "size": 59,
+              "align": "center",
+              "gap": 3,
+              "lineStagger": 0.12,
+              "in": {
+                "kind": "none",
+                "dur": 0.001
+              }
+            },
+            {
+              "id": "quydao-4-0",
+              "x": 0,
+              "y": 0,
+              "at": 0,
+              "in": {
+                "kind": "pop",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "quydao",
+              "w": 662,
+              "h": 530,
+              "core": "web",
+              "label": "www."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "canh-5",
+      "duration": 4.4,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.048
+      },
+      "cameraMove": 1.6,
+      "cameraEase": "inOut",
+      "elements": [
+        {
+          "kind": "nen",
+          "id": "nen-5",
+          "x": 0,
+          "y": 0,
+          "place": "day",
+          "parts": [
+            "cham",
+            "net",
+            "khoi",
+            "song",
+            "duong"
+          ],
+          "draw": 0,
+          "in": {
+            "kind": "none",
+            "dur": 0.001
+          }
+        },
+        {
+          "kind": "group",
+          "id": "nhom-khoi-5",
+          "x": 0,
+          "y": 0,
+          "place": "giua",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 4,
+          "children": [
+            {
+              "id": "huyhieu-5-0",
+              "x": 0,
+              "y": 0,
+              "at": 0,
+              "in": {
+                "kind": "pop",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "huyhieu",
+              "w": 99,
+              "h": 99,
+              "mark": "cup"
+            },
+            {
+              "kind": "text",
+              "id": "chu-5",
+              "x": 0,
+              "y": 0,
+              "w": 648,
+              "text": "Tên miền nổi bật | *chính là một lợi thế*",
+              "size": 60,
+              "align": "center",
+              "gap": 3,
+              "lineStagger": 0.12,
+              "in": {
+                "kind": "none",
+                "dur": 0.001
+              }
+            },
+            {
+              "id": "quydao-5-1",
+              "x": 0,
+              "y": 0,
+              "at": 0.12,
+              "in": {
+                "kind": "pop",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "quydao",
+              "w": 662,
+              "h": 530,
+              "core": "sao",
+              "arrow": true,
+              "chips": [
+                "check",
+                "cot"
+              ]
+            },
+            {
+              "id": "hangnhan-5-2",
+              "x": 0,
+              "y": 0,
+              "at": 0.24,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "hangnhan",
+              "items": [
+                "Ngắn gọn",
+                "Dễ nhớ",
+                "Khác biệt"
+              ],
+              "size": 21,
+              "gap": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "canh-6",
+      "duration": 4.4,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.048
+      },
+      "cameraMove": 1.6,
+      "cameraEase": "inOut",
+      "elements": [
+        {
+          "kind": "nen",
+          "id": "nen-6",
+          "x": 0,
+          "y": 0,
+          "place": "day",
+          "parts": [
+            "cham",
+            "net",
+            "khoi",
+            "song",
+            "duong"
+          ],
+          "draw": 0,
+          "in": {
+            "kind": "none",
+            "dur": 0.001
+          }
+        },
+        {
+          "kind": "group",
+          "id": "nhom-khoi-6",
+          "x": 0,
+          "y": 0,
+          "place": "giua",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 4,
+          "children": [
+            {
+              "id": "huyhieu-6-0",
+              "x": 0,
+              "y": 0,
+              "at": 0,
+              "in": {
+                "kind": "pop",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "huyhieu",
+              "w": 99,
+              "h": 99,
+              "mark": "cup"
+            },
+            {
+              "kind": "text",
+              "id": "chu-6",
+              "x": 0,
+              "y": 0,
+              "w": 648,
+              "text": "Giúp thương hiệu nổi bật | *giữa hàng nghìn đối thủ*",
+              "size": 52,
+              "align": "center",
+              "gap": 3,
+              "lineStagger": 0.12,
+              "in": {
+                "kind": "none",
+                "dur": 0.001
+              }
+            },
+            {
+              "id": "quydao-6-1",
+              "x": 0,
+              "y": 0,
+              "at": 0.12,
+              "in": {
+                "kind": "pop",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "quydao",
+              "w": 662,
+              "h": 530,
+              "core": "cau"
+            },
+            {
+              "id": "hangnhan-6-2",
+              "x": 0,
+              "y": 0,
+              "at": 0.24,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "hangnhan",
+              "items": [
+                "Nổi bật",
+                "Ghi nhớ",
+                "Khác biệt"
+              ],
+              "size": 21,
+              "gap": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "canh-7",
+      "duration": 3.4,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.048
+      },
+      "cameraMove": 1.6,
+      "cameraEase": "inOut",
+      "elements": [
+        {
+          "kind": "nen",
+          "id": "nen-7",
+          "x": 0,
+          "y": 0,
+          "place": "day",
+          "parts": [
+            "cham",
+            "net",
+            "khoi",
+            "song",
+            "duong"
+          ],
+          "draw": 0,
+          "in": {
+            "kind": "none",
+            "dur": 0.001
+          }
+        },
+        {
+          "kind": "group",
+          "id": "nhom-khoi-7",
+          "x": 0,
+          "y": 0,
+          "place": "giua",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "kind": "text",
+              "id": "chu-7",
+              "x": 0,
+              "y": 0,
+              "w": 374,
+              "text": "travel*.icu*",
+              "size": 96,
+              "align": "left",
+              "gap": 3,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.55
+              }
+            },
+            {
+              "id": "hangnhan-7-0",
+              "x": 0,
+              "y": 0,
+              "at": 0,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "hangnhan",
+              "items": [
+                "Ngắn gọn",
+                "Dễ nhớ",
+                "Nổi bật"
+              ],
+              "size": 21,
+              "gap": 4
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

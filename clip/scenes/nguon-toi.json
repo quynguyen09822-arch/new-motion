@@ -1,0 +1,513 @@
+{
+  "version": 1,
+  "meta": {
+    "name": "nguon-toi",
+    "width": 1280,
+    "height": 720,
+    "density": 1,
+    "bg": "#0d1a22",
+    "accent": "#4fa3b8",
+    "ink": "#c6d4d6"
+  },
+  "scenes": [
+    {
+      "id": "canh-1",
+      "duration": 3,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.012
+      },
+      "cameraMove": 1.6,
+      "cameraEase": "inOut",
+      "elements": [
+        {
+          "kind": "group",
+          "id": "nhom-chu-1",
+          "x": 0,
+          "y": 0,
+          "place": "trai",
+          "dir": "doc",
+          "align": "dau",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "kind": "text",
+              "id": "chu-1",
+              "x": 0,
+              "y": 0,
+              "w": 666,
+              "text": "Bảng điều khiển *tối giản*",
+              "size": 54,
+              "align": "left",
+              "gap": 3,
+              "in": {
+                "kind": "fade",
+                "ease": "out",
+                "dur": 0.55
+              }
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "id": "nhom-hinh-1",
+          "x": 0,
+          "y": 0,
+          "place": "phai",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "id": "logo-1-0",
+              "x": 0,
+              "y": 0,
+              "at": 0,
+              "in": {
+                "kind": "pop",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "logo",
+              "name": "Vibe Host",
+              "mark": "◆",
+              "w": 384,
+              "size": 43,
+              "gap": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "canh-2",
+      "duration": 4,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.024
+      },
+      "cameraMove": 1.6,
+      "cameraEase": "inOut",
+      "elements": [
+        {
+          "kind": "group",
+          "id": "nhom-chu-2",
+          "x": 0,
+          "y": 0,
+          "place": "trai",
+          "dir": "doc",
+          "align": "dau",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "kind": "text",
+              "id": "chu-2",
+              "x": 0,
+              "y": 0,
+              "w": 666,
+              "text": "Mở lên là *thấy ngay*",
+              "sub": "Không phải học, không phải cài",
+              "subScale": 0.6,
+              "size": 54,
+              "align": "left",
+              "gap": 3,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.55
+              }
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "id": "nhom-hinh-2",
+          "x": 0,
+          "y": 0,
+          "place": "phai",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "id": "browser-2-0",
+              "x": 0,
+              "y": 0,
+              "at": 0,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "browser",
+              "w": 384,
+              "h": 276,
+              "url": "https://trang-cua-ban.vn"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "canh-3",
+      "duration": 3.5,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.036
+      },
+      "cameraMove": 1.6,
+      "cameraEase": "inOut",
+      "elements": [
+        {
+          "kind": "group",
+          "id": "nhom-chu-3",
+          "x": 0,
+          "y": 0,
+          "place": "trai",
+          "dir": "doc",
+          "align": "dau",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "kind": "text",
+              "id": "chu-3",
+              "x": 0,
+              "y": 0,
+              "w": 666,
+              "text": "Số liệu *cập nhật liên tục*",
+              "size": 54,
+              "align": "left",
+              "gap": 3,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.55
+              }
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "id": "nhom-hinh-3",
+          "x": 0,
+          "y": 0,
+          "place": "phai",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "id": "table-3-0",
+              "x": 0,
+              "y": 0,
+              "at": 0,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "table",
+              "w": 384,
+              "columns": [
+                "Người chơi",
+                "Điện thoại",
+                "Lúc"
+              ],
+              "rows": 4
+            },
+            {
+              "id": "chip-3-1",
+              "x": 0,
+              "y": 0,
+              "at": 0.12,
+              "in": {
+                "kind": "pop",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "chip",
+              "w": 269,
+              "label": "Trạng thái",
+              "value": "Sẵn sàng",
+              "note": "Đang chạy",
+              "outline": true,
+              "pad": 4,
+              "gap": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "canh-4",
+      "duration": 4,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.048
+      },
+      "cameraMove": 1.6,
+      "cameraEase": "inOut",
+      "elements": [
+        {
+          "kind": "group",
+          "id": "nhom-chu-4",
+          "x": 0,
+          "y": 0,
+          "place": "trai",
+          "dir": "doc",
+          "align": "dau",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "kind": "text",
+              "id": "chu-4",
+              "x": 0,
+              "y": 0,
+              "w": 666,
+              "text": "Chỉnh gì cũng *một chỗ*",
+              "size": 54,
+              "align": "left",
+              "gap": 3,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.55
+              }
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "id": "nhom-hinh-4",
+          "x": 0,
+          "y": 0,
+          "place": "phai",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "id": "form-4-0",
+              "x": 0,
+              "y": 0,
+              "at": 0,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "form",
+              "w": 384,
+              "title": "Thiết lập",
+              "fields": [
+                {
+                  "label": "Tên",
+                  "value": "du-an-moi"
+                },
+                {
+                  "label": "Nguồn",
+                  "value": "Git URL"
+                },
+                {
+                  "label": "Tên miền",
+                  "value": "tự động"
+                }
+              ],
+              "dots": 3,
+              "pad": 5,
+              "gap": 4
+            }
+          ]
+        },
+        {
+          "kind": "pointer",
+          "id": "tro-4",
+          "x": 0,
+          "y": 0,
+          "path": [
+            {
+              "t": 0.6,
+              "x": 845,
+              "y": 288
+            },
+            {
+              "t": 1.4,
+              "x": 640,
+              "y": 360
+            }
+          ],
+          "clicks": [
+            {
+              "t": 1.45
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "canh-5",
+      "duration": 3,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.048
+      },
+      "cameraMove": 1.6,
+      "cameraEase": "inOut",
+      "elements": [
+        {
+          "kind": "group",
+          "id": "nhom-chu-5",
+          "x": 0,
+          "y": 0,
+          "place": "trai",
+          "dir": "doc",
+          "align": "dau",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "kind": "text",
+              "id": "chu-5",
+              "x": 0,
+              "y": 0,
+              "w": 666,
+              "text": "Dữ liệu *đặt tại Việt Nam*",
+              "size": 54,
+              "align": "left",
+              "gap": 3,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.55
+              }
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "id": "nhom-hinh-5",
+          "x": 0,
+          "y": 0,
+          "place": "phai",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "id": "shield-5-0",
+              "x": 0,
+              "y": 0,
+              "at": 0,
+              "in": {
+                "kind": "pop",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "shield",
+              "w": 563,
+              "mark": "🔒",
+              "badges": [
+                "Chuẩn ngân hàng",
+                "Dữ liệu tại Việt Nam",
+                "SSL"
+              ],
+              "gap": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "canh-6",
+      "duration": 3,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.048
+      },
+      "cameraMove": 1.6,
+      "cameraEase": "inOut",
+      "elements": [
+        {
+          "kind": "group",
+          "id": "nhom-chu-6",
+          "x": 0,
+          "y": 0,
+          "place": "trai",
+          "dir": "doc",
+          "align": "dau",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "kind": "text",
+              "id": "chu-6",
+              "x": 0,
+              "y": 0,
+              "w": 666,
+              "text": "Vibe Host",
+              "size": 54,
+              "align": "left",
+              "gap": 3,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.55
+              }
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "id": "nhom-hinh-6",
+          "x": 0,
+          "y": 0,
+          "place": "phai",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "id": "logo-6-0",
+              "x": 0,
+              "y": 0,
+              "at": 0,
+              "in": {
+                "kind": "pop",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "logo",
+              "name": "Vibe Host",
+              "mark": "◆",
+              "w": 384,
+              "size": 43,
+              "gap": 3
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

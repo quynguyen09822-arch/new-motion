@@ -110,7 +110,7 @@ Gọi lại 5400 lần chỉ tốn thêm một vòng gọi qua CDP mỗi khung.
 
 ---
 
-## F2 · Chặn schema drift giữa hai repo `[P0 · nửa ngày]`
+## F2 · Chặn schema drift giữa hai repo `[P0 · nửa ngày]` — ✅ XONG 15/09/2026
 
 **Vấn đề.** `web/inspector/schema.js:11` — *"Đối chiếu với: clipvibe-studio/src/scene/types.ts"*.
 500 dòng, 24 loại element, đối chiếu **bằng mắt** qua ranh giới repo. Đây là nguồn của phần lớn "lỗi lặt vặt".
@@ -136,8 +136,14 @@ Thêm vào `package.json`:
 ```
 
 **Nghiệm thu.**
-- [ ] Chạy trên repo hiện tại → in ra danh sách lệch thật (nếu sạch thì exit 0)
-- [ ] Cố tình xoá 1 field trong `schema.js` → exit 1, báo đúng tên field
+- [x] Chạy trên repo hiện tại → tìm ra lệch THẬT: `video` thiếu trong `types.ts`
+      (đã bổ sung `VideoEl`), và 4 trường danh sách con chưa có núm (ghi nợ, chờ Lát 2)
+- [x] Cố tình xoá 1 field trong `schema.js` → báo đúng tên `browser.url`
+
+**Ghi chú khi làm.** Soi BA nơi chứ không phải hai: thêm `scene-player.html`,
+vì đó mới là nơi quyết định một trường có làm gì hay không. Ba lần phép dò đoán
+sai đều đã sửa ở phép dò chứ không giấu vào danh sách bỏ qua — nặng nhất là
+interface viết gọn một dòng làm phép kiểm IM LẶNG yếu đi. Xem `docs/CHAN-LECH-SCHEMA.md`.
 
 **Ghi chú.** Giữ nguyên phần câu chữ tiếng Việt (`KHO_VAO`, `KHO_CHO`…) — phần đó viết rất tốt. Chỉ đối chiếu phần **cấu trúc**.
 

@@ -6,6 +6,7 @@
   "description": "Trình sửa clip trực quan cho clipVibe — bấm vào thành phần trên khung hình rồi sửa thẳng.",
   "scripts": {
     "dev": "node server/main.js",
-    "start": "node server/main.js"
+    "start": "node server/main.js",
+    "kiem:schema": "node tools/kiem-schema.mjs"
   }
 }

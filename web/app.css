@@ -130,8 +130,27 @@ body {
   display: flex; flex-direction: column; min-height: 0;
   overflow: hidden;
 }
-.cot-trai { width: 272px; }
-.cot-phai { width: 316px; }
+/* Bề rộng do người dùng kéo, nhớ trong máy — xem `web/cot.js`. Số ở đây chỉ là
+   đường lùi cho lần chạy đầu, trước khi JS kịp đặt biến. */
+.cot-trai { width: var(--cot-trai, 272px); }
+.cot-phai { width: var(--cot-phai, 316px); }
+
+/* ---------- tay nắm kéo cột ---------- */
+/* Vạch mảnh 4px nhưng vùng bấm rộng 12px: tay nắm đúng 4px thì phải ngắm mới
+   trúng. Nới bằng đệm ngang rồi kéo lề âm cho nó không chiếm thêm chỗ. */
+.keo-cot {
+  flex: none; width: 4px; margin: 0 -4px; padding: 0 4px;
+  background-clip: content-box; background-color: transparent;
+  cursor: col-resize; border-radius: var(--bo-tron);
+  position: relative; z-index: 5;
+  transition: background-color var(--nhip-nhanh) var(--da-ra);
+}
+.keo-cot:hover, .keo-cot.dang-keo { background-color: var(--nhan); }
+.keo-cot:focus-visible { outline: 2px solid var(--nhan); outline-offset: 1px; }
+/* Đang kéo thì khoá con trỏ ở kiểu co giãn và cấm bôi đen chữ — không thì rê
+   qua danh sách thành phần là bôi đen cả loạt tên món. */
+body:has(.keo-cot.dang-keo) { cursor: col-resize; user-select: none; }
+body:has(.keo-cot.dang-keo) iframe { pointer-events: none; }
 
 .tieu-de-cot {
   padding: 10px 12px; font-size: 11px; font-weight: 700;

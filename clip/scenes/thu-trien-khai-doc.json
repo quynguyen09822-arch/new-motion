@@ -1,0 +1,8045 @@
+{
+  "version": 1,
+  "meta": {
+    "name": "Kéo thả HTML → Vibe Hosting (dọc 9:16)",
+    "density": 1,
+    "bg": "#0a1c12",
+    "accent": "#ff671a",
+    "accent2": "#ffa24d",
+    "hot": "#ff671a",
+    "hot2": "#e3272c",
+    "ink": "#0f172a",
+    "inkSoft": "#64748b",
+    "inkFaint": "#94a3b8",
+    "width": 720,
+    "height": 1280
+  },
+  "scenes": [
+    {
+      "id": "c1-chon-nguon",
+      "duration": 2.6,
+      "stagger": 0,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1
+      },
+      "elements": [
+        {
+          "id": "nen",
+          "kind": "panel",
+          "x": 0,
+          "y": 0,
+          "w": 720,
+          "h": 1280,
+          "fill": "#0a1c12",
+          "radius": 0,
+          "in": {
+            "kind": "none",
+            "dur": 0.001
+          }
+        },
+        {
+          "id": "bg",
+          "kind": "image",
+          "x": 0,
+          "y": 0,
+          "w": 720,
+          "h": 1280,
+          "src": "public/image/bg-tinh.png",
+          "radius": 0,
+          "fit": "cover",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.001
+          },
+          "at": 0
+        },
+        {
+          "id": "app-v",
+          "kind": "panel",
+          "x": 11,
+          "y": 135,
+          "w": 698,
+          "h": 886,
+          "fill": "#dfe4ea",
+          "radius": 21,
+          "in": {
+            "kind": "pop",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.1
+        },
+        {
+          "id": "app",
+          "kind": "panel",
+          "x": 12,
+          "y": 136,
+          "w": 696,
+          "h": 884,
+          "fill": "#ffffff",
+          "radius": 20,
+          "in": {
+            "kind": "pop",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.1
+        },
+        {
+          "id": "rail",
+          "kind": "panel",
+          "x": 12,
+          "y": 136,
+          "w": 112,
+          "h": 884,
+          "fill": "#1d2839",
+          "radius": 20,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.14
+        },
+        {
+          "id": "rail-phang",
+          "kind": "panel",
+          "x": 64,
+          "y": 136,
+          "w": 60,
+          "h": 884,
+          "fill": "#1d2839",
+          "radius": 0,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.14
+        },
+        {
+          "id": "logo",
+          "kind": "panel",
+          "x": 46,
+          "y": 166,
+          "w": 44,
+          "h": 44,
+          "fill": "#ff671a",
+          "radius": 13,
+          "in": {
+            "kind": "pop",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.2
+        },
+        {
+          "id": "logo-ve",
+          "kind": "text",
+          "x": 46,
+          "y": 179,
+          "w": 44,
+          "h": 20,
+          "text": "VE",
+          "size": 18,
+          "align": "center",
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.24,
+          "ink": "#ffffff"
+        },
+        {
+          "id": "logo-ten",
+          "kind": "text",
+          "x": 12,
+          "y": 220,
+          "w": 112,
+          "h": 15,
+          "text": "Vibe Host",
+          "size": 13,
+          "align": "center",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.26,
+          "ink": "#ff671a"
+        },
+        {
+          "id": "rail-ic0",
+          "kind": "panel",
+          "x": 57,
+          "y": 286,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.3
+        },
+        {
+          "id": "rail-sang",
+          "kind": "panel",
+          "x": 46,
+          "y": 333,
+          "w": 44,
+          "h": 44,
+          "fill": "#2b3a50",
+          "radius": 13,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.3
+        },
+        {
+          "id": "rail-ic1",
+          "kind": "panel",
+          "x": 57,
+          "y": 344,
+          "w": 22,
+          "h": 22,
+          "fill": "#ff671a",
+          "radius": 6,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.33
+        },
+        {
+          "id": "rail-ic2",
+          "kind": "panel",
+          "x": 57,
+          "y": 402,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.37
+        },
+        {
+          "id": "rail-ic3",
+          "kind": "panel",
+          "x": 57,
+          "y": 460,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.41
+        },
+        {
+          "id": "rail-ic4",
+          "kind": "panel",
+          "x": 57,
+          "y": 518,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.44
+        },
+        {
+          "id": "rail-ic5",
+          "kind": "panel",
+          "x": 57,
+          "y": 576,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.47
+        },
+        {
+          "id": "pro",
+          "kind": "panel",
+          "x": 41,
+          "y": 920,
+          "w": 54,
+          "h": 28,
+          "fill": "rgba(255,103,26,.14)",
+          "radius": 14,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.52
+        },
+        {
+          "id": "pro-c",
+          "kind": "text",
+          "x": 41,
+          "y": 927,
+          "w": 54,
+          "h": 15,
+          "text": "Pro",
+          "size": 13,
+          "align": "center",
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.54,
+          "ink": "#ff671a"
+        },
+        {
+          "id": "pro-so",
+          "kind": "text",
+          "x": 12,
+          "y": 962,
+          "w": 112,
+          "h": 13,
+          "text": "6/10",
+          "size": 12,
+          "align": "center",
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.56,
+          "ink": "#7c8ba1"
+        },
+        {
+          "id": "vun",
+          "kind": "text",
+          "x": 148,
+          "y": 172,
+          "w": 536,
+          "h": 13,
+          "text": "Trang chủ  ›  Triển khai website",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.6,
+          "ink": "#94a3b8"
+        },
+        {
+          "id": "dau-td",
+          "kind": "text",
+          "x": 148,
+          "y": 198,
+          "w": 536,
+          "h": 30,
+          "text": "Đưa website lên mạng",
+          "size": 27,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.66
+        },
+        {
+          "id": "dau-phu",
+          "kind": "text",
+          "x": 148,
+          "y": 240,
+          "w": 536,
+          "h": 15,
+          "text": "Chọn mã nguồn, còn lại để VAYS lo phần kỹ thuật",
+          "size": 13,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.72,
+          "ink": "#64748b"
+        },
+        {
+          "id": "ng0-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 279,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.9
+        },
+        {
+          "id": "ng0",
+          "kind": "panel",
+          "x": 148,
+          "y": 280,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.9
+        },
+        {
+          "id": "ng0-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 300,
+          "w": 40,
+          "h": 40,
+          "fill": "#eef1f5",
+          "radius": 20,
+          "in": {
+            "kind": "pop",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.93
+        },
+        {
+          "id": "ng0-t",
+          "kind": "text",
+          "x": 224,
+          "y": 300,
+          "w": 440,
+          "h": 19,
+          "text": "Tải file",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.94
+        },
+        {
+          "id": "ng0-p",
+          "kind": "text",
+          "x": 224,
+          "y": 326,
+          "w": 440,
+          "h": 13,
+          "text": "Kéo-thả hoặc chọn file .zip, .html, .htm",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.96,
+          "ink": "#64748b"
+        },
+        {
+          "id": "ng1-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 371,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.97
+        },
+        {
+          "id": "ng1",
+          "kind": "panel",
+          "x": 148,
+          "y": 372,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.97
+        },
+        {
+          "id": "ng1-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 392,
+          "w": 40,
+          "h": 40,
+          "fill": "#eef1f5",
+          "radius": 20,
+          "in": {
+            "kind": "pop",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.0
+        },
+        {
+          "id": "ng1-t",
+          "kind": "text",
+          "x": 224,
+          "y": 392,
+          "w": 440,
+          "h": 19,
+          "text": "Dán HTML",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.01
+        },
+        {
+          "id": "ng1-p",
+          "kind": "text",
+          "x": 224,
+          "y": 418,
+          "w": 440,
+          "h": 13,
+          "text": "Dán trực tiếp mã HTML vào ô soạn thảo",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.03,
+          "ink": "#64748b"
+        },
+        {
+          "id": "ng2-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 463,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.04
+        },
+        {
+          "id": "ng2",
+          "kind": "panel",
+          "x": 148,
+          "y": 464,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.04
+        },
+        {
+          "id": "ng2-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 484,
+          "w": 40,
+          "h": 40,
+          "fill": "#eef1f5",
+          "radius": 20,
+          "in": {
+            "kind": "pop",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.07
+        },
+        {
+          "id": "ng2-t",
+          "kind": "text",
+          "x": 224,
+          "y": 484,
+          "w": 440,
+          "h": 19,
+          "text": "GitHub",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.08
+        },
+        {
+          "id": "ng2-p",
+          "kind": "text",
+          "x": 224,
+          "y": 510,
+          "w": 440,
+          "h": 13,
+          "text": "Kết nối GitHub (OAuth), tự deploy khi push",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.1,
+          "ink": "#64748b"
+        },
+        {
+          "id": "ng3-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 555,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.11
+        },
+        {
+          "id": "ng3",
+          "kind": "panel",
+          "x": 148,
+          "y": 556,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.11
+        },
+        {
+          "id": "ng3-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 576,
+          "w": 40,
+          "h": 40,
+          "fill": "#eef1f5",
+          "radius": 20,
+          "in": {
+            "kind": "pop",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.14
+        },
+        {
+          "id": "ng3-t",
+          "kind": "text",
+          "x": 224,
+          "y": 576,
+          "w": 440,
+          "h": 19,
+          "text": "Git URL",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.15
+        },
+        {
+          "id": "ng3-p",
+          "kind": "text",
+          "x": 224,
+          "y": 602,
+          "w": 440,
+          "h": 13,
+          "text": "Clone từ URL repo công khai",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.17,
+          "ink": "#64748b"
+        },
+        {
+          "id": "ng4-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 647,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.18
+        },
+        {
+          "id": "ng4",
+          "kind": "panel",
+          "x": 148,
+          "y": 648,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.18
+        },
+        {
+          "id": "ng4-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 668,
+          "w": 40,
+          "h": 40,
+          "fill": "#eef1f5",
+          "radius": 20,
+          "in": {
+            "kind": "pop",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.21
+        },
+        {
+          "id": "ng4-t",
+          "kind": "text",
+          "x": 224,
+          "y": 668,
+          "w": 440,
+          "h": 19,
+          "text": "Vercel",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.22
+        },
+        {
+          "id": "ng4-p",
+          "kind": "text",
+          "x": 224,
+          "y": 694,
+          "w": 440,
+          "h": 13,
+          "text": "Import từ Vercel Project URL + Token",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.24,
+          "ink": "#64748b"
+        },
+        {
+          "id": "nut",
+          "kind": "panel",
+          "x": 148,
+          "y": 732,
+          "w": 536,
+          "h": 58,
+          "fill": "#ff671a",
+          "radius": 29,
+          "in": {
+            "kind": "pop",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.35
+        },
+        {
+          "id": "nut-c",
+          "kind": "text",
+          "x": 148,
+          "y": 750,
+          "w": 536,
+          "h": 21,
+          "text": "Tiếp tục  →",
+          "size": 19,
+          "align": "center",
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.38,
+          "ink": "#ffffff"
+        },
+        {
+          "id": "luuy-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 819,
+          "w": 538,
+          "h": 162,
+          "fill": "#eef1f5",
+          "radius": 15,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.45
+        },
+        {
+          "id": "luuy",
+          "kind": "panel",
+          "x": 148,
+          "y": 820,
+          "w": 536,
+          "h": 160,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.45
+        },
+        {
+          "id": "luuy-ic",
+          "kind": "panel",
+          "x": 168,
+          "y": 840,
+          "w": 16,
+          "h": 16,
+          "fill": "#ff671a",
+          "radius": 4,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.48
+        },
+        {
+          "id": "luuy-td",
+          "kind": "text",
+          "x": 194,
+          "y": 837,
+          "w": 52,
+          "h": 17,
+          "text": "Lưu ý",
+          "size": 15,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.48
+        },
+        {
+          "id": "luuy-k0-t0",
+          "kind": "panel",
+          "x": 171,
+          "y": 880,
+          "w": 5,
+          "h": 2,
+          "fill": "#22c55e",
+          "radius": 1.2,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 1.5,
+          "rotate": 43.15
+        },
+        {
+          "id": "luuy-k0-t1",
+          "kind": "panel",
+          "x": 173,
+          "y": 879,
+          "w": 8,
+          "h": 2,
+          "fill": "#22c55e",
+          "radius": 1.2,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 1.5,
+          "rotate": -48.95
+        },
+        {
+          "id": "luuy-d0",
+          "kind": "text",
+          "x": 194,
+          "y": 872,
+          "w": 470,
+          "h": 14,
+          "text": "Website sẽ được cấp SSL miễn phí.",
+          "size": 12.5,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.5,
+          "ink": "#64748b"
+        },
+        {
+          "id": "luuy-k1-t0",
+          "kind": "panel",
+          "x": 171,
+          "y": 912,
+          "w": 5,
+          "h": 2,
+          "fill": "#22c55e",
+          "radius": 1.2,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 1.54,
+          "rotate": 43.15
+        },
+        {
+          "id": "luuy-k1-t1",
+          "kind": "panel",
+          "x": 173,
+          "y": 911,
+          "w": 8,
+          "h": 2,
+          "fill": "#22c55e",
+          "radius": 1.2,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 1.54,
+          "rotate": -48.95
+        },
+        {
+          "id": "luuy-d1",
+          "kind": "text",
+          "x": 194,
+          "y": 904,
+          "w": 470,
+          "h": 14,
+          "text": "Thời gian triển khai thường 1–3 phút.",
+          "size": 12.5,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.54,
+          "ink": "#64748b"
+        },
+        {
+          "id": "luuy-k2-t0",
+          "kind": "panel",
+          "x": 171,
+          "y": 944,
+          "w": 5,
+          "h": 2,
+          "fill": "#22c55e",
+          "radius": 1.2,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 1.58,
+          "rotate": 43.15
+        },
+        {
+          "id": "luuy-k2-t1",
+          "kind": "panel",
+          "x": 173,
+          "y": 943,
+          "w": 8,
+          "h": 2,
+          "fill": "#22c55e",
+          "radius": 1.2,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 1.58,
+          "rotate": -48.95
+        },
+        {
+          "id": "luuy-d2",
+          "kind": "text",
+          "x": 194,
+          "y": 936,
+          "w": 470,
+          "h": 14,
+          "text": "Nâng cấp tài nguyên bất kỳ lúc nào.",
+          "size": 12.5,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.58,
+          "ink": "#64748b"
+        },
+        {
+          "id": "l1-n",
+          "kind": "panel",
+          "x": 149,
+          "y": 1078,
+          "w": 422,
+          "h": 58,
+          "fill": "#101725",
+          "radius": 29,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.4
+          },
+          "at": 0.9
+        },
+        {
+          "id": "l1-c",
+          "kind": "text",
+          "x": 149,
+          "y": 1096,
+          "w": 422,
+          "h": 22,
+          "text": "Vibe Host nhận năm kiểu nguồn",
+          "size": 20,
+          "align": "center",
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.94,
+          "ink": "#ffffff"
+        }
+      ]
+    },
+    {
+      "id": "c2-keo-tha",
+      "duration": 3.6,
+      "stagger": 0,
+      "camera": {
+        "x": -52.0,
+        "y": -210.0,
+        "scale": 1.52
+      },
+      "elements": [
+        {
+          "id": "nen",
+          "kind": "panel",
+          "x": 0,
+          "y": 0,
+          "w": 720,
+          "h": 1280,
+          "fill": "#0a1c12",
+          "radius": 0,
+          "in": {
+            "kind": "none",
+            "dur": 0.001
+          }
+        },
+        {
+          "id": "bg",
+          "kind": "image",
+          "x": 0,
+          "y": -1280,
+          "w": 720,
+          "h": 1280,
+          "src": "public/image/bg-tinh.png",
+          "radius": 0,
+          "fit": "cover",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.001
+          },
+          "at": 0
+        },
+        {
+          "id": "app-v",
+          "kind": "panel",
+          "x": 11,
+          "y": 135,
+          "w": 698,
+          "h": 886,
+          "fill": "#dfe4ea",
+          "radius": 21,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "app",
+          "kind": "panel",
+          "x": 12,
+          "y": 136,
+          "w": 696,
+          "h": 884,
+          "fill": "#ffffff",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail",
+          "kind": "panel",
+          "x": 12,
+          "y": 136,
+          "w": 112,
+          "h": 884,
+          "fill": "#1d2839",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-phang",
+          "kind": "panel",
+          "x": 64,
+          "y": 136,
+          "w": 60,
+          "h": 884,
+          "fill": "#1d2839",
+          "radius": 0,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "logo",
+          "kind": "panel",
+          "x": 46,
+          "y": 166,
+          "w": 44,
+          "h": 44,
+          "fill": "#ff671a",
+          "radius": 13,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "logo-ve",
+          "kind": "text",
+          "x": 46,
+          "y": 179,
+          "w": 44,
+          "h": 20,
+          "text": "VE",
+          "size": 18,
+          "align": "center",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#ffffff"
+        },
+        {
+          "id": "logo-ten",
+          "kind": "text",
+          "x": 12,
+          "y": 220,
+          "w": 112,
+          "h": 15,
+          "text": "Vibe Host",
+          "size": 13,
+          "align": "center",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#ff671a"
+        },
+        {
+          "id": "rail-ic0",
+          "kind": "panel",
+          "x": 57,
+          "y": 286,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-sang",
+          "kind": "panel",
+          "x": 46,
+          "y": 333,
+          "w": 44,
+          "h": 44,
+          "fill": "#2b3a50",
+          "radius": 13,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic1",
+          "kind": "panel",
+          "x": 57,
+          "y": 344,
+          "w": 22,
+          "h": 22,
+          "fill": "#ff671a",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic2",
+          "kind": "panel",
+          "x": 57,
+          "y": 402,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic3",
+          "kind": "panel",
+          "x": 57,
+          "y": 460,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic4",
+          "kind": "panel",
+          "x": 57,
+          "y": 518,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic5",
+          "kind": "panel",
+          "x": 57,
+          "y": 576,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "pro",
+          "kind": "panel",
+          "x": 41,
+          "y": 920,
+          "w": 54,
+          "h": 28,
+          "fill": "rgba(255,103,26,.14)",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "pro-c",
+          "kind": "text",
+          "x": 41,
+          "y": 927,
+          "w": 54,
+          "h": 15,
+          "text": "Pro",
+          "size": 13,
+          "align": "center",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#ff671a"
+        },
+        {
+          "id": "pro-so",
+          "kind": "text",
+          "x": 12,
+          "y": 962,
+          "w": 112,
+          "h": 13,
+          "text": "6/10",
+          "size": 12,
+          "align": "center",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#7c8ba1"
+        },
+        {
+          "id": "vun",
+          "kind": "text",
+          "x": 148,
+          "y": 172,
+          "w": 536,
+          "h": 13,
+          "text": "Trang chủ  ›  Triển khai website",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#94a3b8"
+        },
+        {
+          "id": "dau-td",
+          "kind": "text",
+          "x": 148,
+          "y": 198,
+          "w": 536,
+          "h": 30,
+          "text": "Đưa website lên mạng",
+          "size": 27,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "dau-phu",
+          "kind": "text",
+          "x": 148,
+          "y": 240,
+          "w": 536,
+          "h": 15,
+          "text": "Chọn mã nguồn, còn lại để VAYS lo phần kỹ thuật",
+          "size": 13,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#64748b"
+        },
+        {
+          "id": "ng0-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 279,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "ng0",
+          "kind": "panel",
+          "x": 148,
+          "y": 280,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "ng0-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 300,
+          "w": 40,
+          "h": 40,
+          "fill": "#eef1f5",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.03
+        },
+        {
+          "id": "ng0-t",
+          "kind": "text",
+          "x": 224,
+          "y": 300,
+          "w": 440,
+          "h": 19,
+          "text": "Tải file",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.04
+        },
+        {
+          "id": "ng0-p",
+          "kind": "text",
+          "x": 224,
+          "y": 326,
+          "w": 440,
+          "h": 13,
+          "text": "Kéo-thả hoặc chọn file .zip, .html, .htm",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.06,
+          "ink": "#64748b"
+        },
+        {
+          "id": "ng1-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 371,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "ng1",
+          "kind": "panel",
+          "x": 148,
+          "y": 372,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "ng1-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 392,
+          "w": 40,
+          "h": 40,
+          "fill": "#eef1f5",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.03
+        },
+        {
+          "id": "ng1-t",
+          "kind": "text",
+          "x": 224,
+          "y": 392,
+          "w": 440,
+          "h": 19,
+          "text": "Dán HTML",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.04
+        },
+        {
+          "id": "ng1-p",
+          "kind": "text",
+          "x": 224,
+          "y": 418,
+          "w": 440,
+          "h": 13,
+          "text": "Dán trực tiếp mã HTML vào ô soạn thảo",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.06,
+          "ink": "#64748b"
+        },
+        {
+          "id": "ng2-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 463,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "ng2",
+          "kind": "panel",
+          "x": 148,
+          "y": 464,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "ng2-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 484,
+          "w": 40,
+          "h": 40,
+          "fill": "#eef1f5",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.03
+        },
+        {
+          "id": "ng2-t",
+          "kind": "text",
+          "x": 224,
+          "y": 484,
+          "w": 440,
+          "h": 19,
+          "text": "GitHub",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.04
+        },
+        {
+          "id": "ng2-p",
+          "kind": "text",
+          "x": 224,
+          "y": 510,
+          "w": 440,
+          "h": 13,
+          "text": "Kết nối GitHub (OAuth), tự deploy khi push",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.06,
+          "ink": "#64748b"
+        },
+        {
+          "id": "ng3-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 555,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "ng3",
+          "kind": "panel",
+          "x": 148,
+          "y": 556,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "ng3-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 576,
+          "w": 40,
+          "h": 40,
+          "fill": "#eef1f5",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.03
+        },
+        {
+          "id": "ng3-t",
+          "kind": "text",
+          "x": 224,
+          "y": 576,
+          "w": 440,
+          "h": 19,
+          "text": "Git URL",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.04
+        },
+        {
+          "id": "ng3-p",
+          "kind": "text",
+          "x": 224,
+          "y": 602,
+          "w": 440,
+          "h": 13,
+          "text": "Clone từ URL repo công khai",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.06,
+          "ink": "#64748b"
+        },
+        {
+          "id": "ng4-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 647,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "ng4",
+          "kind": "panel",
+          "x": 148,
+          "y": 648,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "ng4-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 668,
+          "w": 40,
+          "h": 40,
+          "fill": "#eef1f5",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.03
+        },
+        {
+          "id": "ng4-t",
+          "kind": "text",
+          "x": 224,
+          "y": 668,
+          "w": 440,
+          "h": 19,
+          "text": "Vercel",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.04
+        },
+        {
+          "id": "ng4-p",
+          "kind": "text",
+          "x": 224,
+          "y": 694,
+          "w": 440,
+          "h": 13,
+          "text": "Import từ Vercel Project URL + Token",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.06,
+          "ink": "#64748b"
+        },
+        {
+          "id": "nut",
+          "kind": "panel",
+          "x": 148,
+          "y": 732,
+          "w": 536,
+          "h": 58,
+          "fill": "#ff671a",
+          "radius": 29,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "nut-c",
+          "kind": "text",
+          "x": 148,
+          "y": 750,
+          "w": 536,
+          "h": 21,
+          "text": "Tiếp tục  →",
+          "size": 19,
+          "align": "center",
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#ffffff"
+        },
+        {
+          "id": "luuy-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 819,
+          "w": 538,
+          "h": 162,
+          "fill": "#eef1f5",
+          "radius": 15,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "luuy",
+          "kind": "panel",
+          "x": 148,
+          "y": 820,
+          "w": 536,
+          "h": 160,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "luuy-ic",
+          "kind": "panel",
+          "x": 168,
+          "y": 840,
+          "w": 16,
+          "h": 16,
+          "fill": "#ff671a",
+          "radius": 4,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "luuy-td",
+          "kind": "text",
+          "x": 194,
+          "y": 837,
+          "w": 52,
+          "h": 17,
+          "text": "Lưu ý",
+          "size": 15,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "luuy-k0-t0",
+          "kind": "panel",
+          "x": 171,
+          "y": 880,
+          "w": 5,
+          "h": 2,
+          "fill": "#22c55e",
+          "radius": 1.2,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0,
+          "rotate": 43.15
+        },
+        {
+          "id": "luuy-k0-t1",
+          "kind": "panel",
+          "x": 173,
+          "y": 879,
+          "w": 8,
+          "h": 2,
+          "fill": "#22c55e",
+          "radius": 1.2,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0,
+          "rotate": -48.95
+        },
+        {
+          "id": "luuy-d0",
+          "kind": "text",
+          "x": 194,
+          "y": 872,
+          "w": 470,
+          "h": 14,
+          "text": "Website sẽ được cấp SSL miễn phí.",
+          "size": 12.5,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#64748b"
+        },
+        {
+          "id": "luuy-k1-t0",
+          "kind": "panel",
+          "x": 171,
+          "y": 912,
+          "w": 5,
+          "h": 2,
+          "fill": "#22c55e",
+          "radius": 1.2,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0,
+          "rotate": 43.15
+        },
+        {
+          "id": "luuy-k1-t1",
+          "kind": "panel",
+          "x": 173,
+          "y": 911,
+          "w": 8,
+          "h": 2,
+          "fill": "#22c55e",
+          "radius": 1.2,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0,
+          "rotate": -48.95
+        },
+        {
+          "id": "luuy-d1",
+          "kind": "text",
+          "x": 194,
+          "y": 904,
+          "w": 470,
+          "h": 14,
+          "text": "Thời gian triển khai thường 1–3 phút.",
+          "size": 12.5,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#64748b"
+        },
+        {
+          "id": "luuy-k2-t0",
+          "kind": "panel",
+          "x": 171,
+          "y": 944,
+          "w": 5,
+          "h": 2,
+          "fill": "#22c55e",
+          "radius": 1.2,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0,
+          "rotate": 43.15
+        },
+        {
+          "id": "luuy-k2-t1",
+          "kind": "panel",
+          "x": 173,
+          "y": 943,
+          "w": 8,
+          "h": 2,
+          "fill": "#22c55e",
+          "radius": 1.2,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0,
+          "rotate": -48.95
+        },
+        {
+          "id": "luuy-d2",
+          "kind": "text",
+          "x": 194,
+          "y": 936,
+          "w": 470,
+          "h": 14,
+          "text": "Nâng cấp tài nguyên bất kỳ lúc nào.",
+          "size": 12.5,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#64748b"
+        },
+        {
+          "id": "ng0x-v",
+          "kind": "panel",
+          "x": 146,
+          "y": 278,
+          "w": 540,
+          "h": 84,
+          "fill": "#ff671a",
+          "radius": 16,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 2.05
+        },
+        {
+          "id": "ng0x",
+          "kind": "panel",
+          "x": 148,
+          "y": 280,
+          "w": 536,
+          "h": 80,
+          "fill": "#fff1e9",
+          "radius": 14,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 2.05
+        },
+        {
+          "id": "ng0x-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 300,
+          "w": 40,
+          "h": 40,
+          "fill": "#fbdcc8",
+          "radius": 20,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 2.08
+        },
+        {
+          "id": "ng0x-t",
+          "kind": "text",
+          "x": 224,
+          "y": 300,
+          "w": 440,
+          "h": 19,
+          "text": "Tải file",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 2.09
+        },
+        {
+          "id": "ng0x-p",
+          "kind": "text",
+          "x": 224,
+          "y": 326,
+          "w": 440,
+          "h": 13,
+          "text": "ttindex.html  ·  68 KB",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 2.11,
+          "ink": "#ff671a"
+        },
+        {
+          "id": "ng0x-d",
+          "kind": "panel",
+          "x": 636,
+          "y": 300,
+          "w": 28,
+          "h": 28,
+          "fill": "#ff671a",
+          "radius": 14,
+          "in": {
+            "kind": "pop",
+            "ease": "out",
+            "dur": 0.35
+          },
+          "at": 2.15
+        },
+        {
+          "id": "ng0x-k-t0",
+          "kind": "panel",
+          "x": 645,
+          "y": 314,
+          "w": 5,
+          "h": 3,
+          "fill": "#ffffff",
+          "radius": 1.5,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 2.21,
+          "rotate": 43.15
+        },
+        {
+          "id": "ng0x-k-t1",
+          "kind": "panel",
+          "x": 647,
+          "y": 313,
+          "w": 9,
+          "h": 3,
+          "fill": "#ffffff",
+          "radius": 1.5,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 2.21,
+          "rotate": -48.95
+        },
+        {
+          "id": "tep-a-v",
+          "kind": "panel",
+          "x": 337,
+          "y": 111,
+          "w": 270,
+          "h": 74,
+          "fill": "#e7e9ee",
+          "radius": 15,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.3,
+          "for": 1.35
+        },
+        {
+          "id": "tep-a",
+          "kind": "panel",
+          "x": 338,
+          "y": 112,
+          "w": 268,
+          "h": 72,
+          "fill": "#ffffff",
+          "radius": 14,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.3,
+          "for": 1.35
+        },
+        {
+          "id": "tep-a-o",
+          "kind": "panel",
+          "x": 354,
+          "y": 128,
+          "w": 40,
+          "h": 40,
+          "fill": "#fff1e9",
+          "radius": 11,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.33,
+          "for": 1.35,
+          "out": {
+            "kind": "fade",
+            "dur": 0.2
+          }
+        },
+        {
+          "id": "tep-a-ic",
+          "kind": "text",
+          "x": 354,
+          "y": 139,
+          "w": 40,
+          "h": 17,
+          "text": "< >",
+          "size": 15,
+          "align": "center",
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.35,
+          "for": 1.35,
+          "ink": "#ff671a",
+          "out": {
+            "kind": "fade",
+            "dur": 0.2
+          }
+        },
+        {
+          "id": "tep-a-t",
+          "kind": "text",
+          "x": 406,
+          "y": 128,
+          "w": 125,
+          "h": 18,
+          "text": "ttindex.html",
+          "size": 16,
+          "align": "left",
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.35,
+          "for": 1.35,
+          "out": {
+            "kind": "fade",
+            "dur": 0.2
+          }
+        },
+        {
+          "id": "tep-a-p",
+          "kind": "text",
+          "x": 406,
+          "y": 154,
+          "w": 170,
+          "h": 13,
+          "text": "HTML  ·  68 KB",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.37,
+          "for": 1.35,
+          "ink": "#64748b",
+          "out": {
+            "kind": "fade",
+            "dur": 0.2
+          }
+        },
+        {
+          "id": "l2-n",
+          "kind": "panel",
+          "x": 180,
+          "y": 1078,
+          "w": 360,
+          "h": 58,
+          "fill": "#101725",
+          "radius": 29,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.4
+          },
+          "at": 0.25,
+          "for": 1.5
+        },
+        {
+          "id": "l2-c",
+          "kind": "text",
+          "x": 180,
+          "y": 1096,
+          "w": 360,
+          "h": 22,
+          "text": "Kéo thẳng file .html vào",
+          "size": 20,
+          "align": "center",
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.29,
+          "for": 1.46,
+          "ink": "#ffffff"
+        },
+        {
+          "id": "l2b-n",
+          "kind": "panel",
+          "x": 180,
+          "y": 1078,
+          "w": 360,
+          "h": 58,
+          "fill": "#101725",
+          "radius": 29,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.4
+          },
+          "at": 2.35
+        },
+        {
+          "id": "l2b-c",
+          "kind": "text",
+          "x": 180,
+          "y": 1096,
+          "w": 360,
+          "h": 22,
+          "text": "Xong. Không cấu hình gì.",
+          "size": 20,
+          "align": "center",
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 2.39,
+          "ink": "#ffffff"
+        },
+        {
+          "id": "tro",
+          "kind": "pointer",
+          "x": 0,
+          "y": 0,
+          "path": [
+            {
+              "t": 0.45,
+              "x": 849,
+              "y": 1
+            },
+            {
+              "t": 1.05,
+              "x": 609,
+              "y": 211
+            },
+            {
+              "t": 1.25,
+              "x": 609,
+              "y": 211
+            },
+            {
+              "t": 2.0,
+              "x": 524,
+              "y": 473
+            },
+            {
+              "t": 3.4,
+              "x": 524,
+              "y": 473
+            }
+          ],
+          "clicks": [
+            {
+              "t": 1.12,
+              "x": 609,
+              "y": 211
+            },
+            {
+              "t": 2.08,
+              "x": 524,
+              "y": 473
+            }
+          ]
+        }
+      ],
+      "cameraMove": 0.85
+    },
+    {
+      "id": "c3-nhat-ky",
+      "duration": 2.8,
+      "stagger": 0,
+      "camera": {
+        "x": 56.0,
+        "y": -160.0,
+        "scale": 1.5
+      },
+      "elements": [
+        {
+          "id": "nen",
+          "kind": "panel",
+          "x": 0,
+          "y": 0,
+          "w": 720,
+          "h": 1280,
+          "fill": "#0a1c12",
+          "radius": 0,
+          "in": {
+            "kind": "none",
+            "dur": 0.001
+          }
+        },
+        {
+          "id": "bg",
+          "kind": "image",
+          "x": 0,
+          "y": -2560,
+          "w": 720,
+          "h": 1280,
+          "src": "public/image/bg-tinh.png",
+          "radius": 0,
+          "fit": "cover",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.001
+          },
+          "at": 0
+        },
+        {
+          "id": "app-v",
+          "kind": "panel",
+          "x": 11,
+          "y": 135,
+          "w": 698,
+          "h": 886,
+          "fill": "#dfe4ea",
+          "radius": 21,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "app",
+          "kind": "panel",
+          "x": 12,
+          "y": 136,
+          "w": 696,
+          "h": 884,
+          "fill": "#ffffff",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail",
+          "kind": "panel",
+          "x": 12,
+          "y": 136,
+          "w": 112,
+          "h": 884,
+          "fill": "#1d2839",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-phang",
+          "kind": "panel",
+          "x": 64,
+          "y": 136,
+          "w": 60,
+          "h": 884,
+          "fill": "#1d2839",
+          "radius": 0,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "logo",
+          "kind": "panel",
+          "x": 46,
+          "y": 166,
+          "w": 44,
+          "h": 44,
+          "fill": "#ff671a",
+          "radius": 13,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "logo-ve",
+          "kind": "text",
+          "x": 46,
+          "y": 179,
+          "w": 44,
+          "h": 20,
+          "text": "VE",
+          "size": 18,
+          "align": "center",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#ffffff"
+        },
+        {
+          "id": "logo-ten",
+          "kind": "text",
+          "x": 12,
+          "y": 220,
+          "w": 112,
+          "h": 15,
+          "text": "Vibe Host",
+          "size": 13,
+          "align": "center",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#ff671a"
+        },
+        {
+          "id": "rail-ic0",
+          "kind": "panel",
+          "x": 57,
+          "y": 286,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-sang",
+          "kind": "panel",
+          "x": 46,
+          "y": 333,
+          "w": 44,
+          "h": 44,
+          "fill": "#2b3a50",
+          "radius": 13,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic1",
+          "kind": "panel",
+          "x": 57,
+          "y": 344,
+          "w": 22,
+          "h": 22,
+          "fill": "#ff671a",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic2",
+          "kind": "panel",
+          "x": 57,
+          "y": 402,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic3",
+          "kind": "panel",
+          "x": 57,
+          "y": 460,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic4",
+          "kind": "panel",
+          "x": 57,
+          "y": 518,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic5",
+          "kind": "panel",
+          "x": 57,
+          "y": 576,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "pro",
+          "kind": "panel",
+          "x": 41,
+          "y": 920,
+          "w": 54,
+          "h": 28,
+          "fill": "rgba(255,103,26,.14)",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "pro-c",
+          "kind": "text",
+          "x": 41,
+          "y": 927,
+          "w": 54,
+          "h": 15,
+          "text": "Pro",
+          "size": 13,
+          "align": "center",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#ff671a"
+        },
+        {
+          "id": "pro-so",
+          "kind": "text",
+          "x": 12,
+          "y": 962,
+          "w": 112,
+          "h": 13,
+          "text": "6/10",
+          "size": 12,
+          "align": "center",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#7c8ba1"
+        },
+        {
+          "id": "vun",
+          "kind": "text",
+          "x": 148,
+          "y": 172,
+          "w": 536,
+          "h": 13,
+          "text": "Triển khai website  ›  Deployment #1247",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#94a3b8"
+        },
+        {
+          "id": "dau-td",
+          "kind": "text",
+          "x": 148,
+          "y": 198,
+          "w": 536,
+          "h": 30,
+          "text": "Nhật ký triển khai",
+          "size": 27,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "dau-phu",
+          "kind": "text",
+          "x": 148,
+          "y": 240,
+          "w": 536,
+          "h": 15,
+          "text": "Theo dõi chi tiết quá trình đưa website lên server",
+          "size": 13,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#64748b"
+        },
+        {
+          "id": "b0-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 279,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.35
+        },
+        {
+          "id": "b0",
+          "kind": "panel",
+          "x": 148,
+          "y": 280,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.35
+        },
+        {
+          "id": "b0-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 300,
+          "w": 40,
+          "h": 40,
+          "fill": "#dcfce7",
+          "radius": 20,
+          "in": {
+            "kind": "pop",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.38
+        },
+        {
+          "id": "b0-k-t0",
+          "kind": "panel",
+          "x": 181,
+          "y": 321,
+          "w": 7,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.43,
+          "rotate": 43.15
+        },
+        {
+          "id": "b0-k-t1",
+          "kind": "panel",
+          "x": 184,
+          "y": 318,
+          "w": 12,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.43,
+          "rotate": -48.95
+        },
+        {
+          "id": "b0-t",
+          "kind": "text",
+          "x": 224,
+          "y": 300,
+          "w": 440,
+          "h": 19,
+          "text": "Tải mã nguồn",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.39
+        },
+        {
+          "id": "b0-p",
+          "kind": "text",
+          "x": 224,
+          "y": 326,
+          "w": 440,
+          "h": 13,
+          "text": "ttindex.html — 68 KB",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.41,
+          "ink": "#64748b"
+        },
+        {
+          "id": "b1-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 371,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.05
+        },
+        {
+          "id": "b1",
+          "kind": "panel",
+          "x": 148,
+          "y": 372,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.05
+        },
+        {
+          "id": "b1-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 392,
+          "w": 40,
+          "h": 40,
+          "fill": "#dcfce7",
+          "radius": 20,
+          "in": {
+            "kind": "pop",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.08
+        },
+        {
+          "id": "b1-k-t0",
+          "kind": "panel",
+          "x": 181,
+          "y": 413,
+          "w": 7,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 1.13,
+          "rotate": 43.15
+        },
+        {
+          "id": "b1-k-t1",
+          "kind": "panel",
+          "x": 184,
+          "y": 410,
+          "w": 12,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 1.13,
+          "rotate": -48.95
+        },
+        {
+          "id": "b1-t",
+          "kind": "text",
+          "x": 224,
+          "y": 392,
+          "w": 440,
+          "h": 19,
+          "text": "Cài đặt máy chủ",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.09
+        },
+        {
+          "id": "b1-p",
+          "kind": "text",
+          "x": 224,
+          "y": 418,
+          "w": 440,
+          "h": 13,
+          "text": "Dựng môi trường chạy web tĩnh",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.11,
+          "ink": "#64748b"
+        },
+        {
+          "id": "b2-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 463,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.85
+        },
+        {
+          "id": "b2",
+          "kind": "panel",
+          "x": 148,
+          "y": 464,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.85
+        },
+        {
+          "id": "b2-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 484,
+          "w": 40,
+          "h": 40,
+          "fill": "#dcfce7",
+          "radius": 20,
+          "in": {
+            "kind": "pop",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.88
+        },
+        {
+          "id": "b2-k-t0",
+          "kind": "panel",
+          "x": 181,
+          "y": 505,
+          "w": 7,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 1.93,
+          "rotate": 43.15
+        },
+        {
+          "id": "b2-k-t1",
+          "kind": "panel",
+          "x": 184,
+          "y": 502,
+          "w": 12,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 1.93,
+          "rotate": -48.95
+        },
+        {
+          "id": "b2-t",
+          "kind": "text",
+          "x": 224,
+          "y": 484,
+          "w": 440,
+          "h": 19,
+          "text": "Cấp chứng chỉ SSL",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.89
+        },
+        {
+          "id": "b2-p",
+          "kind": "text",
+          "x": 224,
+          "y": 510,
+          "w": 440,
+          "h": 13,
+          "text": "Let's Encrypt — miễn phí",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.91,
+          "ink": "#64748b"
+        },
+        {
+          "id": "b3-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 555,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b3",
+          "kind": "panel",
+          "x": 148,
+          "y": 556,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b3-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 576,
+          "w": 40,
+          "h": 40,
+          "fill": "#fff1e9",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.03
+        },
+        {
+          "id": "b3-c",
+          "kind": "panel",
+          "x": 180,
+          "y": 588,
+          "w": 16,
+          "h": 16,
+          "fill": "#ff671a",
+          "radius": 8,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.06
+        },
+        {
+          "id": "b3-t",
+          "kind": "text",
+          "x": 224,
+          "y": 576,
+          "w": 440,
+          "h": 19,
+          "text": "Kết nối database",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.04
+        },
+        {
+          "id": "b3-p",
+          "kind": "text",
+          "x": 224,
+          "y": 602,
+          "w": 440,
+          "h": 13,
+          "text": "airtex_db",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.06,
+          "ink": "#64748b"
+        },
+        {
+          "id": "b3-nh",
+          "kind": "panel",
+          "x": 577,
+          "y": 584,
+          "w": 87,
+          "h": 24,
+          "fill": "#fff1e9",
+          "radius": 12,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.08
+        },
+        {
+          "id": "b3-nhc",
+          "kind": "text",
+          "x": 577,
+          "y": 590,
+          "w": 87,
+          "h": 12,
+          "text": "Đang chạy",
+          "size": 11,
+          "align": "center",
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.1,
+          "ink": "#ff671a"
+        },
+        {
+          "id": "tt-ray",
+          "kind": "panel",
+          "x": 148,
+          "y": 660,
+          "w": 536,
+          "h": 8,
+          "fill": "#eef1f5",
+          "radius": 4,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "tt-day",
+          "kind": "panel",
+          "x": 148,
+          "y": 660,
+          "w": 402,
+          "h": 8,
+          "fill": "#ff671a",
+          "radius": 4,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "tt-dc",
+          "kind": "text",
+          "x": 148,
+          "y": 682,
+          "w": 114,
+          "h": 14,
+          "text": "Đã chạy: 00:03",
+          "size": 12.5,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#64748b"
+        },
+        {
+          "id": "tt-pt",
+          "kind": "text",
+          "x": 594,
+          "y": 682,
+          "w": 90,
+          "h": 14,
+          "text": "75%",
+          "size": 12.5,
+          "align": "right",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#64748b"
+        },
+        {
+          "id": "l3-n",
+          "kind": "panel",
+          "x": 174,
+          "y": 1078,
+          "w": 372,
+          "h": 58,
+          "fill": "#101725",
+          "radius": 29,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.4
+          },
+          "at": 0.3,
+          "for": 2.2
+        },
+        {
+          "id": "l3-c",
+          "kind": "text",
+          "x": 174,
+          "y": 1096,
+          "w": 372,
+          "h": 22,
+          "text": "Hệ thống tự làm từng bước",
+          "size": 20,
+          "align": "center",
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.34,
+          "for": 2.16,
+          "ink": "#ffffff"
+        }
+      ],
+      "cameraMove": 0.8
+    },
+    {
+      "id": "c4-ssl",
+      "duration": 2.2,
+      "stagger": 0,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1
+      },
+      "elements": [
+        {
+          "id": "nen",
+          "kind": "panel",
+          "x": 0,
+          "y": 0,
+          "w": 720,
+          "h": 1280,
+          "fill": "#0a1c12",
+          "radius": 0,
+          "in": {
+            "kind": "none",
+            "dur": 0.001
+          }
+        },
+        {
+          "id": "bg",
+          "kind": "image",
+          "x": 0,
+          "y": -3840,
+          "w": 720,
+          "h": 1280,
+          "src": "public/image/bg-tinh.png",
+          "radius": 0,
+          "fit": "cover",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.001
+          },
+          "at": 0
+        },
+        {
+          "id": "app-v",
+          "kind": "panel",
+          "x": 11,
+          "y": 135,
+          "w": 698,
+          "h": 886,
+          "fill": "#dfe4ea",
+          "radius": 21,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "app",
+          "kind": "panel",
+          "x": 12,
+          "y": 136,
+          "w": 696,
+          "h": 884,
+          "fill": "#ffffff",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail",
+          "kind": "panel",
+          "x": 12,
+          "y": 136,
+          "w": 112,
+          "h": 884,
+          "fill": "#1d2839",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-phang",
+          "kind": "panel",
+          "x": 64,
+          "y": 136,
+          "w": 60,
+          "h": 884,
+          "fill": "#1d2839",
+          "radius": 0,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "logo",
+          "kind": "panel",
+          "x": 46,
+          "y": 166,
+          "w": 44,
+          "h": 44,
+          "fill": "#ff671a",
+          "radius": 13,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "logo-ve",
+          "kind": "text",
+          "x": 46,
+          "y": 179,
+          "w": 44,
+          "h": 20,
+          "text": "VE",
+          "size": 18,
+          "align": "center",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#ffffff"
+        },
+        {
+          "id": "logo-ten",
+          "kind": "text",
+          "x": 12,
+          "y": 220,
+          "w": 112,
+          "h": 15,
+          "text": "Vibe Host",
+          "size": 13,
+          "align": "center",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#ff671a"
+        },
+        {
+          "id": "rail-ic0",
+          "kind": "panel",
+          "x": 57,
+          "y": 286,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-sang",
+          "kind": "panel",
+          "x": 46,
+          "y": 333,
+          "w": 44,
+          "h": 44,
+          "fill": "#2b3a50",
+          "radius": 13,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic1",
+          "kind": "panel",
+          "x": 57,
+          "y": 344,
+          "w": 22,
+          "h": 22,
+          "fill": "#ff671a",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic2",
+          "kind": "panel",
+          "x": 57,
+          "y": 402,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic3",
+          "kind": "panel",
+          "x": 57,
+          "y": 460,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic4",
+          "kind": "panel",
+          "x": 57,
+          "y": 518,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic5",
+          "kind": "panel",
+          "x": 57,
+          "y": 576,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "pro",
+          "kind": "panel",
+          "x": 41,
+          "y": 920,
+          "w": 54,
+          "h": 28,
+          "fill": "rgba(255,103,26,.14)",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "pro-c",
+          "kind": "text",
+          "x": 41,
+          "y": 927,
+          "w": 54,
+          "h": 15,
+          "text": "Pro",
+          "size": 13,
+          "align": "center",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#ff671a"
+        },
+        {
+          "id": "pro-so",
+          "kind": "text",
+          "x": 12,
+          "y": 962,
+          "w": 112,
+          "h": 13,
+          "text": "6/10",
+          "size": 12,
+          "align": "center",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#7c8ba1"
+        },
+        {
+          "id": "vun",
+          "kind": "text",
+          "x": 148,
+          "y": 172,
+          "w": 536,
+          "h": 13,
+          "text": "Triển khai website  ›  Deployment #1247",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#94a3b8"
+        },
+        {
+          "id": "dau-td",
+          "kind": "text",
+          "x": 148,
+          "y": 198,
+          "w": 536,
+          "h": 30,
+          "text": "Nhật ký triển khai",
+          "size": 27,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "dau-phu",
+          "kind": "text",
+          "x": 148,
+          "y": 240,
+          "w": 536,
+          "h": 15,
+          "text": "Theo dõi chi tiết quá trình đưa website lên server",
+          "size": 13,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#64748b"
+        },
+        {
+          "id": "b0-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 279,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b0",
+          "kind": "panel",
+          "x": 148,
+          "y": 280,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b0-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 300,
+          "w": 40,
+          "h": 40,
+          "fill": "#dcfce7",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.03
+        },
+        {
+          "id": "b0-k-t0",
+          "kind": "panel",
+          "x": 181,
+          "y": 321,
+          "w": 7,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": 43.15
+        },
+        {
+          "id": "b0-k-t1",
+          "kind": "panel",
+          "x": 184,
+          "y": 318,
+          "w": 12,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": -48.95
+        },
+        {
+          "id": "b0-t",
+          "kind": "text",
+          "x": 224,
+          "y": 300,
+          "w": 440,
+          "h": 19,
+          "text": "Tải mã nguồn",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.04
+        },
+        {
+          "id": "b0-p",
+          "kind": "text",
+          "x": 224,
+          "y": 326,
+          "w": 440,
+          "h": 13,
+          "text": "ttindex.html — 68 KB",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.06,
+          "ink": "#64748b"
+        },
+        {
+          "id": "b1-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 371,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b1",
+          "kind": "panel",
+          "x": 148,
+          "y": 372,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b1-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 392,
+          "w": 40,
+          "h": 40,
+          "fill": "#dcfce7",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.03
+        },
+        {
+          "id": "b1-k-t0",
+          "kind": "panel",
+          "x": 181,
+          "y": 413,
+          "w": 7,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": 43.15
+        },
+        {
+          "id": "b1-k-t1",
+          "kind": "panel",
+          "x": 184,
+          "y": 410,
+          "w": 12,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": -48.95
+        },
+        {
+          "id": "b1-t",
+          "kind": "text",
+          "x": 224,
+          "y": 392,
+          "w": 440,
+          "h": 19,
+          "text": "Cài đặt máy chủ",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.04
+        },
+        {
+          "id": "b1-p",
+          "kind": "text",
+          "x": 224,
+          "y": 418,
+          "w": 440,
+          "h": 13,
+          "text": "Dựng môi trường chạy web tĩnh",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.06,
+          "ink": "#64748b"
+        },
+        {
+          "id": "b2-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 463,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b2",
+          "kind": "panel",
+          "x": 148,
+          "y": 464,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b2-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 484,
+          "w": 40,
+          "h": 40,
+          "fill": "#dcfce7",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.03
+        },
+        {
+          "id": "b2-k-t0",
+          "kind": "panel",
+          "x": 181,
+          "y": 505,
+          "w": 7,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": 43.15
+        },
+        {
+          "id": "b2-k-t1",
+          "kind": "panel",
+          "x": 184,
+          "y": 502,
+          "w": 12,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": -48.95
+        },
+        {
+          "id": "b2-t",
+          "kind": "text",
+          "x": 224,
+          "y": 484,
+          "w": 440,
+          "h": 19,
+          "text": "Cấp chứng chỉ SSL",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.04
+        },
+        {
+          "id": "b2-p",
+          "kind": "text",
+          "x": 224,
+          "y": 510,
+          "w": 440,
+          "h": 13,
+          "text": "Let's Encrypt — miễn phí",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.06,
+          "ink": "#64748b"
+        },
+        {
+          "id": "b3-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 555,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b3",
+          "kind": "panel",
+          "x": 148,
+          "y": 556,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b3-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 576,
+          "w": 40,
+          "h": 40,
+          "fill": "#fff1e9",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.03
+        },
+        {
+          "id": "b3-c",
+          "kind": "panel",
+          "x": 180,
+          "y": 588,
+          "w": 16,
+          "h": 16,
+          "fill": "#ff671a",
+          "radius": 8,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.06
+        },
+        {
+          "id": "b3-t",
+          "kind": "text",
+          "x": 224,
+          "y": 576,
+          "w": 440,
+          "h": 19,
+          "text": "Kết nối database",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.04
+        },
+        {
+          "id": "b3-p",
+          "kind": "text",
+          "x": 224,
+          "y": 602,
+          "w": 440,
+          "h": 13,
+          "text": "airtex_db",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.06,
+          "ink": "#64748b"
+        },
+        {
+          "id": "b3-nh",
+          "kind": "panel",
+          "x": 577,
+          "y": 584,
+          "w": 87,
+          "h": 24,
+          "fill": "#fff1e9",
+          "radius": 12,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.08
+        },
+        {
+          "id": "b3-nhc",
+          "kind": "text",
+          "x": 577,
+          "y": 590,
+          "w": 87,
+          "h": 12,
+          "text": "Đang chạy",
+          "size": 11,
+          "align": "center",
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.1,
+          "ink": "#ff671a"
+        },
+        {
+          "id": "tt-ray",
+          "kind": "panel",
+          "x": 148,
+          "y": 660,
+          "w": 536,
+          "h": 8,
+          "fill": "#eef1f5",
+          "radius": 4,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "tt-day",
+          "kind": "panel",
+          "x": 148,
+          "y": 660,
+          "w": 402,
+          "h": 8,
+          "fill": "#ff671a",
+          "radius": 4,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "tt-dc",
+          "kind": "text",
+          "x": 148,
+          "y": 682,
+          "w": 114,
+          "h": 14,
+          "text": "Đã chạy: 00:03",
+          "size": 12.5,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#64748b"
+        },
+        {
+          "id": "tt-pt",
+          "kind": "text",
+          "x": 594,
+          "y": 682,
+          "w": 90,
+          "h": 14,
+          "text": "75%",
+          "size": 12.5,
+          "align": "right",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#64748b"
+        },
+        {
+          "id": "ssl-bong",
+          "kind": "panel",
+          "x": 54,
+          "y": 406,
+          "w": 611,
+          "h": 429,
+          "fill": "#0f172a1c",
+          "radius": 37.14,
+          "in": {
+            "kind": "pop",
+            "ease": "out",
+            "dur": 0.5
+          },
+          "at": 0.3,
+          "for": 1.6
+        },
+        {
+          "id": "ssl",
+          "kind": "panel",
+          "x": 60,
+          "y": 411,
+          "w": 600,
+          "h": 417,
+          "fill": "#ffffff",
+          "radius": 31.43,
+          "in": {
+            "kind": "pop",
+            "ease": "out",
+            "dur": 0.5
+          },
+          "at": 0.3,
+          "for": 1.6
+        },
+        {
+          "id": "ssl-vong",
+          "kind": "panel",
+          "x": 286,
+          "y": 466,
+          "w": 149,
+          "h": 149,
+          "fill": "#dcfce7",
+          "radius": 74.29,
+          "in": {
+            "kind": "pop",
+            "ease": "out",
+            "dur": 0.5
+          },
+          "at": 0.38,
+          "for": 1.52
+        },
+        {
+          "id": "ssl-tron",
+          "kind": "panel",
+          "x": 306,
+          "y": 486,
+          "w": 109,
+          "h": 109,
+          "fill": "#22c55e",
+          "radius": 54.29,
+          "in": {
+            "kind": "pop",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.44,
+          "for": 1.46
+        },
+        {
+          "id": "ssl-dau-t0",
+          "kind": "panel",
+          "x": 337,
+          "y": 543,
+          "w": 23,
+          "h": 10,
+          "fill": "#ffffff",
+          "radius": 5.0,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.6,
+          "for": 1.3,
+          "rotate": 43.15
+        },
+        {
+          "id": "ssl-dau-t1",
+          "kind": "panel",
+          "x": 347,
+          "y": 535,
+          "w": 41,
+          "h": 10,
+          "fill": "#ffffff",
+          "radius": 5.0,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.6,
+          "for": 1.3,
+          "rotate": -48.95
+        },
+        {
+          "id": "ssl-td",
+          "kind": "text",
+          "x": 60,
+          "y": 646,
+          "w": 600,
+          "h": 34,
+          "text": "Đã cấp chứng chỉ SSL",
+          "size": 30.0,
+          "align": "center",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.64,
+          "for": 1.26
+        },
+        {
+          "id": "ssl-phu",
+          "kind": "text",
+          "x": 60,
+          "y": 697,
+          "w": 600,
+          "h": 18,
+          "text": "Website đã được cấp SSL miễn phí",
+          "size": 15.71,
+          "align": "center",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.7,
+          "for": 1.2,
+          "ink": "#64748b"
+        },
+        {
+          "id": "ssl-nhan",
+          "kind": "panel",
+          "x": 269,
+          "y": 740,
+          "w": 183,
+          "h": 37,
+          "fill": "#dcfce7",
+          "radius": 18.57,
+          "in": {
+            "kind": "pop",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.76,
+          "for": 1.14
+        },
+        {
+          "id": "ssl-nhan-c",
+          "kind": "text",
+          "x": 269,
+          "y": 749,
+          "w": 183,
+          "h": 18,
+          "text": "HTTPS đang bật",
+          "size": 15.71,
+          "align": "center",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.8,
+          "for": 1.1,
+          "ink": "#22c55e"
+        },
+        {
+          "id": "l4-n",
+          "kind": "panel",
+          "x": 174,
+          "y": 1078,
+          "w": 372,
+          "h": 58,
+          "fill": "#101725",
+          "radius": 29,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.4
+          },
+          "at": 0.5
+        },
+        {
+          "id": "l4-c",
+          "kind": "text",
+          "x": 174,
+          "y": 1096,
+          "w": 372,
+          "h": 22,
+          "text": "SSL cấp tự động, miễn phí",
+          "size": 20,
+          "align": "center",
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.54,
+          "ink": "#ffffff"
+        }
+      ],
+      "cameraMove": 0.7
+    },
+    {
+      "id": "c5-database",
+      "duration": 2.0,
+      "stagger": 0,
+      "camera": {
+        "x": -16.0,
+        "y": -80.0,
+        "scale": 1.52
+      },
+      "elements": [
+        {
+          "id": "nen",
+          "kind": "panel",
+          "x": 0,
+          "y": 0,
+          "w": 720,
+          "h": 1280,
+          "fill": "#0a1c12",
+          "radius": 0,
+          "in": {
+            "kind": "none",
+            "dur": 0.001
+          }
+        },
+        {
+          "id": "bg",
+          "kind": "image",
+          "x": 0,
+          "y": -5120,
+          "w": 720,
+          "h": 1280,
+          "src": "public/image/bg-tinh.png",
+          "radius": 0,
+          "fit": "cover",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.001
+          },
+          "at": 0
+        },
+        {
+          "id": "app-v",
+          "kind": "panel",
+          "x": 11,
+          "y": 135,
+          "w": 698,
+          "h": 886,
+          "fill": "#dfe4ea",
+          "radius": 21,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "app",
+          "kind": "panel",
+          "x": 12,
+          "y": 136,
+          "w": 696,
+          "h": 884,
+          "fill": "#ffffff",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail",
+          "kind": "panel",
+          "x": 12,
+          "y": 136,
+          "w": 112,
+          "h": 884,
+          "fill": "#1d2839",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-phang",
+          "kind": "panel",
+          "x": 64,
+          "y": 136,
+          "w": 60,
+          "h": 884,
+          "fill": "#1d2839",
+          "radius": 0,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "logo",
+          "kind": "panel",
+          "x": 46,
+          "y": 166,
+          "w": 44,
+          "h": 44,
+          "fill": "#ff671a",
+          "radius": 13,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "logo-ve",
+          "kind": "text",
+          "x": 46,
+          "y": 179,
+          "w": 44,
+          "h": 20,
+          "text": "VE",
+          "size": 18,
+          "align": "center",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#ffffff"
+        },
+        {
+          "id": "logo-ten",
+          "kind": "text",
+          "x": 12,
+          "y": 220,
+          "w": 112,
+          "h": 15,
+          "text": "Vibe Host",
+          "size": 13,
+          "align": "center",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#ff671a"
+        },
+        {
+          "id": "rail-ic0",
+          "kind": "panel",
+          "x": 57,
+          "y": 286,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-sang",
+          "kind": "panel",
+          "x": 46,
+          "y": 333,
+          "w": 44,
+          "h": 44,
+          "fill": "#2b3a50",
+          "radius": 13,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic1",
+          "kind": "panel",
+          "x": 57,
+          "y": 344,
+          "w": 22,
+          "h": 22,
+          "fill": "#ff671a",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic2",
+          "kind": "panel",
+          "x": 57,
+          "y": 402,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic3",
+          "kind": "panel",
+          "x": 57,
+          "y": 460,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic4",
+          "kind": "panel",
+          "x": 57,
+          "y": 518,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic5",
+          "kind": "panel",
+          "x": 57,
+          "y": 576,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "pro",
+          "kind": "panel",
+          "x": 41,
+          "y": 920,
+          "w": 54,
+          "h": 28,
+          "fill": "rgba(255,103,26,.14)",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "pro-c",
+          "kind": "text",
+          "x": 41,
+          "y": 927,
+          "w": 54,
+          "h": 15,
+          "text": "Pro",
+          "size": 13,
+          "align": "center",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#ff671a"
+        },
+        {
+          "id": "pro-so",
+          "kind": "text",
+          "x": 12,
+          "y": 962,
+          "w": 112,
+          "h": 13,
+          "text": "6/10",
+          "size": 12,
+          "align": "center",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#7c8ba1"
+        },
+        {
+          "id": "vun",
+          "kind": "text",
+          "x": 148,
+          "y": 172,
+          "w": 536,
+          "h": 13,
+          "text": "Triển khai website  ›  Deployment #1247",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#94a3b8"
+        },
+        {
+          "id": "dau-td",
+          "kind": "text",
+          "x": 148,
+          "y": 198,
+          "w": 536,
+          "h": 30,
+          "text": "Nhật ký triển khai",
+          "size": 27,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "dau-phu",
+          "kind": "text",
+          "x": 148,
+          "y": 240,
+          "w": 536,
+          "h": 15,
+          "text": "Theo dõi chi tiết quá trình đưa website lên server",
+          "size": 13,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#64748b"
+        },
+        {
+          "id": "b0-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 279,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b0",
+          "kind": "panel",
+          "x": 148,
+          "y": 280,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b0-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 300,
+          "w": 40,
+          "h": 40,
+          "fill": "#dcfce7",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.03
+        },
+        {
+          "id": "b0-k-t0",
+          "kind": "panel",
+          "x": 181,
+          "y": 321,
+          "w": 7,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": 43.15
+        },
+        {
+          "id": "b0-k-t1",
+          "kind": "panel",
+          "x": 184,
+          "y": 318,
+          "w": 12,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": -48.95
+        },
+        {
+          "id": "b0-t",
+          "kind": "text",
+          "x": 224,
+          "y": 300,
+          "w": 440,
+          "h": 19,
+          "text": "Tải mã nguồn",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.04
+        },
+        {
+          "id": "b0-p",
+          "kind": "text",
+          "x": 224,
+          "y": 326,
+          "w": 440,
+          "h": 13,
+          "text": "ttindex.html — 68 KB",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.06,
+          "ink": "#64748b"
+        },
+        {
+          "id": "b1-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 371,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b1",
+          "kind": "panel",
+          "x": 148,
+          "y": 372,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b1-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 392,
+          "w": 40,
+          "h": 40,
+          "fill": "#dcfce7",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.03
+        },
+        {
+          "id": "b1-k-t0",
+          "kind": "panel",
+          "x": 181,
+          "y": 413,
+          "w": 7,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": 43.15
+        },
+        {
+          "id": "b1-k-t1",
+          "kind": "panel",
+          "x": 184,
+          "y": 410,
+          "w": 12,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": -48.95
+        },
+        {
+          "id": "b1-t",
+          "kind": "text",
+          "x": 224,
+          "y": 392,
+          "w": 440,
+          "h": 19,
+          "text": "Cài đặt máy chủ",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.04
+        },
+        {
+          "id": "b1-p",
+          "kind": "text",
+          "x": 224,
+          "y": 418,
+          "w": 440,
+          "h": 13,
+          "text": "Dựng môi trường chạy web tĩnh",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.06,
+          "ink": "#64748b"
+        },
+        {
+          "id": "b2-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 463,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b2",
+          "kind": "panel",
+          "x": 148,
+          "y": 464,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b2-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 484,
+          "w": 40,
+          "h": 40,
+          "fill": "#dcfce7",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.03
+        },
+        {
+          "id": "b2-k-t0",
+          "kind": "panel",
+          "x": 181,
+          "y": 505,
+          "w": 7,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": 43.15
+        },
+        {
+          "id": "b2-k-t1",
+          "kind": "panel",
+          "x": 184,
+          "y": 502,
+          "w": 12,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": -48.95
+        },
+        {
+          "id": "b2-t",
+          "kind": "text",
+          "x": 224,
+          "y": 484,
+          "w": 440,
+          "h": 19,
+          "text": "Cấp chứng chỉ SSL",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.04
+        },
+        {
+          "id": "b2-p",
+          "kind": "text",
+          "x": 224,
+          "y": 510,
+          "w": 440,
+          "h": 13,
+          "text": "Let's Encrypt — miễn phí",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.06,
+          "ink": "#64748b"
+        },
+        {
+          "id": "b3-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 555,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.55
+        },
+        {
+          "id": "b3",
+          "kind": "panel",
+          "x": 148,
+          "y": 556,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.55
+        },
+        {
+          "id": "b3-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 576,
+          "w": 40,
+          "h": 40,
+          "fill": "#dcfce7",
+          "radius": 20,
+          "in": {
+            "kind": "pop",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.58
+        },
+        {
+          "id": "b3-k-t0",
+          "kind": "panel",
+          "x": 181,
+          "y": 597,
+          "w": 7,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.63,
+          "rotate": 43.15
+        },
+        {
+          "id": "b3-k-t1",
+          "kind": "panel",
+          "x": 184,
+          "y": 594,
+          "w": 12,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.63,
+          "rotate": -48.95
+        },
+        {
+          "id": "b3-t",
+          "kind": "text",
+          "x": 224,
+          "y": 576,
+          "w": 440,
+          "h": 19,
+          "text": "Kết nối database",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.59
+        },
+        {
+          "id": "b3-p",
+          "kind": "text",
+          "x": 224,
+          "y": 602,
+          "w": 440,
+          "h": 13,
+          "text": "airtex_db",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.61,
+          "ink": "#64748b"
+        },
+        {
+          "id": "tt-ray",
+          "kind": "panel",
+          "x": 148,
+          "y": 660,
+          "w": 536,
+          "h": 8,
+          "fill": "#eef1f5",
+          "radius": 4,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "tt-day",
+          "kind": "panel",
+          "x": 148,
+          "y": 660,
+          "w": 536,
+          "h": 8,
+          "fill": "#ff671a",
+          "radius": 4,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "tt-dc",
+          "kind": "text",
+          "x": 148,
+          "y": 682,
+          "w": 114,
+          "h": 14,
+          "text": "Đã chạy: 00:04",
+          "size": 12.5,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#64748b"
+        },
+        {
+          "id": "tt-pt",
+          "kind": "text",
+          "x": 594,
+          "y": 682,
+          "w": 90,
+          "h": 14,
+          "text": "100%",
+          "size": 12.5,
+          "align": "right",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#64748b"
+        },
+        {
+          "id": "xong-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 717,
+          "w": 538,
+          "h": 110,
+          "fill": "#c8f0d8",
+          "radius": 15,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "xong",
+          "kind": "panel",
+          "x": 148,
+          "y": 718,
+          "w": 536,
+          "h": 108,
+          "fill": "#dcfce7",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "xong-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 738,
+          "w": 40,
+          "h": 40,
+          "fill": "#ffffff",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "xong-k-t0",
+          "kind": "panel",
+          "x": 181,
+          "y": 759,
+          "w": 7,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0,
+          "rotate": 43.15
+        },
+        {
+          "id": "xong-k-t1",
+          "kind": "panel",
+          "x": 184,
+          "y": 756,
+          "w": 12,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0,
+          "rotate": -48.95
+        },
+        {
+          "id": "xong-t",
+          "kind": "text",
+          "x": 224,
+          "y": 736,
+          "w": 440,
+          "h": 19,
+          "text": "4/4 bước thành công",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#15803d"
+        },
+        {
+          "id": "xong-p",
+          "kind": "text",
+          "x": 224,
+          "y": 764,
+          "w": 440,
+          "h": 28,
+          "text": "Website đã chạy tại|airtex-trungthu.vibehost.vn",
+          "size": 12.5,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#3f8b5c"
+        },
+        {
+          "id": "l5-n",
+          "kind": "panel",
+          "x": 155,
+          "y": 1078,
+          "w": 409,
+          "h": 58,
+          "fill": "#101725",
+          "radius": 29,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.4
+          },
+          "at": 1.05
+        },
+        {
+          "id": "l5-c",
+          "kind": "text",
+          "x": 155,
+          "y": 1096,
+          "w": 409,
+          "h": 22,
+          "text": "Database nối xong — 4/4 bước",
+          "size": 20,
+          "align": "center",
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.09,
+          "ink": "#ffffff"
+        }
+      ],
+      "cameraMove": 0.75
+    },
+    {
+      "id": "c6-bat-ra",
+      "duration": 2.8,
+      "stagger": 0,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1
+      },
+      "elements": [
+        {
+          "id": "nen",
+          "kind": "panel",
+          "x": 0,
+          "y": 0,
+          "w": 720,
+          "h": 1280,
+          "fill": "#0a1c12",
+          "radius": 0,
+          "in": {
+            "kind": "none",
+            "dur": 0.001
+          }
+        },
+        {
+          "id": "bg",
+          "kind": "image",
+          "x": 0,
+          "y": -6400,
+          "w": 720,
+          "h": 1280,
+          "src": "public/image/bg-tinh.png",
+          "radius": 0,
+          "fit": "cover",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.001
+          },
+          "at": 0
+        },
+        {
+          "id": "app-v",
+          "kind": "panel",
+          "x": 11,
+          "y": 135,
+          "w": 698,
+          "h": 886,
+          "fill": "#dfe4ea",
+          "radius": 21,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "app",
+          "kind": "panel",
+          "x": 12,
+          "y": 136,
+          "w": 696,
+          "h": 884,
+          "fill": "#ffffff",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail",
+          "kind": "panel",
+          "x": 12,
+          "y": 136,
+          "w": 112,
+          "h": 884,
+          "fill": "#1d2839",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-phang",
+          "kind": "panel",
+          "x": 64,
+          "y": 136,
+          "w": 60,
+          "h": 884,
+          "fill": "#1d2839",
+          "radius": 0,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "logo",
+          "kind": "panel",
+          "x": 46,
+          "y": 166,
+          "w": 44,
+          "h": 44,
+          "fill": "#ff671a",
+          "radius": 13,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "logo-ve",
+          "kind": "text",
+          "x": 46,
+          "y": 179,
+          "w": 44,
+          "h": 20,
+          "text": "VE",
+          "size": 18,
+          "align": "center",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#ffffff"
+        },
+        {
+          "id": "logo-ten",
+          "kind": "text",
+          "x": 12,
+          "y": 220,
+          "w": 112,
+          "h": 15,
+          "text": "Vibe Host",
+          "size": 13,
+          "align": "center",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#ff671a"
+        },
+        {
+          "id": "rail-ic0",
+          "kind": "panel",
+          "x": 57,
+          "y": 286,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-sang",
+          "kind": "panel",
+          "x": 46,
+          "y": 333,
+          "w": 44,
+          "h": 44,
+          "fill": "#2b3a50",
+          "radius": 13,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic1",
+          "kind": "panel",
+          "x": 57,
+          "y": 344,
+          "w": 22,
+          "h": 22,
+          "fill": "#ff671a",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic2",
+          "kind": "panel",
+          "x": 57,
+          "y": 402,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic3",
+          "kind": "panel",
+          "x": 57,
+          "y": 460,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic4",
+          "kind": "panel",
+          "x": 57,
+          "y": 518,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic5",
+          "kind": "panel",
+          "x": 57,
+          "y": 576,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "pro",
+          "kind": "panel",
+          "x": 41,
+          "y": 920,
+          "w": 54,
+          "h": 28,
+          "fill": "rgba(255,103,26,.14)",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "pro-c",
+          "kind": "text",
+          "x": 41,
+          "y": 927,
+          "w": 54,
+          "h": 15,
+          "text": "Pro",
+          "size": 13,
+          "align": "center",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#ff671a"
+        },
+        {
+          "id": "pro-so",
+          "kind": "text",
+          "x": 12,
+          "y": 962,
+          "w": 112,
+          "h": 13,
+          "text": "6/10",
+          "size": 12,
+          "align": "center",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#7c8ba1"
+        },
+        {
+          "id": "vun",
+          "kind": "text",
+          "x": 148,
+          "y": 172,
+          "w": 536,
+          "h": 13,
+          "text": "Triển khai website  ›  Deployment #1247",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#94a3b8"
+        },
+        {
+          "id": "dau-td",
+          "kind": "text",
+          "x": 148,
+          "y": 198,
+          "w": 536,
+          "h": 30,
+          "text": "Nhật ký triển khai",
+          "size": 27,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "dau-phu",
+          "kind": "text",
+          "x": 148,
+          "y": 240,
+          "w": 536,
+          "h": 15,
+          "text": "Theo dõi chi tiết quá trình đưa website lên server",
+          "size": 13,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#64748b"
+        },
+        {
+          "id": "b0-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 279,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b0",
+          "kind": "panel",
+          "x": 148,
+          "y": 280,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b0-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 300,
+          "w": 40,
+          "h": 40,
+          "fill": "#dcfce7",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.03
+        },
+        {
+          "id": "b0-k-t0",
+          "kind": "panel",
+          "x": 181,
+          "y": 321,
+          "w": 7,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": 43.15
+        },
+        {
+          "id": "b0-k-t1",
+          "kind": "panel",
+          "x": 184,
+          "y": 318,
+          "w": 12,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": -48.95
+        },
+        {
+          "id": "b0-t",
+          "kind": "text",
+          "x": 224,
+          "y": 300,
+          "w": 440,
+          "h": 19,
+          "text": "Tải mã nguồn",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.04
+        },
+        {
+          "id": "b0-p",
+          "kind": "text",
+          "x": 224,
+          "y": 326,
+          "w": 440,
+          "h": 13,
+          "text": "ttindex.html — 68 KB",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.06,
+          "ink": "#64748b"
+        },
+        {
+          "id": "b1-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 371,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b1",
+          "kind": "panel",
+          "x": 148,
+          "y": 372,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b1-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 392,
+          "w": 40,
+          "h": 40,
+          "fill": "#dcfce7",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.03
+        },
+        {
+          "id": "b1-k-t0",
+          "kind": "panel",
+          "x": 181,
+          "y": 413,
+          "w": 7,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": 43.15
+        },
+        {
+          "id": "b1-k-t1",
+          "kind": "panel",
+          "x": 184,
+          "y": 410,
+          "w": 12,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": -48.95
+        },
+        {
+          "id": "b1-t",
+          "kind": "text",
+          "x": 224,
+          "y": 392,
+          "w": 440,
+          "h": 19,
+          "text": "Cài đặt máy chủ",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.04
+        },
+        {
+          "id": "b1-p",
+          "kind": "text",
+          "x": 224,
+          "y": 418,
+          "w": 440,
+          "h": 13,
+          "text": "Dựng môi trường chạy web tĩnh",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.06,
+          "ink": "#64748b"
+        },
+        {
+          "id": "b2-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 463,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b2",
+          "kind": "panel",
+          "x": 148,
+          "y": 464,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b2-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 484,
+          "w": 40,
+          "h": 40,
+          "fill": "#dcfce7",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.03
+        },
+        {
+          "id": "b2-k-t0",
+          "kind": "panel",
+          "x": 181,
+          "y": 505,
+          "w": 7,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": 43.15
+        },
+        {
+          "id": "b2-k-t1",
+          "kind": "panel",
+          "x": 184,
+          "y": 502,
+          "w": 12,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": -48.95
+        },
+        {
+          "id": "b2-t",
+          "kind": "text",
+          "x": 224,
+          "y": 484,
+          "w": 440,
+          "h": 19,
+          "text": "Cấp chứng chỉ SSL",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.04
+        },
+        {
+          "id": "b2-p",
+          "kind": "text",
+          "x": 224,
+          "y": 510,
+          "w": 440,
+          "h": 13,
+          "text": "Let's Encrypt — miễn phí",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.06,
+          "ink": "#64748b"
+        },
+        {
+          "id": "b3-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 555,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b3",
+          "kind": "panel",
+          "x": 148,
+          "y": 556,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b3-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 576,
+          "w": 40,
+          "h": 40,
+          "fill": "#dcfce7",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.03
+        },
+        {
+          "id": "b3-k-t0",
+          "kind": "panel",
+          "x": 181,
+          "y": 597,
+          "w": 7,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": 43.15
+        },
+        {
+          "id": "b3-k-t1",
+          "kind": "panel",
+          "x": 184,
+          "y": 594,
+          "w": 12,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": -48.95
+        },
+        {
+          "id": "b3-t",
+          "kind": "text",
+          "x": 224,
+          "y": 576,
+          "w": 440,
+          "h": 19,
+          "text": "Kết nối database",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.04
+        },
+        {
+          "id": "b3-p",
+          "kind": "text",
+          "x": 224,
+          "y": 602,
+          "w": 440,
+          "h": 13,
+          "text": "airtex_db",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.06,
+          "ink": "#64748b"
+        },
+        {
+          "id": "tt-ray",
+          "kind": "panel",
+          "x": 148,
+          "y": 660,
+          "w": 536,
+          "h": 8,
+          "fill": "#eef1f5",
+          "radius": 4,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "tt-day",
+          "kind": "panel",
+          "x": 148,
+          "y": 660,
+          "w": 536,
+          "h": 8,
+          "fill": "#ff671a",
+          "radius": 4,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "tt-dc",
+          "kind": "text",
+          "x": 148,
+          "y": 682,
+          "w": 114,
+          "h": 14,
+          "text": "Đã chạy: 00:04",
+          "size": 12.5,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#64748b"
+        },
+        {
+          "id": "tt-pt",
+          "kind": "text",
+          "x": 594,
+          "y": 682,
+          "w": 90,
+          "h": 14,
+          "text": "100%",
+          "size": 12.5,
+          "align": "right",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#64748b"
+        },
+        {
+          "id": "xong-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 717,
+          "w": 538,
+          "h": 110,
+          "fill": "#c8f0d8",
+          "radius": 15,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "xong",
+          "kind": "panel",
+          "x": 148,
+          "y": 718,
+          "w": 536,
+          "h": 108,
+          "fill": "#dcfce7",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "xong-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 738,
+          "w": 40,
+          "h": 40,
+          "fill": "#ffffff",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "xong-k-t0",
+          "kind": "panel",
+          "x": 181,
+          "y": 759,
+          "w": 7,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0,
+          "rotate": 43.15
+        },
+        {
+          "id": "xong-k-t1",
+          "kind": "panel",
+          "x": 184,
+          "y": 756,
+          "w": 12,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0,
+          "rotate": -48.95
+        },
+        {
+          "id": "xong-t",
+          "kind": "text",
+          "x": 224,
+          "y": 736,
+          "w": 440,
+          "h": 19,
+          "text": "4/4 bước thành công",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#15803d"
+        },
+        {
+          "id": "xong-p",
+          "kind": "text",
+          "x": 224,
+          "y": 764,
+          "w": 440,
+          "h": 28,
+          "text": "Website đã chạy tại|airtex-trungthu.vibehost.vn",
+          "size": 12.5,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#3f8b5c"
+        },
+        {
+          "id": "br-bong",
+          "kind": "panel",
+          "x": 26,
+          "y": 429,
+          "w": 669,
+          "h": 382,
+          "fill": "#0f172a24",
+          "radius": 13.03,
+          "in": {
+            "kind": "pop",
+            "ease": "out",
+            "dur": 0.55
+          },
+          "at": 0.35
+        },
+        {
+          "id": "br",
+          "kind": "panel",
+          "x": 30,
+          "y": 433,
+          "w": 660,
+          "h": 373,
+          "fill": "#0b0f24",
+          "radius": 8.68,
+          "in": {
+            "kind": "pop",
+            "ease": "out",
+            "dur": 0.55
+          },
+          "at": 0.35
+        },
+        {
+          "id": "tr",
+          "kind": "image",
+          "x": 30,
+          "y": -7214,
+          "w": 660,
+          "h": 339,
+          "src": "public/image/ttindex-xem-truoc.png",
+          "radius": 0,
+          "fit": "cover",
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.5
+          },
+          "at": 0.63
+        },
+        {
+          "id": "br-thanh",
+          "kind": "panel",
+          "x": 30,
+          "y": 433,
+          "w": 660,
+          "h": 33,
+          "fill": "#171c34",
+          "radius": 8.68,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.39
+        },
+        {
+          "id": "br-cham0",
+          "kind": "panel",
+          "x": 46,
+          "y": 445,
+          "w": 9,
+          "h": 9,
+          "fill": "#ff5f57",
+          "radius": 4.34,
+          "in": {
+            "kind": "pop",
+            "ease": "out",
+            "dur": 0.3
+          },
+          "at": 0.43
+        },
+        {
+          "id": "br-cham1",
+          "kind": "panel",
+          "x": 61,
+          "y": 445,
+          "w": 9,
+          "h": 9,
+          "fill": "#febc2e",
+          "radius": 4.34,
+          "in": {
+            "kind": "pop",
+            "ease": "out",
+            "dur": 0.3
+          },
+          "at": 0.46
+        },
+        {
+          "id": "br-cham2",
+          "kind": "panel",
+          "x": 77,
+          "y": 445,
+          "w": 9,
+          "h": 9,
+          "fill": "#28c840",
+          "radius": 4.34,
+          "in": {
+            "kind": "pop",
+            "ease": "out",
+            "dur": 0.3
+          },
+          "at": 0.49
+        },
+        {
+          "id": "br-url",
+          "kind": "panel",
+          "x": 103,
+          "y": 441,
+          "w": 278,
+          "h": 17,
+          "fill": "#242a45",
+          "radius": 8.68,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.49
+        },
+        {
+          "id": "br-khoa",
+          "kind": "panel",
+          "x": 112,
+          "y": 445,
+          "w": 7,
+          "h": 9,
+          "fill": "#22c55e",
+          "radius": 1.74,
+          "in": {
+            "kind": "pop",
+            "ease": "out",
+            "dur": 0.3
+          },
+          "at": 0.52
+        },
+        {
+          "id": "br-diachi",
+          "kind": "text",
+          "x": 124,
+          "y": 445,
+          "w": 248,
+          "h": 10,
+          "text": "airtex-trungthu.vibehost.vn",
+          "size": 8.68,
+          "align": "left",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.53,
+          "ink": "#c9d2ea"
+        },
+        {
+          "id": "l6-n",
+          "kind": "panel",
+          "x": 112,
+          "y": 1078,
+          "w": 496,
+          "h": 58,
+          "fill": "#101725",
+          "radius": 29,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.4
+          },
+          "at": 1.1
+        },
+        {
+          "id": "l6-c",
+          "kind": "text",
+          "x": 112,
+          "y": 1096,
+          "w": 496,
+          "h": 22,
+          "text": "airtex-trungthu.vibehost.vn đã chạy",
+          "size": 20,
+          "align": "center",
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 1.14,
+          "ink": "#ffffff"
+        }
+      ],
+      "cameraMove": 0.8
+    },
+    {
+      "id": "c7-dien-thoai",
+      "duration": 2.4,
+      "stagger": 0,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1
+      },
+      "elements": [
+        {
+          "id": "nen",
+          "kind": "panel",
+          "x": 0,
+          "y": 0,
+          "w": 720,
+          "h": 1280,
+          "fill": "#0a1c12",
+          "radius": 0,
+          "in": {
+            "kind": "none",
+            "dur": 0.001
+          }
+        },
+        {
+          "id": "bg",
+          "kind": "image",
+          "x": 0,
+          "y": -8019,
+          "w": 720,
+          "h": 1280,
+          "src": "public/image/bg-tinh.png",
+          "radius": 0,
+          "fit": "cover",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.001
+          },
+          "at": 0
+        },
+        {
+          "id": "app-v",
+          "kind": "panel",
+          "x": 11,
+          "y": 135,
+          "w": 698,
+          "h": 886,
+          "fill": "#dfe4ea",
+          "radius": 21,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "app",
+          "kind": "panel",
+          "x": 12,
+          "y": 136,
+          "w": 696,
+          "h": 884,
+          "fill": "#ffffff",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail",
+          "kind": "panel",
+          "x": 12,
+          "y": 136,
+          "w": 112,
+          "h": 884,
+          "fill": "#1d2839",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-phang",
+          "kind": "panel",
+          "x": 64,
+          "y": 136,
+          "w": 60,
+          "h": 884,
+          "fill": "#1d2839",
+          "radius": 0,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "logo",
+          "kind": "panel",
+          "x": 46,
+          "y": 166,
+          "w": 44,
+          "h": 44,
+          "fill": "#ff671a",
+          "radius": 13,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "logo-ve",
+          "kind": "text",
+          "x": 46,
+          "y": 179,
+          "w": 44,
+          "h": 20,
+          "text": "VE",
+          "size": 18,
+          "align": "center",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#ffffff"
+        },
+        {
+          "id": "logo-ten",
+          "kind": "text",
+          "x": 12,
+          "y": 220,
+          "w": 112,
+          "h": 15,
+          "text": "Vibe Host",
+          "size": 13,
+          "align": "center",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#ff671a"
+        },
+        {
+          "id": "rail-ic0",
+          "kind": "panel",
+          "x": 57,
+          "y": 286,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-sang",
+          "kind": "panel",
+          "x": 46,
+          "y": 333,
+          "w": 44,
+          "h": 44,
+          "fill": "#2b3a50",
+          "radius": 13,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic1",
+          "kind": "panel",
+          "x": 57,
+          "y": 344,
+          "w": 22,
+          "h": 22,
+          "fill": "#ff671a",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic2",
+          "kind": "panel",
+          "x": 57,
+          "y": 402,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic3",
+          "kind": "panel",
+          "x": 57,
+          "y": 460,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic4",
+          "kind": "panel",
+          "x": 57,
+          "y": 518,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "rail-ic5",
+          "kind": "panel",
+          "x": 57,
+          "y": 576,
+          "w": 22,
+          "h": 22,
+          "fill": "#5b6a80",
+          "radius": 6,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "pro",
+          "kind": "panel",
+          "x": 41,
+          "y": 920,
+          "w": 54,
+          "h": 28,
+          "fill": "rgba(255,103,26,.14)",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "pro-c",
+          "kind": "text",
+          "x": 41,
+          "y": 927,
+          "w": 54,
+          "h": 15,
+          "text": "Pro",
+          "size": 13,
+          "align": "center",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#ff671a"
+        },
+        {
+          "id": "pro-so",
+          "kind": "text",
+          "x": 12,
+          "y": 962,
+          "w": 112,
+          "h": 13,
+          "text": "6/10",
+          "size": 12,
+          "align": "center",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#7c8ba1"
+        },
+        {
+          "id": "vun",
+          "kind": "text",
+          "x": 148,
+          "y": 172,
+          "w": 536,
+          "h": 13,
+          "text": "Triển khai website  ›  Deployment #1247",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#94a3b8"
+        },
+        {
+          "id": "dau-td",
+          "kind": "text",
+          "x": 148,
+          "y": 198,
+          "w": 536,
+          "h": 30,
+          "text": "Nhật ký triển khai",
+          "size": 27,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "dau-phu",
+          "kind": "text",
+          "x": 148,
+          "y": 240,
+          "w": 536,
+          "h": 15,
+          "text": "Theo dõi chi tiết quá trình đưa website lên server",
+          "size": 13,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#64748b"
+        },
+        {
+          "id": "b0-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 279,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b0",
+          "kind": "panel",
+          "x": 148,
+          "y": 280,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b0-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 300,
+          "w": 40,
+          "h": 40,
+          "fill": "#dcfce7",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.03
+        },
+        {
+          "id": "b0-k-t0",
+          "kind": "panel",
+          "x": 181,
+          "y": 321,
+          "w": 7,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": 43.15
+        },
+        {
+          "id": "b0-k-t1",
+          "kind": "panel",
+          "x": 184,
+          "y": 318,
+          "w": 12,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": -48.95
+        },
+        {
+          "id": "b0-t",
+          "kind": "text",
+          "x": 224,
+          "y": 300,
+          "w": 440,
+          "h": 19,
+          "text": "Tải mã nguồn",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.04
+        },
+        {
+          "id": "b0-p",
+          "kind": "text",
+          "x": 224,
+          "y": 326,
+          "w": 440,
+          "h": 13,
+          "text": "ttindex.html — 68 KB",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.06,
+          "ink": "#64748b"
+        },
+        {
+          "id": "b1-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 371,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b1",
+          "kind": "panel",
+          "x": 148,
+          "y": 372,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b1-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 392,
+          "w": 40,
+          "h": 40,
+          "fill": "#dcfce7",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.03
+        },
+        {
+          "id": "b1-k-t0",
+          "kind": "panel",
+          "x": 181,
+          "y": 413,
+          "w": 7,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": 43.15
+        },
+        {
+          "id": "b1-k-t1",
+          "kind": "panel",
+          "x": 184,
+          "y": 410,
+          "w": 12,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": -48.95
+        },
+        {
+          "id": "b1-t",
+          "kind": "text",
+          "x": 224,
+          "y": 392,
+          "w": 440,
+          "h": 19,
+          "text": "Cài đặt máy chủ",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.04
+        },
+        {
+          "id": "b1-p",
+          "kind": "text",
+          "x": 224,
+          "y": 418,
+          "w": 440,
+          "h": 13,
+          "text": "Dựng môi trường chạy web tĩnh",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.06,
+          "ink": "#64748b"
+        },
+        {
+          "id": "b2-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 463,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b2",
+          "kind": "panel",
+          "x": 148,
+          "y": 464,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b2-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 484,
+          "w": 40,
+          "h": 40,
+          "fill": "#dcfce7",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.03
+        },
+        {
+          "id": "b2-k-t0",
+          "kind": "panel",
+          "x": 181,
+          "y": 505,
+          "w": 7,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": 43.15
+        },
+        {
+          "id": "b2-k-t1",
+          "kind": "panel",
+          "x": 184,
+          "y": 502,
+          "w": 12,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": -48.95
+        },
+        {
+          "id": "b2-t",
+          "kind": "text",
+          "x": 224,
+          "y": 484,
+          "w": 440,
+          "h": 19,
+          "text": "Cấp chứng chỉ SSL",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.04
+        },
+        {
+          "id": "b2-p",
+          "kind": "text",
+          "x": 224,
+          "y": 510,
+          "w": 440,
+          "h": 13,
+          "text": "Let's Encrypt — miễn phí",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.06,
+          "ink": "#64748b"
+        },
+        {
+          "id": "b3-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 555,
+          "w": 538,
+          "h": 82,
+          "fill": "#e8ecf1",
+          "radius": 15,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b3",
+          "kind": "panel",
+          "x": 148,
+          "y": 556,
+          "w": 536,
+          "h": 80,
+          "fill": "#f5f7f9",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "b3-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 576,
+          "w": 40,
+          "h": 40,
+          "fill": "#dcfce7",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.03
+        },
+        {
+          "id": "b3-k-t0",
+          "kind": "panel",
+          "x": 181,
+          "y": 597,
+          "w": 7,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": 43.15
+        },
+        {
+          "id": "b3-k-t1",
+          "kind": "panel",
+          "x": 184,
+          "y": 594,
+          "w": 12,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0.08,
+          "rotate": -48.95
+        },
+        {
+          "id": "b3-t",
+          "kind": "text",
+          "x": 224,
+          "y": 576,
+          "w": 440,
+          "h": 19,
+          "text": "Kết nối database",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.04
+        },
+        {
+          "id": "b3-p",
+          "kind": "text",
+          "x": 224,
+          "y": 602,
+          "w": 440,
+          "h": 13,
+          "text": "airtex_db",
+          "size": 12,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.06,
+          "ink": "#64748b"
+        },
+        {
+          "id": "tt-ray",
+          "kind": "panel",
+          "x": 148,
+          "y": 660,
+          "w": 536,
+          "h": 8,
+          "fill": "#eef1f5",
+          "radius": 4,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "tt-day",
+          "kind": "panel",
+          "x": 148,
+          "y": 660,
+          "w": 536,
+          "h": 8,
+          "fill": "#ff671a",
+          "radius": 4,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "tt-dc",
+          "kind": "text",
+          "x": 148,
+          "y": 682,
+          "w": 114,
+          "h": 14,
+          "text": "Đã chạy: 00:04",
+          "size": 12.5,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#64748b"
+        },
+        {
+          "id": "tt-pt",
+          "kind": "text",
+          "x": 594,
+          "y": 682,
+          "w": 90,
+          "h": 14,
+          "text": "100%",
+          "size": 12.5,
+          "align": "right",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#64748b"
+        },
+        {
+          "id": "xong-v",
+          "kind": "panel",
+          "x": 147,
+          "y": 717,
+          "w": 538,
+          "h": 110,
+          "fill": "#c8f0d8",
+          "radius": 15,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "xong",
+          "kind": "panel",
+          "x": 148,
+          "y": 718,
+          "w": 536,
+          "h": 108,
+          "fill": "#dcfce7",
+          "radius": 14,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "xong-o",
+          "kind": "panel",
+          "x": 168,
+          "y": 738,
+          "w": 40,
+          "h": 40,
+          "fill": "#ffffff",
+          "radius": 20,
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0
+        },
+        {
+          "id": "xong-k-t0",
+          "kind": "panel",
+          "x": 181,
+          "y": 759,
+          "w": 7,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0,
+          "rotate": 43.15
+        },
+        {
+          "id": "xong-k-t1",
+          "kind": "panel",
+          "x": 184,
+          "y": 756,
+          "w": 12,
+          "h": 3,
+          "fill": "#22c55e",
+          "radius": 1.7,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.25
+          },
+          "at": 0,
+          "rotate": -48.95
+        },
+        {
+          "id": "xong-t",
+          "kind": "text",
+          "x": 224,
+          "y": 736,
+          "w": 440,
+          "h": 19,
+          "text": "4/4 bước thành công",
+          "size": 17,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#15803d"
+        },
+        {
+          "id": "xong-p",
+          "kind": "text",
+          "x": 224,
+          "y": 764,
+          "w": 440,
+          "h": 28,
+          "text": "Website đã chạy tại|airtex-trungthu.vibehost.vn",
+          "size": 12.5,
+          "align": "left",
+          "in": {
+            "kind": "none",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0,
+          "ink": "#3f8b5c"
+        },
+        {
+          "id": "dt-bong",
+          "kind": "panel",
+          "x": 184,
+          "y": 262,
+          "w": 352,
+          "h": 720,
+          "fill": "rgba(15,23,42,.16)",
+          "radius": 57.8,
+          "in": {
+            "kind": "pop",
+            "ease": "out",
+            "dur": 0.5
+          },
+          "at": 0.3
+        },
+        {
+          "id": "dt-vo",
+          "kind": "panel",
+          "x": 190,
+          "y": 266,
+          "w": 340,
+          "h": 708,
+          "fill": "#0f172a",
+          "radius": 52.7,
+          "in": {
+            "kind": "pop",
+            "ease": "out",
+            "dur": 0.5
+          },
+          "at": 0.3
+        },
+        {
+          "id": "dt-man",
+          "kind": "image",
+          "x": 202,
+          "y": -9021,
+          "w": 316,
+          "h": 684,
+          "src": "public/image/ttindex-dien-thoai.png",
+          "radius": 40.8,
+          "fit": "cover",
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.5
+          },
+          "at": 0.46
+        },
+        {
+          "id": "dt-tai",
+          "kind": "panel",
+          "x": 302,
+          "y": 277,
+          "w": 116,
+          "h": 27,
+          "fill": "#0f172a",
+          "radius": 13.46,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.5
+        },
+        {
+          "id": "l7-n",
+          "kind": "panel",
+          "x": 87,
+          "y": 1078,
+          "w": 546,
+          "h": 58,
+          "fill": "#101725",
+          "radius": 29,
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.4
+          },
+          "at": 0.9
+        },
+        {
+          "id": "l7-c",
+          "kind": "text",
+          "x": 87,
+          "y": 1096,
+          "w": 546,
+          "h": 22,
+          "text": "Cùng một link — điện thoại mở cũng chạy",
+          "size": 20,
+          "align": "center",
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.45
+          },
+          "at": 0.94,
+          "ink": "#ffffff"
+        }
+      ],
+      "cameraMove": 0.7
+    }
+  ]
+}

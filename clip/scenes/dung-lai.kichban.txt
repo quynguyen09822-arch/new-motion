@@ -1,0 +1,26 @@
+KHUNG: ngang
+NHỊP: trôi
+MÀU: nền #050608, nhấn #7fa8b0, chữ #e8eef0
+CẢNH 1 — 2.25 giây
+Bố cục: giữa khung
+
+CẢNH 2 — 1 giây
+Hình: vệt sáng quét chéo
+
+CẢNH 3 — 3.25 giây
+Chữ: "Ngân sách lớn"
+
+CẢNH 4 — 2 giây
+Hình: vệt sáng quét chéo
+
+CẢNH 5 — 3 giây
+Bố cục: giữa khung
+
+CẢNH 6 — 3.25 giây
+Chữ: "Đáng Nhớ"
+
+CẢNH 7 — 1.5 giây
+Hình: vệt sáng quét chéo
+
+CẢNH 8 — 1 giây
+Bố cục: giữa khung

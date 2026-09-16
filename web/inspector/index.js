@@ -6,6 +6,7 @@
  */
 import { DEM_TRONG, HUONG_DAN_CHUNG, HUONG_DAN_MAU, KHE_HO, KHO_CHO, KHO_DA, KHO_RA, KHO_VAO, MAU_MAT_BAO, NHAN_KHE_HO, NUM_HIEU_UNG, NUM_MAU, NUM_RIENG, TEN_LOAI } from './schema.js';
 import { taoNum } from './fields.js';
+import { cungTiLe, doiKhoHinh, khoGoiY } from '../khohinh.js';
 import { huongDanChung } from '../huongdan.js';
 import { duongDanMon, timCanh, timMon } from '../store.js';
 
@@ -54,6 +55,100 @@ export function taoBang(boc, kho, player) {
 
   const datMeta = (nhan, truong, v) =>
     kho.sua(nhan, (doc) => { doc.meta[truong] = v; });
+
+  /**
+   * KHỔ HÌNH — đổi độ lớn của clip, GIỮ NGUYÊN tỉ lệ.
+   *
+   * Chỉ cho đổi trong cùng một tỉ lệ, vì phép này là nhân một hệ số: 1280×720 →
+   * 1920×1080 thì mọi món giữ nguyên chỗ tương đối, không món nào thò ra, không
+   * chữ nào bé đi. Sang tỉ lệ khác thì phép nhân sai hẳn — đo trên 11 clip:
+   * 68% khung thành dải trống và 301 món chữ tụt dưới 11px. Đó là việc xếp lại
+   * bố cục, chưa làm; nên ô tự do KHÔNG im lặng bóp méo clip mà nói thẳng ra.
+   */
+  function veKhoHinh(doc) {
+    const boc2 = el('div');
+    const W = doc.meta.width, H = doc.meta.height;
+    boc2.appendChild(el('p', 'nhac',
+      `${W} × ${H} — ${H > W ? 'dọc' : 'ngang'} · tỉ lệ ${tiLeGon(W, H)}`));
+
+    const num = el('div', 'num');
+    num.appendChild(el('label', 'num-nhan', 'Đổi độ lớn'));
+    const oChon = el('select', 'o-nhap');
+    for (const k of khoGoiY(W, H)) {
+      const o = el('option', null, k.ten + (k.w === W && k.h === H ? '  (đang dùng)' : ''));
+      o.value = `${k.w}x${k.h}`;
+      oChon.appendChild(o);
+    }
+    const tuDo = el('option', null, 'Khổ tự do…');
+    tuDo.value = 'tu-do';
+    oChon.appendChild(tuDo);
+    oChon.value = `${W}x${H}`;
+    num.appendChild(oChon);
+    boc2.appendChild(num);
+
+    const hang = el('div', 'cap');
+    const oR = el('input', 'o-nhap o-so'); oR.type = 'number'; oR.min = '16'; oR.value = W;
+    const oC = el('input', 'o-nhap o-so'); oC.type = 'number'; oC.min = '16'; oC.value = H;
+    for (const [nhan, o] of [['Bề rộng', oR], ['Chiều cao', oC]]) {
+      const n = el('div', 'num');
+      n.appendChild(el('label', 'num-nhan', nhan));
+      n.appendChild(o);
+      hang.appendChild(n);
+    }
+    hang.classList.add('an');
+    boc2.appendChild(hang);
+
+    const bao = el('p', 'num-goi kho-bao');
+    const nut = el('button', 'nut nho rong', 'Đổi khổ');
+    nut.type = 'button';
+    nut.classList.add('an');
+
+    const dinh = () => {
+      const tu = oChon.value === 'tu-do';
+      hang.classList.toggle('an', !tu);
+      const r = tu ? Number(oR.value) : Number(oChon.value.split('x')[0]);
+      const c = tu ? Number(oC.value) : Number(oChon.value.split('x')[1]);
+      const doi = r !== W || c !== H;
+      nut.classList.toggle('an', !doi);
+      if (!doi) { bao.textContent = ''; return; }
+      if (!cungTiLe(W, H, r, c)) {
+        bao.textContent = `Khổ ${r}×${c} khác tỉ lệ so với ${W}×${H} — bố cục sẽ vỡ, `
+          + 'nên chỗ này chưa cho đổi. Phải xếp lại bố cục chứ không nhân một số được.';
+        nut.disabled = true;
+        return;
+      }
+      nut.disabled = false;
+      const s2 = r / W;
+      bao.textContent = `Mọi toạ độ và cỡ chữ nhân ${s2.toFixed(2)}× · bố cục giữ nguyên · hoàn tác được.`;
+    };
+    oChon.onchange = dinh;
+    oR.oninput = dinh; oC.oninput = dinh;
+    dinh();
+
+    nut.onclick = () => {
+      const tu = oChon.value === 'tu-do';
+      const r = tu ? Number(oR.value) : Number(oChon.value.split('x')[0]);
+      const c = tu ? Number(oC.value) : Number(oChon.value.split('x')[1]);
+      let kq = null;
+      kho.sua(`đổi khổ hình sang ${r}×${c}`, (d) => { kq = doiKhoHinh(d, r, c); });
+      if (!kq?.ok) { bao.textContent = kq?.ly || 'Không đổi được.'; return; }
+      /* Vẽ lại cả bảng: dòng "1280 × 720 — ngang" và danh sách khổ gợi ý đều
+         tính từ meta cũ, không vẽ lại là bảng nói sai khổ vừa đổi xong. Kho báo
+         `sua` nhưng bảng thuộc tính không tự vẽ lại theo meta. */
+      ve();
+      const n2 = boc.querySelector('.kho-bao');
+      if (n2) n2.textContent = `Xong — ${r}×${c}, nhân ${kq.s.toFixed(2)}×. Hoàn tác được.`;
+    };
+    boc2.append(nut, bao);
+    return boc2;
+  }
+
+  /** 1280×720 → "16:9". Rút gọn bằng ước chung lớn nhất. */
+  function tiLeGon(w, h) {
+    const uc = (a, b) => (b ? uc(b, a % b) : a);
+    const g = uc(w, h) || 1;
+    return `${Math.round(w / g)}:${Math.round(h / g)}`;
+  }
 
   function muc(ten) {
     const m = el('section', 'muc');
@@ -311,7 +406,7 @@ export function taoBang(boc, kho, player) {
       boc.appendChild(m);
 
       const m2 = muc('Khổ hình');
-      m2.appendChild(el('p', 'nhac', `${doc.meta.width} × ${doc.meta.height} — ${doc.meta.height > doc.meta.width ? 'dọc' : 'ngang'}`));
+      m2.appendChild(veKhoHinh(doc));
       m2.appendChild(taoNum({ id: 'density', nhan: 'Độ thoáng cả clip', kieu: 'so',
         min: 0.6, max: 1.6, buoc: 0.05,
         goi: 'một núm làm mọi khoảng cách trong clip giãn ra hoặc chặt lại' },

@@ -1,0 +1,16 @@
+KHUNG: dọc
+THƯƠNG HIỆU: travel.icu
+NHỊP: trôi
+MÀU: nền #f3f4f7, nhấn #2f6bff, nhấn 2 #6b4bf0, chữ #161f3c, nóng #f2701f, nóng 2 #e42a24
+NỀN: nền thương hiệu, sóng thấp
+
+CẢNH 1 — 6 giây
+Bố cục: giữa khung
+Hình: huy hiệu, quỹ đạo, nút bấm, ảnh
+Dấu: cúp
+Tâm: ô tìm kiếm
+Logo: public/icu-logo.svg
+Chữ: Tìm tên miền [[logo]] | **của riêng bạn**
+Phụ: cùng **Mắt Bão** ngay hôm nay
+Nút: Khám phá ngay
+Ảnh: public/mat-bao-dau.png · public/icu-logo.svg

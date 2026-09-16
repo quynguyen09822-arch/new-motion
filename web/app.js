@@ -23,6 +23,7 @@ import { taoKhung } from './khung.js';
 import { taoBangVideo } from './videos.js';
 import { taoZoom } from './zoom.js';
 import { taoAnhNho } from './anhnho.js';
+import { taoKeoCot } from './cot.js';
 
 const $ = (id) => document.getElementById(id);
 const chonClip = $('chon-clip'), dangClip = $('dang-clip'), dsCanhEl = $('ds-canh');
@@ -181,6 +182,14 @@ kho.khiDoi((viec) => {
   nutLui.title = kho.nhanLui() ? `Hoàn tác: ${kho.nhanLui()}` : 'Không có gì để hoàn tác';
   nutToi.title = kho.nhanToi() ? `Làm lại: ${kho.nhanToi()}` : 'Không có gì để làm lại';
   dauBan.classList.toggle('an', !kho.ban());
+
+  /* Viên khổ hình trên thanh trên đọc từ danh sách clip lúc mở, nên sau khi đổi
+     khổ nó nói sai. Lấy lại từ kịch bản đang sửa — đó mới là sự thật. */
+  const m = kho.doc()?.meta;
+  if (m?.width && m?.height && clipDangMo?.doi === 2) {
+    dangClip.textContent = `${m.width}×${m.height}`;
+    bocKhung.style.setProperty('--ti-le', `${m.width} / ${m.height}`);
+  }
 });
 
 /* ---------- thêm · xoá · nhân bản ---------- */
@@ -458,6 +467,30 @@ function thoiKhoTho() {
 }
 
 addEventListener('resize', () => { if (clipDangMo && clipDangMo.doi !== 2) vuaKhoTho(); });
+
+/* ---------- kéo đổi bề rộng hai cột ---------- */
+taoKeoCot($('app'), document.querySelector('.than'), () => {
+  if (clipDangMo && clipDangMo.doi !== 2) vuaKhoTho();
+});
+
+/*
+ * KHUNG XEM ĐỔI CỠ → VẼ LẠI LỚP PHỦ.
+ *
+ * Lớp phủ vẽ khung chọn nằm ở TRANG CHA và dùng thẳng toạ độ đọc được trong
+ * iframe. Khung xem hẹp đi thì bộ dựng bên trong tự thu lại cho vừa, toạ độ ấy
+ * đổi hết — không vẽ lại là khung xanh đứng nguyên chỗ cũ, lệch khỏi món.
+ *
+ * Vì sao phải là `ResizeObserver` chứ không gọi thẳng lúc kéo: bộ dựng trong
+ * iframe chỉ thu lại khi CHÍNH NÓ nhận sự kiện đổi cỡ, và việc đó xảy ra SAU
+ * nhịp hình của trang cha. Gọi ngay lúc kéo là đo phải cỡ cũ — đã mắc, lệch
+ * 4,3×1,7px, đủ để nhìn thấy mà không đủ để ngờ. Chờ hai nhịp hình cho bên
+ * trong lắng xuống rồi mới đo.
+ */
+new ResizeObserver(() => {
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    if (chon?.monId) veLopPhu();
+  }));
+}).observe(bocKhung);
 
 function khoaDieuKhien(khoa) {
   nutChay.disabled = khoa; thanhTua.disabled = khoa;

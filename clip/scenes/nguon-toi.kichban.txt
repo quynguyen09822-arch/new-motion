@@ -1,0 +1,28 @@
+KHUNG: ngang
+THƯƠNG HIỆU: Vibe Host
+NHỊP: trôi
+MÀU: nền #0d1a22, nhấn #4fa3b8, chữ #c6d4d6
+CẢNH 1 — 3 giây
+Hình: logo hiện dần
+Chữ: "Bảng điều khiển *tối giản*"
+
+CẢNH 2 — 4 giây
+Hình: trình duyệt mở trang
+Chữ: "Mở lên là *thấy ngay*"
+Phụ: Không phải học, không phải cài
+
+CẢNH 3 — 3.5 giây
+Hình: dashboard danh sách và chip
+Chữ: "Số liệu *cập nhật liên tục*"
+
+CẢNH 4 — 4 giây
+Hình: biểu mẫu và con trỏ bấm vào
+Chữ: "Chỉnh gì cũng *một chỗ*"
+
+CẢNH 5 — 3 giây
+Hình: khiên bảo mật
+Chữ: "Dữ liệu *đặt tại Việt Nam*"
+
+CẢNH 6 — 3 giây
+Hình: logo
+Chữ: "Vibe Host"

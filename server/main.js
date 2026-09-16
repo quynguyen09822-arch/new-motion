@@ -75,6 +75,15 @@ const server = http.createServer(async (req, res) => {
     }
 
     /* ---------- API ---------- */
+    /*
+     * Nhịp tim cho bộ triển khai. Phải RẺ và KHÔNG chạm đĩa nặng: Vibe Host gọi
+     * nó liên tục, mà `danhSachClip()` thì đọc cả thư mục scenes rồi soát từng
+     * file. Chỉ trả lời "tôi còn sống", không hứa gì hơn.
+     */
+    if (p === '/health' || p === '/api/health') {
+      return json(res, 200, { ok: true, up: Math.round(process.uptime()) });
+    }
+
     if (p === '/api/clips' && req.method === 'GET') {
       const ds = await danhSachClip();
       return json(res, 200, { ok: true, clips: ds.map((c) => ({ ...c, xem: duongDanXem(c) })) });

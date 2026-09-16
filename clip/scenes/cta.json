@@ -1,0 +1,179 @@
+{
+  "version": 1,
+  "meta": {
+    "name": "cta",
+    "width": 720,
+    "height": 1280,
+    "density": 1,
+    "bg": "#f3f4f7",
+    "accent": "#2f6bff",
+    "accent2": "#6b4bf0",
+    "hot": "#f2701f",
+    "hot2": "#e42a24",
+    "ink": "#161f3c"
+  },
+  "scenes": [
+    {
+      "id": "canh-1",
+      "duration": 6,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.012
+      },
+      "cameraMove": 1.6,
+      "cameraEase": "inOut",
+      "elements": [
+        {
+          "kind": "nen",
+          "id": "nen-1",
+          "x": 0,
+          "y": 0,
+          "place": "day",
+          "parts": [
+            "cham",
+            "net",
+            "khoi",
+            "song",
+            "duong"
+          ],
+          "draw": 1.3,
+          "waveLow": true,
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.5
+          }
+        },
+        {
+          "kind": "group",
+          "id": "nhom-khoi-1",
+          "x": 0,
+          "y": 0,
+          "place": "giua",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 4,
+          "children": [
+            {
+              "id": "huyhieu-1-0",
+              "x": 0,
+              "y": 0,
+              "at": 0,
+              "in": {
+                "kind": "pop",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "huyhieu",
+              "w": 99,
+              "h": 99,
+              "mark": "cup"
+            },
+            {
+              "kind": "text",
+              "id": "chu-1",
+              "x": 0,
+              "y": 0,
+              "w": 648,
+              "text": "Tìm tên miền [[public/icu-logo.svg]] | **của riêng bạn**",
+              "sub": "cùng **Mắt Bão** ngay hôm nay",
+              "rule": true,
+              "subScale": 0.6,
+              "size": 60,
+              "align": "center",
+              "gap": 4,
+              "lineStagger": 0.12,
+              "in": {
+                "kind": "none",
+                "dur": 0.001
+              }
+            },
+            {
+              "id": "quydao-1-1",
+              "x": 0,
+              "y": 0,
+              "at": 0.12,
+              "in": {
+                "kind": "pop",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "quydao",
+              "w": 662,
+              "h": 530,
+              "core": "tim",
+              "label": "travel.icu",
+              "logo": "public/icu-logo.svg",
+              "warm": true
+            },
+            {
+              "id": "nut-1-2",
+              "x": 0,
+              "y": 0,
+              "at": 0.24,
+              "in": {
+                "kind": "pop",
+                "ease": "back",
+                "dur": 0.6
+              },
+              "kind": "nut",
+              "label": "Khám phá ngay",
+              "size": 36
+            },
+            {
+              "kind": "group",
+              "id": "image-1-3-hang",
+              "x": 0,
+              "y": 0,
+              "dir": "ngang",
+              "align": "giua",
+              "justify": "giua",
+              "gap": 5,
+              "children": [
+                {
+                  "id": "image-1-3-0",
+                  "x": 0,
+                  "y": 0,
+                  "at": 0.36,
+                  "in": {
+                    "kind": "fade",
+                    "ease": "out",
+                    "dur": 0.6
+                  },
+                  "kind": "image",
+                  "h": 74,
+                  "src": "public/mat-bao-dau.png",
+                  "radius": 0,
+                  "fit": "contain",
+                  "glow": true,
+                  "shine": 2.4
+                },
+                {
+                  "id": "image-1-3-1",
+                  "x": 0,
+                  "y": 0,
+                  "at": 0.48,
+                  "in": {
+                    "kind": "fade",
+                    "ease": "out",
+                    "dur": 0.6
+                  },
+                  "kind": "image",
+                  "h": 74,
+                  "src": "public/icu-logo.svg",
+                  "radius": 0,
+                  "fit": "contain",
+                  "glow": true,
+                  "shine": 2.4
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

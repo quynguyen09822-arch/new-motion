@@ -1,0 +1,524 @@
+{
+  "version": 1,
+  "meta": {
+    "name": "vibe-host",
+    "width": 720,
+    "height": 1280,
+    "density": 1,
+    "bg": "#0a0b10",
+    "accent": "#ff6a1f",
+    "ink": "#16181d"
+  },
+  "scenes": [
+    {
+      "id": "canh-1",
+      "duration": 4,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.012
+      },
+      "cameraMove": 1.6,
+      "cameraEase": "inOut",
+      "elements": [
+        {
+          "kind": "group",
+          "id": "nhom-khoi-1",
+          "x": 0,
+          "y": 0,
+          "place": "giua",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "kind": "text",
+              "id": "chu-1",
+              "x": 0,
+              "y": 0,
+              "w": 374,
+              "text": "Làm trang minigame *hút khách*",
+              "sub": "Cho riêng bạn, trong vài phút",
+              "subScale": 0.6,
+              "size": 96,
+              "align": "left",
+              "gap": 3,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.55
+              }
+            },
+            {
+              "id": "wheel-1-0",
+              "x": 0,
+              "y": 0,
+              "at": 0,
+              "in": {
+                "kind": "pop",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "wheel",
+              "w": 374,
+              "h": 374,
+              "slices": 10,
+              "label": "QUAY\nNGAY",
+              "spin": 18
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "canh-2",
+      "duration": 5,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.024
+      },
+      "cameraMove": 1.6,
+      "cameraEase": "inOut",
+      "elements": [
+        {
+          "kind": "group",
+          "id": "nhom-khoi-2",
+          "x": 0,
+          "y": 0,
+          "place": "giua",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "kind": "text",
+              "id": "chu-2",
+              "x": 0,
+              "y": 0,
+              "w": 374,
+              "text": "Vòng quay may mắn *đổi lấy thông tin*",
+              "size": 96,
+              "align": "left",
+              "gap": 3,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.55
+              }
+            },
+            {
+              "id": "wheel-2-0",
+              "x": 0,
+              "y": 0,
+              "at": 0,
+              "in": {
+                "kind": "pop",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "wheel",
+              "w": 374,
+              "h": 374,
+              "slices": 10,
+              "label": "QUAY\nNGAY",
+              "spin": 18
+            },
+            {
+              "id": "card-2-1",
+              "x": 0,
+              "y": 0,
+              "at": 0.12,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "card",
+              "w": 446,
+              "title": "Vòng quay may mắn đổi lấy…",
+              "rows": 3,
+              "button": "Xong",
+              "pad": 5,
+              "gap": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "canh-3",
+      "duration": 5,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.036
+      },
+      "cameraMove": 1.6,
+      "cameraEase": "inOut",
+      "elements": [
+        {
+          "kind": "group",
+          "id": "nhom-khoi-3",
+          "x": 0,
+          "y": 0,
+          "place": "giua",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "kind": "text",
+              "id": "chu-3",
+              "x": 0,
+              "y": 0,
+              "w": 374,
+              "text": "Kể ý tưởng cho *công cụ AI*",
+              "size": 96,
+              "align": "left",
+              "gap": 3,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.55
+              }
+            },
+            {
+              "id": "chat-3-0",
+              "x": 0,
+              "y": 0,
+              "at": 0,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "chat",
+              "w": 446,
+              "h": 384,
+              "title": "Trợ lý AI",
+              "lines": [
+                "Xin chào! Bạn muốn dựng trang gì?"
+              ],
+              "typing": "Làm giúp tôi một vòng quay may mắn…",
+              "pad": 4,
+              "gap": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "canh-4",
+      "duration": 8,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.048
+      },
+      "cameraMove": 1.6,
+      "cameraEase": "inOut",
+      "elements": [
+        {
+          "kind": "group",
+          "id": "nhom-khoi-4",
+          "x": 0,
+          "y": 0,
+          "place": "giua",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "kind": "text",
+              "id": "chu-4",
+              "x": 0,
+              "y": 0,
+              "w": 374,
+              "text": "AI dựng xong *trang tương tác*",
+              "size": 96,
+              "align": "left",
+              "gap": 3,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.55
+              }
+            },
+            {
+              "id": "browser-4-0",
+              "x": 0,
+              "y": 0,
+              "at": 0,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "browser",
+              "w": 446,
+              "h": 321,
+              "url": "https://trang-cua-ban.vn"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "canh-5",
+      "duration": 8,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.048
+      },
+      "cameraMove": 1.6,
+      "cameraEase": "inOut",
+      "elements": [
+        {
+          "kind": "group",
+          "id": "nhom-khoi-5",
+          "x": 0,
+          "y": 0,
+          "place": "giua",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "kind": "text",
+              "id": "chu-5",
+              "x": 0,
+              "y": 0,
+              "w": 374,
+              "text": "Kéo lên là *lên mạng*",
+              "sub": "SSL và tên miền riêng có sẵn",
+              "subScale": 0.6,
+              "size": 96,
+              "align": "left",
+              "gap": 3,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.55
+              }
+            },
+            {
+              "id": "upload-5-0",
+              "x": 0,
+              "y": 0,
+              "at": 0,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "upload",
+              "w": 446,
+              "h": 294,
+              "label": "Kéo file lên Vibe Host",
+              "file": "trang-vong-quay.zip",
+              "pad": 5,
+              "gap": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "canh-6",
+      "duration": 10,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.048
+      },
+      "cameraMove": 1.6,
+      "cameraEase": "inOut",
+      "elements": [
+        {
+          "kind": "group",
+          "id": "nhom-khoi-6",
+          "x": 0,
+          "y": 0,
+          "place": "giua",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "kind": "text",
+              "id": "chu-6",
+              "x": 0,
+              "y": 0,
+              "w": 374,
+              "text": "Ai đã chơi? *Có hết trên dashboard*",
+              "size": 96,
+              "align": "left",
+              "gap": 3,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.55
+              }
+            },
+            {
+              "id": "table-6-0",
+              "x": 0,
+              "y": 0,
+              "at": 0,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "table",
+              "w": 446,
+              "columns": [
+                "Người chơi",
+                "Điện thoại",
+                "Lúc"
+              ],
+              "rows": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "canh-7",
+      "duration": 6,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.048
+      },
+      "cameraMove": 1.6,
+      "cameraEase": "inOut",
+      "elements": [
+        {
+          "kind": "group",
+          "id": "nhom-khoi-7",
+          "x": 0,
+          "y": 0,
+          "place": "giua",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "kind": "text",
+              "id": "chu-7",
+              "x": 0,
+              "y": 0,
+              "w": 374,
+              "text": "Bảo mật chuẩn ngân hàng, *đặt tại Việt Nam*",
+              "size": 96,
+              "align": "left",
+              "gap": 3,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.55
+              }
+            },
+            {
+              "id": "shield-7-0",
+              "x": 0,
+              "y": 0,
+              "at": 0,
+              "in": {
+                "kind": "pop",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "shield",
+              "w": 317,
+              "mark": "🔒",
+              "badges": [
+                "Chuẩn ngân hàng",
+                "Dữ liệu tại Việt Nam",
+                "SSL"
+              ],
+              "gap": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "canh-8",
+      "duration": 4,
+      "stagger": 0.16,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "scale": 1.048
+      },
+      "cameraMove": 1.6,
+      "cameraEase": "inOut",
+      "elements": [
+        {
+          "kind": "group",
+          "id": "nhom-khoi-8",
+          "x": 0,
+          "y": 0,
+          "place": "giua",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "kind": "text",
+              "id": "chu-8",
+              "x": 0,
+              "y": 0,
+              "w": 374,
+              "text": "Ý tưởng nào cũng *lên mạng được*",
+              "size": 96,
+              "align": "left",
+              "gap": 3,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.55
+              }
+            },
+            {
+              "id": "logo-8-0",
+              "x": 0,
+              "y": 0,
+              "at": 0,
+              "in": {
+                "kind": "pop",
+                "ease": "out",
+                "dur": 0.6
+              },
+              "kind": "logo",
+              "name": "Vibe Host",
+              "mark": "◆",
+              "w": 446,
+              "size": 77,
+              "gap": 3
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
