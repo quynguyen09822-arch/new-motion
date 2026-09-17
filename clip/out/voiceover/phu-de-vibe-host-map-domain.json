@@ -1,0 +1,87 @@
+[
+ {
+  "tu": 0.65,
+  "den": 3.05,
+  "loi": "Nhưng địa chỉ vẫn là một tên miền tạm thời."
+ },
+ {
+  "tu": 3.65,
+  "den": 8.402,
+  "loi": "Để khách vào đúng tên miền thương hiệu, còn một bước: kết nối tên miền riêng."
+ },
+ {
+  "tu": 8.8,
+  "den": 11.728,
+  "loi": "Ở trang quản lý, bạn mở website muốn gắn tên miền."
+ },
+ {
+  "tu": 12.75,
+  "den": 14.886,
+  "loi": "Trong mục Tên miền, chọn Chỉnh sửa."
+ },
+ {
+  "tu": 15.75,
+  "den": 19.71,
+  "loi": "Cửa sổ Tên miền hiện ra, kèm địa chỉ tạm thời mà hệ thống cấp sẵn."
+ },
+ {
+  "tu": 20.55,
+  "den": 26.046,
+  "loi": "Bấm Thêm để bắt đầu, rồi nhập tên miền của bạn và bấm Tiếp tục."
+ },
+ {
+  "tu": 26.8,
+  "den": 30.952,
+  "loi": "Vibe Host đưa ra đúng thông số cần khai báo bên nhà cung cấp tên miền."
+ },
+ {
+  "tu": 31.4,
+  "den": 37.448,
+  "loi": "Ở đây là một bản ghi CNAME: bên trái là tên bản ghi, bên phải là giá trị cần khai báo."
+ },
+ {
+  "tu": 38.1,
+  "den": 45.036,
+  "loi": "Muốn dùng tên miền chính, bạn tạo bản ghi A cho tên miền gốc, giá trị là địa chỉ IP của Vibe Host."
+ },
+ {
+  "tu": 45.7,
+  "den": 51.34,
+  "loi": "Còn địa chỉ ba chữ vê kép ở đầu thì bạn tạo bản ghi CNAME, giá trị là địa chỉ tạm thời."
+ },
+ {
+  "tu": 52.1,
+  "den": 56.9,
+  "loi": "Khai báo xong, bạn quay lại Vibe Host và bấm Kiểm tra DNS."
+ },
+ {
+  "tu": 57.5,
+  "den": 60.404,
+  "loi": "Hệ thống tự dò và xác nhận tên miền đã chọn đúng."
+ },
+ {
+  "tu": 61.1,
+  "den": 67.196,
+  "loi": "Ngay sau đó, chứng chỉ bảo mật miễn phí được cấp tự động, website chạy an toàn trên HTTPS."
+ },
+ {
+  "tu": 67.9,
+  "den": 70.06,
+  "loi": "Bạn không phải cài đặt gì thêm."
+ },
+ {
+  "tu": 70.7,
+  "den": 74.132,
+  "loi": "Trạng thái chuyển sang Hoạt động, tên miền riêng đã sẵn sàng."
+ },
+ {
+  "tu": 74.9,
+  "den": 79.604,
+  "loi": "Tên miền, DNS, rồi chứng chỉ SSL, tất cả trong một luồng."
+ },
+ {
+  "tu": 80.4,
+  "den": 83.688,
+  "loi": "Vậy là xong, chỉ vài thao tác là website chạy trên tên miền riêng."
+ }
+]

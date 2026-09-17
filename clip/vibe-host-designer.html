@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>VH-04 · Designer / Freelancer — gửi link, đừng gửi file</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--cam:#f25c05;--cam-2:#ff8a3d;--muc:#0f1722;--xam:#5b6676;--luc:#16a34a}
+*{box-sizing:border-box;margin:0}
+body{background:#11151b;font-family:'Be Vietnam Pro',system-ui,sans-serif;color:#fff;
+  display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px 0 0}
+body.exporting{background:#fff;padding:0;gap:0}
+body.exporting #ui,body.exporting #chaps{display:none}
+
+/* sân khấu 9:16 — bộ ảnh 941×1672 đã là khung dọc, không có bản ngang */
+#stage{position:relative;overflow:hidden;background:#fff;transform-origin:top left;flex:none}
+.sc{position:absolute;inset:0;will-change:opacity}
+.kb{position:absolute;inset:0;transform-origin:0 0;will-change:transform}
+.kb>img{position:absolute;left:0;top:0;image-rendering:-webkit-optimize-contrast}
+.xoa{position:absolute;pointer-events:none}
+.vong{position:absolute;border:3px solid var(--cam);border-radius:12px;
+  box-shadow:0 0 0 4px rgba(242,92,5,.16),0 10px 34px rgba(242,92,5,.22);
+  pointer-events:none;will-change:opacity,transform}
+.che{position:absolute;will-change:transform,opacity}
+
+#khoi{position:absolute;left:0;right:0;bottom:0;padding:0 56px 250px;pointer-events:none}
+#nen{position:absolute;left:0;right:0;bottom:0;height:430px;pointer-events:none;
+  background:linear-gradient(to top,rgba(255,255,255,.97) 24%,rgba(255,255,255,.86) 56%,transparent 100%)}
+#gach{width:56px;height:5px;border-radius:99px;background:linear-gradient(90deg,var(--cam-2),var(--cam));
+  margin-bottom:14px;will-change:transform,opacity}
+#c1{font-size:38px;font-weight:700;line-height:1.14;letter-spacing:-.02em;color:var(--muc);
+  will-change:transform,opacity}
+#c1 em{font-style:normal;color:var(--cam)}
+#c1 b.luc{font-weight:700;color:var(--luc)}
+#c2{margin-top:9px;font-size:20px;font-weight:500;line-height:1.3;color:var(--xam);
+  will-change:transform,opacity}
+
+#pd{position:absolute;left:54px;right:54px;bottom:132px;text-align:center;pointer-events:none}
+#pd span{display:inline-block;padding:7px 15px;border-radius:12px;
+  background:rgba(14,20,28,.82);font-size:23px;font-weight:600;line-height:1.3;color:#fff;
+  text-shadow:0 2px 10px rgba(0,0,0,.5)}
+
+#ui{display:flex;gap:12px;align-items:center;font-size:13px}
+#ui button{background:#20293a;color:#fff;border:0;border-radius:8px;padding:7px 14px;cursor:pointer}
+#scrub{width:520px}
+#chaps{display:flex;flex-wrap:wrap;gap:6px;max-width:1000px;justify-content:center}
+#chaps button{background:#1b2331;color:#c9d3e2;border:0;border-radius:7px;padding:5px 10px;
+  font-size:12px;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="nen"></div>
+  <div id="khoi"><div id="gach"></div><div id="c1"></div><div id="c2"></div></div>
+  <div id="pd"><span></span></div>
+</div>
+<div id="ui">
+  <button id="btnPlay">▶ Chạy</button>
+  <input id="scrub" type="range" min="0" max="50" step="0.01" value="0">
+  <span id="tnum">0.00 / 50.00s</span>
+</div>
+<div id="chaps"></div>
+
+<script>
+(()=>{
+/* ==========================================================================
+   VH-04 · DESIGNER & FREELANCER — GỬI LINK, ĐỪNG GỬI FILE
+
+   Dựng theo:
+     public/kich-ban/VH-04-Designer-Freelancer-Portfolio.md              (câu chuyện)
+     public/kich-ban/Dinh-huong-motion/VH04_HTML_UI_Animation_Guide.md   (nhịp, motion)
+     public/image/hinh-kich-ban-04/  (7 tấm, 941×1672 — mỗi tấm một cảnh)
+
+   OUTRO KHÔNG NẰM TRONG TRANG NÀY. `public/video/outro.mp4` là video brand có
+   sẵn (1920×1080, HEVC, 6,04s, không tiếng) — ghép ở khâu ffmpeg sau khi xuất
+   hình, không nhét <video> vào trang: Chromium hay không giải mã nổi HEVC, mà
+   bộ xuất hình thì hứng khung theo thời gian thật nên video trong trang rất dễ
+   lệch nhịp. Xem `tools/ghep-outro.sh`.
+
+   Bản định hướng gợi ý dựng lại toàn bộ UI bằng HTML/CSS/JS. Ở đây KHÔNG làm
+   vậy: 7 tấm storyboard chính là thiết kế đã duyệt, nên dựng lại bằng HTML là
+   vẽ lại giao diện — đúng thứ mục 14 của bản định hướng cấm. Thay vào đó dùng
+   cách của VH-03: PHỦ rồi HÉ DẦN chính điểm ảnh có sẵn, nên phông chữ, màu,
+   bóng đổ khớp tuyệt đối với thiết kế.
+
+   Mọi thứ tính từ MỘT biến thời gian `t` — không CSS transition, không
+   @keyframes — để tua tới đâu vẽ đúng tới đó.
+   ========================================================================== */
+const DUR=50.0;
+const NEN_W=720, NEN_H=1280;
+const ST_W=720, ST_H=1280;              /* xuất 1080×1920 là ×1.5 */
+const IMG_W=941, IMG_H=1672;
+const KX=NEN_W/IMG_W, KY=NEN_H/IMG_H;
+const MK='public/image/hinh-kich-ban-04/';
+const ANH=[
+ 'ChatGPT Image Sep 4, 2026, 04_46_29 PM (1).png',   /* 0 · S01 portfolio đang chạy */
+ 'ChatGPT Image Sep 4, 2026, 04_46_29 PM (2).png',   /* 1 · S02 email nặng → link */
+ 'ChatGPT Image Sep 4, 2026, 04_46_30 PM (3).png',   /* 2 · S03 kéo zip lên Vibe Host */
+ 'ChatGPT Image Sep 4, 2026, 04_46_32 PM (4).png',   /* 3 · S04 tên miền riêng + SSL */
+ 'ChatGPT Image Sep 4, 2026, 04_46_32 PM (5).png',   /* 4 · S05 lịch sử phiên bản */
+ 'ChatGPT Image Sep 4, 2026, 04_46_33 PM (6).png',   /* 5 · S06 mở ở đâu cũng đúng */
+ 'ChatGPT Image Sep 4, 2026, 04_46_33 PM (7).png',   /* 6 · S07 thẻ kết */
+];
+
+const $=s=>document.querySelector(s);
+const el=(t,c,html)=>{const e=document.createElement(t);if(c)e.className=c;
+  if(html!=null)e.innerHTML=html;return e};
+const cl=(v,a,b)=>v<a?a:v>b?b:v;
+const tt=(t,a,b)=>b<=a?(t>=b?1:0):cl((t-a)/(b-a),0,1);
+const eOut=x=>1-Math.pow(1-x,3);
+const eIn=x=>x*x*x;
+const eIO=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+const lerp=(a,b,k)=>a+(b-a)*k;
+const seg=(t,a,b,e=eIO)=>e(tt(t,a,b));
+const pop=(t,a,b,v=.28,r=.32)=>Math.min(seg(t,a,a+v,eOut),1-seg(t,b-r,b,eIn));
+const px=v=>v.toFixed(2)+'px';
+const setO=(e,o)=>{e.style.opacity=o.toFixed(3);e.style.visibility=o<0.002?'hidden':'visible'};
+
+/* ==========================================================================
+   BẢNG CẢNH — mốc giờ lấy từ kịch bản (cũng chính là nhãn in trên mỗi tấm).
+   Bản định hướng đề xuất mốc khác một chút, nhưng kịch bản dặn rõ "S05 giữ đủ
+   12 giây, đừng cắt" nên theo kịch bản.
+
+   `v0`/`v1` là KHUNG NGẮM [x0,y0,x1,y1] theo toạ độ ảnh gốc 941×1672, khai đúng
+   tỉ lệ 9:16 để thấy đúng cái hộp đã khai. Nội dung mỗi tấm nằm gọn giữa nhãn
+   cảnh ở đỉnh và chú thích dưới chân, nên khung ngắm cắt trọn hai thứ đó ra —
+   không cần miếng che nào.
+   ========================================================================== */
+const SC=[
+ /* S01 · Hook — portfolio đang chạy thật trên trình duyệt */
+ {a: 0.0,b: 5.0, src:0, ten:'S01 Hook',
+  v0:[ 85, 222, 857,1595], v1:[ 99, 250, 843,1573],
+  c1:'', c2:''},
+
+ /* S02 · Gửi link, không gửi file */
+ {a: 5.0,b:11.0, src:1, ten:'S02 Gửi link',
+  v0:[ 70, 148, 872,1574], v1:[ 86, 530, 856,1899],
+  c1:'Gửi link · <em>không gửi file</em>', c2:''},
+
+ /* S03 · Kéo file nén lên Vibe Host */
+ {a:11.0,b:19.0, src:2, ten:'S03 Đưa lên mạng',
+  v0:[ 88,  97, 853,1457], v1:[102, 300, 839,1565],
+  c1:'<b class="luc">● Trực tuyến</b>', c2:'Vài phút là có địa chỉ dùng được'},
+
+ /* S04 · Tên miền riêng + chứng chỉ */
+ {a:19.0,b:28.0, src:3, ten:'S04 Tên miền riêng',
+  v0:[ 78, 110, 863,1505], v1:[ 92, 545, 849,1839],
+  c1:'<em>Tên của bạn</em> trên thanh địa chỉ', c2:''},
+
+ /* S05a · Khách đổi ý — hiện danh sách phiên bản */
+ {a:28.0,b:34.0, src:4, ten:'S05a Lịch sử phiên bản',
+  v0:[ 76, 110, 865,1512], v1:[ 88, 150, 853,1476],
+  c1:'', c2:''},
+
+ /* S05b · Chọn bản cũ, bấm khôi phục — cảnh đắt nhất của clip */
+ {a:34.0,b:40.0, src:4, ten:'S05b Khôi phục',
+  v0:[100, 400, 828,1694], v1:[112, 590, 832,1870],
+  c1:'Quay lại bản trước', c2:'một lần bấm'},
+
+ /* S06 · Mở ở đâu cũng đúng */
+ {a:40.0,b:46.0, src:5, ten:'S06 Khách xem',
+  v0:[ 57, 121, 884,1591], v1:[ 66, 380, 862,1795],
+  c1:'<em>Mở ở đâu</em> cũng đúng', c2:''},
+
+ /* S07 · Thẻ kết — tấm này đã có sẵn CTA và giá đúng như kịch bản yêu cầu */
+ {a:46.0,b:50.0, src:6, ten:'S07 Kết',
+  v0:[ 30, 120, 915,1693], v1:[ 38, 142, 907,1687],
+  c1:'', c2:''},
+];
+
+/* Cửa sổ hiện chữ tiêu đề của từng cảnh (giây). [0,0] = cảnh không có chữ. */
+/* Cửa sổ chữ tiêu đề đặt TRƯỚC nhịp khoe, không trùm lên nó: dải chữ chiếm
+   khoảng 66-80% chiều cao khung, đúng chỗ thanh địa chỉ / thẻ báo thành công rơi
+   vào ở cuối mỗi cảnh. Lần đầu để trùm thì bốn cảnh bị chữ đè lên đúng thứ cần
+   nhìn. */
+const CHU=[[0,0],[6.60,8.40],[15.40,17.00],[21.60,24.40],[0,0],[34.60,36.40],
+           [40.60,43.00],[0,0]];
+
+/* ==========================================================================
+   LỚP VẼ ĐÈ — PHỦ RỒI HÉ, không vẽ lại giao diện
+
+   Cùng cách của VH-03. Bốn kiểu dùng ở bản này:
+     che   miếng phủ co ngang về mép phải  → gõ chữ / thanh tiến trình chạy
+     mo    miếng phủ mờ đi                 → thẻ, dòng, dấu tick hiện ra
+     vong  vòng sáng cam                   → chỉ vào thành phần
+     (bản này không cần cheD/cheU vì không có biểu đồ cột)
+
+   [sc] = số thứ tự CẢNH trong SC (không phải số tấm): S05a và S05b dùng chung
+   tấm 4 nhưng mỗi cảnh một bộ lớp riêng.
+   box = [x0,y0,x1,y1] theo toạ độ ảnh gốc 941×1672. a,b = giây bắt đầu / xong.
+   a=99 nghĩa là KHÔNG BAO GIỜ hé — dùng khi cảnh trước phải giấu phần việc của
+   cảnh sau (hai cảnh chung một tấm thì cảnh trước thấy luôn việc của cảnh sau).
+   ========================================================================== */
+const LOP=[
+ /* ---- S01 · trang portfolio dựng dần: lời chào → ba tác phẩm → địa chỉ ---- */
+ {sc:0,k:'mo',  box:[160, 490, 792, 682], mau:'#fefefe', a:0.45,b:0.95},
+ {sc:0,k:'mo',  box:[172, 704, 786, 946], mau:'#fefefe', a:0.95,b:1.42},
+ {sc:0,k:'mo',  box:[172, 962, 786,1206], mau:'#fefefe', a:1.36,b:1.83},
+ {sc:0,k:'mo',  box:[172,1220, 786,1462], mau:'#fefefe', a:1.77,b:2.24},
+ {sc:0,k:'vong',box:[312, 244, 784, 306], a:3.20,b:4.70},
+
+ /* ---- S02 · thanh tải lên chạy tới 92% rồi khựng, lỗi đỏ, sau đó là link ---- */
+ /* Thanh tiến trình đã vẽ sẵn ở 92%. Phủ đoạn cuối rồi co miếng phủ về bên phải
+    là thanh "chạy" từ 70% lên 92% — đúng nhịp §5 của bản định hướng. */
+ {sc:1,k:'che', box:[583, 637, 678, 659], mau:'#fefefe', a:5.30,b:6.15},
+ {sc:1,k:'mo',  box:[698, 600, 750, 634], mau:'#fefefe', a:6.05,b:6.30},
+ {sc:1,k:'mo',  box:[112, 696, 458, 734], mau:'#fefefe', a:6.35,b:6.70},
+ {sc:1,k:'vong',box:[108, 692, 462, 738], a:6.85,b:8.10},
+ {sc:1,k:'mo',  box:[ 94,1354, 852,1456], mau:'#fefefe', a:8.70,b:9.20},
+ {sc:1,k:'mo',  box:[778,1386, 819,1426], mau:'#fefefe', a:9.30,b:9.55},
+
+ /* Miếng che dải chú thích in dưới chân tấm ("Gửi link · không gửi file"…).
+    Năm cảnh có khung ngắm kéo quá đáy nội dung để đẩy thứ cần khoe lên khỏi dải
+    chữ, nên chú thích sản xuất lọt vào khung — phải che. a=99 = che vĩnh viễn. */
+ {sc:1,k:'mo',  box:[  0,1588, 941,1672], mau:'#fefefe', a:99,b:99},
+
+ /* ---- S03 · kéo zip vào ô tải lên, ba dòng kiểm, rồi Trực tuyến ---- */
+ {sc:2,k:'vong',box:[201, 391, 362, 466], a:11.40,b:12.40},
+ {sc:2,k:'mo',  box:[300, 618, 470, 838], mau:'#fefefe', a:12.50,b:12.95},
+ {sc:2,k:'mo',  box:[426, 708, 464, 746], mau:'#fefefe', a:13.00,b:13.25},
+ {sc:2,k:'mo',  box:[276, 862, 510, 904], mau:'#fefefe', a:13.30,b:13.62},
+ {sc:2,k:'mo',  box:[591, 539, 866, 606], mau:'#fefefe', a:13.75,b:14.10},
+ {sc:2,k:'mo',  box:[591, 672, 866, 764], mau:'#fefefe', a:14.25,b:14.60},
+ {sc:2,k:'mo',  box:[591, 822, 866, 911], mau:'#fefefe', a:14.75,b:15.10},
+ {sc:2,k:'mo',  box:[374,1001, 666,1079], mau:'#fefefe', a:15.45,b:15.92},
+ {sc:2,k:'mo',  box:[234,1098, 836,1256], mau:'#fefefe', a:16.15,b:16.60},
+ {sc:2,k:'vong',box:[234,1194, 836,1256], a:17.00,b:18.50},
+
+ {sc:2,k:'mo',  box:[  0,1438, 941,1672], mau:'#fcfcfc', a:99,b:99},
+
+ /* ---- S04 · gõ tên miền, hai bản ghi tick, chứng chỉ, rồi thanh địa chỉ ---- */
+ {sc:3,k:'che', box:[256, 594, 642, 646], mau:'#fefefe', a:19.60,b:20.45},
+ {sc:3,k:'mo',  box:[776, 594, 828, 646], mau:'#fefefe', a:20.50,b:20.78},
+ {sc:3,k:'mo',  box:[224, 829, 836, 891], mau:'#fefefe', a:21.10,b:21.50},
+ {sc:3,k:'mo',  box:[224, 906, 836, 971], mau:'#fefefe', a:21.70,b:22.10},
+ {sc:3,k:'mo',  box:[201,1011, 869,1169], mau:'#fefefe', a:22.50,b:23.00},
+ {sc:3,k:'mo',  box:[201,1206, 874,1386], mau:'#fefefe', a:23.50,b:24.00},
+ {sc:3,k:'vong',box:[331,1291, 749,1352], a:24.70,b:27.40},
+
+ {sc:3,k:'mo',  box:[  0,1488, 941,1672], mau:'#fcfbfc', a:99,b:99},
+
+ /* ---- S05a · tin nhắn khách, rồi danh sách phiên bản đổ xuống ---- */
+ {sc:4,k:'mo',  box:[ 68, 198, 778, 342], mau:'#fdfdfd', a:28.30,b:28.85},
+ {sc:4,k:'mo',  box:[206, 579, 878, 706], mau:'#fefefe', a:29.30,b:29.70},
+ {sc:4,k:'mo',  box:[206, 736, 878, 894], mau:'#fefefe', a:29.80,b:30.20},
+ {sc:4,k:'mo',  box:[206, 916, 878,1044], mau:'#fefefe', a:30.30,b:30.70},
+ {sc:4,k:'mo',  box:[206,1086, 878,1214], mau:'#fefefe', a:30.80,b:31.20},
+ /* Nút Khôi phục và thẻ báo thành công là việc của S05b — phủ suốt S05a, nếu
+    không thì hiện sẵn rồi cảnh sau lại xoá đi để hiện lại từ đầu. */
+ {sc:4,k:'mo',  box:[676, 777, 848, 858], mau:'#f3faf5', a:99,b:99},
+ {sc:4,k:'mo',  box:[206,1272, 878,1394], mau:'#fefefe', a:99,b:99},
+
+ /* ---- S05b · nút Khôi phục, bấm, rồi báo đã khôi phục — cảnh đắt nhất ---- */
+ {sc:5,k:'mo',  box:[  0,1498, 941,1672], mau:'#fcfcfc', a:99,b:99},
+ {sc:5,k:'mo',  box:[676, 777, 848, 858], mau:'#f3faf5', a:34.20,b:34.60},
+ {sc:5,k:'vong',box:[672, 773, 852, 862], a:35.00,b:36.30},
+ {sc:5,k:'mo',  box:[206,1272, 878,1394], mau:'#fefefe', a:36.70,b:37.20},
+ {sc:5,k:'vong',box:[204,1270, 880,1396], a:37.60,b:39.50},
+
+ /* ---- S06 · một đường link, mở trên điện thoại rồi trên máy tính ---- */
+ {sc:6,k:'mo',  box:[  0,1602, 941,1672], mau:'#fbfbfc', a:99,b:99},
+ {sc:6,k:'mo',  box:[226, 115, 715, 208], mau:'#f8f8f9', a:40.40,b:40.90},
+ {sc:6,k:'mo',  box:[254, 210, 687,1025], mau:'#f8f8f9', a:41.20,b:41.85},
+ {sc:6,k:'mo',  box:[ 58,1038, 883,1597], mau:'#f7f7f8', a:42.70,b:43.40},
+
+ /* ---- S07 · thẻ kết: logo → tiêu đề → ưu đãi → khung thư chỉ có một dòng ---- */
+ /* Thẻ kết chỉ có 4 giây nên chuỗi hiện phải GỌN và bắt đầu SỚM — đặt muộn thì
+    0,7 giây đầu cảnh là khung trắng trơn, nhìn như lỗi. Cho logo hiện chồng lên
+    lúc cảnh còn đang hoà vào (45,58-46,00) thì mượt hơn hẳn.
+    Miếng phủ dòng tiêu đề phải xuống tới y=610: chữ in là "Gửi link. Đừng gửi
+    file.", đuôi chữ "g" thò xuống dưới mép 589 nên hở ra hai cái bụng chữ. */
+ {sc:7,k:'mo',  box:[106, 280, 857, 400], mau:'#fffeff', a:45.60,b:46.10},
+ {sc:7,k:'mo',  box:[ 38, 478, 921, 610], mau:'#fffeff', a:46.15,b:46.55},
+ {sc:7,k:'mo',  box:[116, 630, 834, 692], mau:'#fffeff', a:46.60,b:46.90},
+ {sc:7,k:'mo',  box:[ 84, 748, 862,1424], mau:'#fffeff', a:46.95,b:47.45},
+ {sc:7,k:'vong',box:[123,1035, 484,1093], a:47.90,b:49.60},
+];
+
+/* ==========================================================================
+   LỜI ĐỌC
+
+   Ba luật rút ra từ VH-03, áp ngay từ đầu ở bản này thay vì sửa sau khi nghe:
+
+   1. TRÁNH CHỮ CÓ CẶP TỐI THIỂU DẤU HỎI / DẤU HUYỀN. Giọng đang dùng không phân
+      biệt được hai dấu đó (đã chứng minh bằng cặp "bảng số" / "bằng số" ở bốn
+      mức stability, ra cùng một đường cao độ). Lẫn dấu chỉ thành lỗi khi có từ
+      khác tranh chỗ — nên ở bản này gọi là "phiên bản cũ" chứ không gọi trống
+      là "bản cũ" ("bản" ↔ "bàn" ↔ "bán" đều là từ thông dụng).
+
+   2. CHỮ MANG DẤU KHÔNG ĐỨNG ÁP CHÓT TRƯỚC DẤU PHẨY — chỗ đó bị nuốt thanh
+      điệu (đo được một chữ dấu sắc tụt còn 88-132 Hz). Kết vế bằng chữ không
+      dấu hoặc dấu huyền / dấu nặng.
+
+   3. CHỮ ĐẦU CÂU nên KHÔNG DẤU. README ghi ba lần bị nuốt dấu ở đầu câu
+      ("Bấm"→"Bậm", "Nối"→"Nội", "Tạo"→"Tao"). Nên các câu ở đây mở bằng "Làm",
+      "Khách", "Bây giờ", "Ai", "Còn", "Khi", "Thì", "Không", "Xong", "Trên",
+      "Bao nhiêu" — toàn chữ ngang hoặc huyền.
+
+   Kiểm sau khi sinh: chép lại track bằng scribe_v1 (có logprob từng chữ) rồi
+   đo dấu bằng tools/do-thanh-dieu.py. Không tin tai máy nhận dạng về DẤU, chỉ
+   tin nó về CHỮ.
+   ========================================================================== */
+const VO=[
+  /* Mốc đặt theo ĐỘ DÀI THẬT của tiếng sau lượt sinh đầu, không đặt bằng cảm
+     tính — bài học VH-03: đặt bằng cảm tính thì bảy câu bị ép nhịp, mà ép là
+     nghe ra ngay giọng chạy. Nhịp nghỉ cũng phân loại: hết câu 0,32-0,35s, còn
+     dở câu (kết bằng dấu phẩy) 0,20-0,25s. */
+  [ 0.30,'Làm designer, bạn muốn gửi khách một đường link thế này,'],
+  [ 3.67,'thay vì phải gửi một file nén?'],
+  [ 6.13,'Khách không phải tải về rồi giải nén nữa,'],
+  [ 8.46,'mở ra không sợ sai font hay lệch bố cục.'],
+  [11.95,'Bây giờ bạn kéo cả file nén lên Vibe Host.'],
+  [15.55,'Đặt cái tên rồi bấm xuất bản.'],
+  [17.75,'Vài phút là xong.'],
+  /* "tên miền riêng" bị đọc thành "tên MIỄN riêng" — dấu huyền bật thành dấu ngã.
+     Scribe chép ĐÚNG chữ nên không bắt được, phải đo cao độ: đặt cuối câu thì
+     "miền" ngước từ 167 lên 302 Hz, trong khi dấu huyền phải tụt. Thử bốn chỗ
+     đặt, chọn chỗ này vì đo được 123-128 Hz phẳng và thấp — đúng dấu huyền. */
+  [19.40,'Ai đã mua tên miền thì đưa vào đây luôn.'],
+  [22.37,'Còn khoá bảo mật thì hệ thống tự cấp rồi tự gia hạn,'],
+  [26.00,'bạn không phải đụng vào.'],
+  [28.40,'Khi khách đổi ý, muốn quay về phiên bản cũ?'],
+  [31.92,'Thì chọn phiên bản đó, bấm khôi phục là xong.'],
+  [35.83,'Không phải làm lại từ đầu nữa đâu.'],
+  [39.80,'Xong rồi, khách chỉ việc bấm vào là thấy.'],
+  [43.54,'Trên điện thoại hay máy tính đều đúng y như vậy.'],
+  /* Dừng lời đọc ở đây, KHÔNG có câu chốt thương hiệu như VH-02/VH-03. Lý do:
+     outro của bản này là video brand có tiếng nói riêng bằng hình — đã ghi sẵn
+     "Vibe Host · TRIỂN KHAI WEBSITE NHANH & DỄ DÀNG" — nên đọc thêm một câu
+     cùng nội dung ngay trước đó là nói hai lần. Sáu giây outro chạy sạch tiếng. */
+  [46.91,'Bao nhiêu tác phẩm cũng lên mạng trong vài phút.'],
+];
+
+/* ---------- NẮN CHỮ CHO MÁY ĐỌC ----------
+   [chữ trong VO, cách đọc]. long-tieng.mjs chỉ thay khi GỬI cho máy đọc — chữ
+   trên phụ đề giữ nguyên. Nghe thấy chữ nào sai thì thêm một dòng vào đây, đừng
+   viết méo chữ trong VO[]. */
+const PHIEN_AM=[
+  /* Để mộc, chữ "Vibe" bị nuốt luôn vào "file nén" đứng trước: chép mù 3/3 lần
+     ra "Filehost" — mất hẳn tên sản phẩm. "Vai-bơ" thì 3/3 lần ra "ViperHost",
+     tức máy nhả đúng âm /vai-bơ hâu-st/. Cùng cách viết trang map-domain đã chốt
+     (bên đó thử 7 lượt), giữ cho cả bộ đọc tên thương hiệu giống nhau. */
+  ['Vibe Host','Vai-bơ Host'],
+  /* Để mộc thì "sai font" bị chép lại thành "siphon" — mất hẳn chữ. Thử ba kiểu
+     trong đúng ngữ cảnh của dây chuyền:
+       font        → nghe "siphon"      ✗
+       phông       → nghe "sai phông"   ✅
+       phông chữ   → nghe "phong chủ"   ✗ (rụng cả hai dấu)
+     "phông" cũng đúng cách dân thiết kế Việt vẫn đọc. Chữ trên phụ đề giữ "font"
+     theo kịch bản. */
+  ['font','phông'],
+];
+
+/* ==========================================================================
+   DỰNG CẢNH
+   ========================================================================== */
+/* Vài khung ngắm cố ý vượt quá mép ảnh (S02 và S07 chạm đáy tấm), nên phần ngoài
+   ảnh phải tô ĐÚNG màu nền tấm đó — để trắng tinh là khung hình chia hai mảng. */
+const NEN_TAM=['#fefefe','#fefefe','#fcfcfc','#fcfcfc','#fdfdfd','#f8f8f9','#fffeff'];
+const stage=$('#stage');
+stage.style.width=ST_W+'px'; stage.style.height=ST_H+'px';
+
+const truoc=$('#nen');
+SC.forEach(s=>{
+  const sc=el('div','sc'), kb=el('div','kb');
+  const im=el('img'); im.src=MK+ANH[s.src]; im.alt='';
+  im.style.width=NEN_W+'px'; im.style.height=NEN_H+'px';
+  kb.appendChild(im); sc.appendChild(kb);
+  sc.style.background=NEN_TAM[s.src];
+  stage.insertBefore(sc,truoc);
+  s.el=sc; s.kb=kb;
+});
+
+LOP.forEach(L=>{
+  const e=el('div', L.k==='vong'?'vong':'che');
+  const [x0,y0,x1,y1]=L.box;
+  e.style.left=px(x0*KX); e.style.top=px(y0*KY);
+  e.style.width=px((x1-x0)*KX); e.style.height=px((y1-y0)*KY);
+  if(L.k==='che'){ e.style.background=L.mau; e.style.transformOrigin='right center' }
+  if(L.k==='mo'){ e.style.background=L.mau }
+  SC[L.sc].kb.appendChild(e);
+  L.el=e;
+});
+
+/* ==========================================================================
+   MÁY QUAY — nhận khung ngắm theo toạ độ ảnh, tự tính phóng và dời
+   ========================================================================== */
+function ngam(v){
+  const [x0,y0,x1,y1]=v;
+  const w=(x1-x0)*KX, h=(y1-y0)*KY;
+  const s=Math.min(ST_W/w, ST_H/h);
+  const cx=(x0+x1)/2*KX, cy=(y0+y1)/2*KY;
+  return {s, tx:ST_W/2-s*cx, ty:ST_H/2-s*cy};
+}
+const trung=(a,b,k)=>[lerp(a[0],b[0],k),lerp(a[1],b[1],k),lerp(a[2],b[2],k),lerp(a[3],b[3],k)];
+
+/* ==========================================================================
+   PHỤ ĐỀ — mốc lấy từ vị trí thật của tiếng, do bộ lồng tiếng ghi ra
+   ========================================================================== */
+let PD=VO.map((v,i,a)=>({tu:v[0], den:(a[i+1]?a[i+1][0]:DUR)-0.05, loi:v[1]}));
+async function napPhuDe(){
+  try{
+    const r=await fetch('out/voiceover/phu-de-vibe-host-designer.json',{cache:'no-store'});
+    if(r.ok){const j=await r.json(); if(Array.isArray(j)&&j.length)PD=j}
+  }catch(e){}
+}
+let pdI=-1;
+
+const E={nen:$('#nen'),khoi:$('#khoi'),gach:$('#gach'),c1:$('#c1'),c2:$('#c2'),pd:$('#pd')};
+let chuI=-1;
+const HOA=0.42;
+
+function render(t){
+  SC.forEach((s,i)=>{
+    const vao=seg(t,s.a-(i?HOA:0),s.a-(i?HOA:0)+HOA,eIO);
+    const ra=i===SC.length-1?0:seg(t,s.b-HOA,s.b,eIO);
+    const o=i===0?1-ra:vao*(1-ra);
+    setO(s.el,o);
+    if(o<0.002)return;
+    const k=eIO(s.mA!=null ? tt(t,s.mA,s.mB) : tt(t,s.a-HOA,s.b));
+    const c=ngam(trung(s.v0,s.v1,k));
+    s.kb.style.transform='translate('+px(c.tx)+','+px(c.ty)+') scale('+c.s.toFixed(4)+')';
+  });
+
+  LOP.forEach(L=>{
+    if(L.k==='che'){
+      const q=1-tt(t,L.a,L.b);
+      L.el.style.transform='scaleX('+q.toFixed(4)+')';
+      setO(L.el, t>L.b+0.25?0:1);
+      return;
+    }
+    if(L.k==='mo'){
+      setO(L.el, t<L.a?1:(t>L.b?0:1-eIO(tt(t,L.a,L.b))));
+      return;
+    }
+    setO(L.el, pop(t,L.a,L.b,.24,.28));       /* vong */
+  });
+
+  let ci=-1;
+  CHU.forEach(([a,b],i)=>{ if(b>a && t>=a-0.12 && t<=b+0.12) ci=i });
+  if(ci!==chuI){ chuI=ci; if(ci>=0){ E.c1.innerHTML=SC[ci].c1; E.c2.innerHTML=SC[ci].c2 } }
+  if(ci<0){ setO(E.khoi,0); setO(E.nen,0) }
+  else{
+    const [a,b]=CHU[ci];
+    const v=seg(t,a,a+0.42,eOut), r=seg(t,b-0.34,b,eIn);
+    const o=v*(1-r);
+    setO(E.khoi,o); setO(E.nen,o*0.98);
+    E.gach.style.transform='scaleX('+seg(t,a,a+0.5,eOut).toFixed(3)+')';
+    E.gach.style.transformOrigin='left center';
+    E.c1.style.transform='translateY('+px((1-v)*26+r*-12)+')';
+    E.c2.style.transform='translateY('+px((1-seg(t,a+0.10,a+0.62,eOut))*20+r*-9)+')';
+  }
+
+  {
+    const i=PD.findIndex(c=>t>=c.tu-0.12 && t<=c.den+0.18);
+    if(i!==pdI){ pdI=i; if(i>=0)E.pd.firstElementChild.innerHTML=PD[i].loi }
+    setO(E.pd, i<0?0:pop(t,PD[i].tu-0.12,PD[i].den+0.18,.14,.16));
+  }
+}
+
+/* ==========================================================================
+   CHẠY / TUA
+   ========================================================================== */
+const TOC=Math.max(0.25,Math.min(4,parseFloat(new URLSearchParams(location.search).get('toc'))||1));
+let t=0,DUNG=true,last=0;
+function loop(now){
+  if(!DUNG){
+    t+=Math.min(0.30,(now-last)/1000)*TOC;
+    if(t>=DUR){t=DUR;DUNG=true;$('#btnPlay').textContent='▶ Chạy'}
+    render(t);ui();
+  }
+  last=now;requestAnimationFrame(loop);
+}
+function ui(){$('#scrub').value=t.toFixed(2);
+  $('#tnum').textContent=t.toFixed(2)+' / '+DUR.toFixed(2)+'s'}
+$('#btnPlay').addEventListener('click',()=>{
+  if(t>=DUR)t=0; DUNG=!DUNG; last=performance.now();
+  $('#btnPlay').textContent=DUNG?'▶ Chạy':'❚❚ Dừng'});
+$('#scrub').addEventListener('input',e=>{t=parseFloat(e.target.value);render(t);ui()});
+SC.forEach(s=>{const b=document.createElement('button');
+  b.textContent=s.a+'s · '+s.ten; b.onclick=()=>{t=s.a;render(t);ui()};$('#chaps').appendChild(b)});
+
+function fit(){
+  if(document.body.classList.contains('exporting')){$('#stage').style.transform='none';return}
+  const k=Math.min((innerWidth-40)/ST_W,(innerHeight-160)/ST_H,1);
+  $('#stage').style.transform='scale('+k+')';
+  $('#stage').style.margin='0 0 '+((k-1)*ST_H)+'px';
+}
+addEventListener('resize',fit);
+function khoiDong(){render(0);ui()}
+
+if(/[?&]export=1/.test(location.search)){
+  document.body.classList.add('exporting');
+  window.__clip={
+    duration:DUR/TOC,
+    ready:async()=>{
+      await napPhuDe();
+      await document.fonts.ready;
+      await Promise.all([...document.images].filter(i=>i.src).map(i=>i.decode().catch(()=>{})));
+      await new Promise(r=>setTimeout(r,260));
+      fit();khoiDong();
+    },
+    play:()=>{DUNG=false;last=performance.now()},
+    at:()=>t/TOC, seek:s=>{t=cl(s*TOC,0,DUR);render(t)}, step:s=>{t=cl(s*TOC,0,DUR);render(t)},
+  };
+}
+fit();
+napPhuDe().then(()=>document.fonts.ready).then(khoiDong);
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

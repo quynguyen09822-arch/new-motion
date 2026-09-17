@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>VH-07 · Gắn tên miền riêng trên Vibe Host</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cam:#f97316;--cam-2:#ffa24d;--cam-mo:rgba(249,115,22,.16);
+  --nen:#07130d;--nen-2:#0d2118;--vien:rgba(255,255,255,.10);
+  --luc:#21c07a;--chu:#eaf4ee;--chu-mo:#8fae9c;
+}
+*{box-sizing:border-box;margin:0}
+body{background:#11151b;font-family:'Be Vietnam Pro',system-ui,sans-serif;color:#fff;
+  display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px 0 0}
+body.exporting{background:var(--nen);padding:0;gap:0}
+body.exporting #ui,body.exporting #chaps,body.exporting #ghichu{display:none}
+
+/* ---------- sân khấu 16:9 ---------- */
+#stage{position:relative;width:1280px;height:720px;overflow:hidden;background:var(--nen);
+  transform-origin:top left;flex:none}
+
+/* ---------- cửa sổ màn hình: chỗ chiếu bản ghi hình ---------- */
+/* Bản ghi hình rộng 1920×1040, nhưng 114 dòng đầu là thanh trình duyệt (tab,
+   ô địa chỉ, thanh dấu trang) — phần đó không thuộc về bài hướng dẫn và trông
+   lộn xộn. Cắt bỏ hẳn, rồi lấy đúng khoảng đó làm thanh tiêu đề riêng của clip. */
+#man{position:absolute;left:0;top:58px;width:1280px;height:617.33px;overflow:hidden;background:#fff}
+#zoom{position:absolute;left:0;top:0;width:1280px;height:617.33px;will-change:transform}
+#vid{position:absolute;left:0;top:-76px;width:1280px;display:block}
+
+/* vòng sáng khoanh vùng đang nói tới */
+.vong{position:absolute;border:2.5px solid var(--cam);border-radius:10px;
+  box-shadow:0 0 0 3px rgba(249,115,22,.18),0 8px 28px rgba(249,115,22,.28);
+  pointer-events:none;opacity:0;will-change:opacity,transform}
+
+/* ---------- thanh trên ---------- */
+#thanh{position:absolute;left:0;top:0;width:1280px;height:58px;
+  background:linear-gradient(180deg,#0b1c13,#07130d);
+  border-bottom:1px solid var(--vien);
+  display:flex;align-items:center;gap:14px;padding:0 22px}
+#hieu{display:flex;align-items:center;gap:9px;font-size:16px;font-weight:700;letter-spacing:-.01em}
+#hieu i{width:9px;height:9px;border-radius:99px;background:var(--cam);
+  box-shadow:0 0 0 4px var(--cam-mo);font-style:normal}
+#diachi{display:flex;align-items:center;gap:8px;padding:6px 13px;border-radius:99px;
+  background:rgba(255,255,255,.06);border:1px solid var(--vien);
+  font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12.5px;color:#b9cfc2}
+#diachi u{display:block;width:11px;height:8px;border:1.6px solid #7fd8ab;border-top:0;
+  border-radius:0 0 3px 3px;position:relative;text-decoration:none}
+#diachi u::before{content:'';position:absolute;left:2px;bottom:8px;width:7px;height:6px;
+  border:1.6px solid #7fd8ab;border-bottom:0;border-radius:4px 4px 0 0}
+#tieude{margin-left:auto;font-size:14px;font-weight:600;color:#cfe3d6;letter-spacing:.01em}
+#tieude b{color:var(--cam-2);font-weight:700}
+
+/* ---------- thanh dưới: 5 bước ---------- */
+#ray{position:absolute;left:0;top:675.33px;width:1280px;height:44.67px;
+  background:linear-gradient(0deg,#0b1c13,#07130d);border-top:1px solid var(--vien);
+  display:flex;align-items:center;gap:9px;padding:0 22px}
+#tien{position:absolute;left:0;top:675.33px;height:2px;background:var(--cam);
+  box-shadow:0 0 12px rgba(249,115,22,.7);width:0}
+.buoc{display:flex;align-items:center;gap:7px;padding:5px 12px;border-radius:99px;
+  font-size:12.5px;font-weight:600;white-space:nowrap;
+  background:rgba(255,255,255,.045);border:1px solid transparent;color:#6f8a7b}
+.buoc s{display:grid;place-items:center;width:17px;height:17px;border-radius:99px;
+  background:rgba(255,255,255,.10);color:#8fae9c;font-size:10.5px;font-weight:700;
+  text-decoration:none;flex:none}
+.buoc.xong{color:#9fc4ae}
+.buoc.xong s{background:rgba(33,192,122,.20);color:var(--luc)}
+.buoc.dang{background:var(--cam-mo);border-color:rgba(249,115,22,.45);color:#ffd8b8}
+.buoc.dang s{background:var(--cam);color:#20140a}
+
+/* ---------- phụ đề ---------- */
+#pd{position:absolute;left:110px;right:110px;bottom:60px;text-align:center;pointer-events:none}
+#pd span{display:inline-block;padding:9px 20px;border-radius:12px;
+  background:rgba(7,19,13,.86);border:1px solid rgba(255,255,255,.09);
+  font-size:24px;font-weight:600;line-height:1.32;color:#fff;
+  text-shadow:0 2px 10px rgba(0,0,0,.55)}
+
+/* ---------- lớp phủ giải thích ---------- */
+#phu{position:absolute;left:0;top:58px;width:1280px;height:617.33px;
+  background:rgba(4,12,8,.78);opacity:0;pointer-events:none}
+
+/* bảng "trỏ DNS" */
+#bang{position:absolute;left:150px;top:262px;width:980px;padding:26px 30px 24px;
+  border-radius:18px;background:linear-gradient(180deg,#0e2419,#08170f);
+  border:1px solid rgba(249,115,22,.30);
+  box-shadow:0 30px 70px rgba(0,0,0,.55);opacity:0;will-change:transform,opacity}
+#bang h3{font-size:21px;font-weight:700;color:#fff;letter-spacing:-.01em}
+#bang h3 em{font-style:normal;color:var(--cam-2)}
+#bang p.dan{margin-top:5px;font-size:13.5px;color:var(--chu-mo)}
+#bang table{width:100%;margin-top:16px;border-collapse:separate;border-spacing:0 8px}
+#bang th{font-size:12.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  color:#6f8a7b;text-align:left;padding:0 14px 2px}
+#bang td{padding:12px 14px;background:rgba(255,255,255,.045);font-size:16px;color:var(--chu)}
+#bang td:first-child{border-radius:11px 0 0 11px}
+#bang td:last-child{border-radius:0 11px 11px 0}
+#bang tr.h td{background:var(--cam-mo);box-shadow:inset 0 0 0 1px rgba(249,115,22,.35)}
+#bang .loai{font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--cam-2)}
+#bang .host{font-family:'JetBrains Mono',monospace;font-weight:600;color:#fff}
+#bang .tro{font-size:15px;color:#c9ddd1}
+#bang .tro b{color:#fff;font-weight:600}
+#bang .luuy{margin-top:14px;font-size:13px;color:var(--chu-mo);
+  padding-left:22px;position:relative;line-height:1.45}
+#bang .luuy i{position:absolute;left:0;top:1px;width:15px;height:15px;border-radius:99px;
+  background:rgba(249,115,22,.22);color:var(--cam-2);font-style:normal;font-size:10px;
+  font-weight:700;display:grid;place-items:center}
+
+/* thẻ chú thích nhỏ nổi bên phải */
+#chu{position:absolute;left:0;top:0;width:322px;padding:16px 18px;border-radius:14px;
+  background:linear-gradient(180deg,#0e2419,#08170f);border:1px solid rgba(249,115,22,.30);
+  box-shadow:0 22px 50px rgba(0,0,0,.5);opacity:0;will-change:transform,opacity}
+#chu b{display:block;font-size:11px;font-weight:700;letter-spacing:.10em;
+  text-transform:uppercase;color:var(--cam-2)}
+#chu span{display:block;margin-top:7px;font-size:15px;line-height:1.42;color:var(--chu)}
+
+/* dải luồng: Tên miền → DNS → Vibe Host → SSL → Online */
+#luong{position:absolute;left:0;top:300px;width:1280px;display:flex;align-items:center;
+  justify-content:center;gap:0;opacity:0}
+#luong .o{display:flex;align-items:center;gap:10px;padding:13px 20px;border-radius:13px;
+  background:linear-gradient(180deg,#0e2419,#08170f);border:1px solid rgba(249,115,22,.32);
+  font-size:16px;font-weight:600;color:#fff;white-space:nowrap;opacity:0;
+  box-shadow:0 16px 40px rgba(0,0,0,.45);will-change:transform,opacity}
+#luong .o.xanh{border-color:rgba(33,192,122,.45)}
+#luong .mui{width:26px;height:2px;background:rgba(249,115,22,.5);position:relative;opacity:0;flex:none}
+#luong .mui::after{content:'';position:absolute;right:0;top:-3px;
+  border-left:7px solid rgba(249,115,22,.7);border-top:4px solid transparent;
+  border-bottom:4px solid transparent}
+
+/* thẻ kết */
+#ket{position:absolute;inset:0;background:var(--nen);opacity:0;pointer-events:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+#ket b{font-size:46px;font-weight:700;letter-spacing:-.02em;color:#fff;will-change:transform,opacity}
+#ket b em{font-style:normal;color:var(--cam-2)}
+#ket i{font-style:normal;font-size:20px;font-weight:500;color:#a9c9b6;will-change:transform,opacity}
+#ket u{text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:15px;color:#7fd8ab;
+  padding:7px 16px;border-radius:99px;border:1px solid rgba(127,216,171,.30);
+  background:rgba(33,192,122,.08);will-change:transform,opacity}
+
+/* vào/ra tối */
+#toi{position:absolute;inset:0;background:#000;pointer-events:none;opacity:0}
+
+/* ---------- bảng điều khiển (không lên hình) ---------- */
+#ui{display:flex;gap:12px;align-items:center;font-size:13px}
+#ui button{background:#20293a;color:#fff;border:0;border-radius:8px;padding:7px 14px;cursor:pointer}
+#scrub{width:620px}
+#chaps{display:flex;flex-wrap:wrap;gap:6px;max-width:1280px;justify-content:center}
+#chaps button{background:#1b2331;color:#c9d3e2;border:0;border-radius:7px;padding:5px 10px;
+  font-size:12px;cursor:pointer}
+#ghichu{max-width:900px;font-size:12.5px;line-height:1.6;color:#8fa3bb;text-align:center;padding-bottom:24px}
+#ghichu code{background:#1b2331;padding:2px 6px;border-radius:5px;color:#cfe3d6}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="man">
+    <div id="zoom">
+      <video id="vid" muted playsinline preload="auto" src="public/video/map_domain.webm"></video>
+    </div>
+  </div>
+  <div id="phu"></div>
+
+  <div id="bang">
+    <h3>Trỏ DNS · hai trường hợp <em>thường gặp</em></h3>
+    <p class="dan">Khai báo tại nơi bạn đang quản lý DNS của tên miền.</p>
+    <table>
+      <thead><tr><th style="width:130px">Loại</th><th style="width:150px">Host</th><th>Giá trị</th></tr></thead>
+      <tbody>
+        <tr id="hA"><td class="loai">A</td><td class="host">@</td>
+            <td class="tro">Địa chỉ <b>IP máy chủ</b> Vibe Host cung cấp</td></tr>
+        <tr id="hC"><td class="loai">CNAME</td><td class="host">www</td>
+            <td class="tro">Địa chỉ tạm thời của website <b>…vibenode.matbao.ai</b></td></tr>
+      </tbody>
+    </table>
+    <p class="luuy"><i>i</i>Bản ghi đang hiện trên màn hình là CNAME cho tên miền phụ —
+      Vibe Host luôn hiện sẵn đúng thông số cần khai báo cho tên miền bạn nhập.</p>
+  </div>
+
+  <div id="chu"><b>Bản ghi CNAME</b><span></span></div>
+
+  <div id="luong"></div>
+
+  <div id="ket">
+    <b>Xong — <em>tên miền riêng đã online</em></b>
+    <i>Trỏ DNS xong là Vibe Host lo nốt phần còn lại</i>
+    <u>vibehost.matbao.ai</u>
+  </div>
+
+  <div id="thanh">
+    <div id="hieu"><i></i>Vibe Host</div>
+    <div id="diachi"><u></u>vibehost.matbao.ai</div>
+    <div id="tieude">Hướng dẫn · <b>Kết nối tên miền riêng</b></div>
+  </div>
+  <div id="tien"></div>
+  <div id="ray"></div>
+
+  <div id="pd"><span></span></div>
+  <div id="toi"></div>
+</div>
+
+<div id="ui">
+  <button id="btnPlay">▶ Chạy</button>
+  <input id="scrub" type="range" min="0" max="85" step="0.01" value="0">
+  <span id="tnum">0.00 / 85.00s</span>
+</div>
+<div id="chaps"></div>
+<div id="ghichu">
+  Lời đọc nằm ở mảng <code>VO[]</code> trong file này — sửa chữ ở đó rồi chạy lại
+  <code>node long-tieng.mjs --page vibe-host-map-domain.html</code>.
+  Chữ nào máy đọc sai thì thêm một dòng vào <code>PHIEN_AM[]</code> ngay dưới VO[]:
+  chỉ đổi cách ĐỌC, chữ trên phụ đề vẫn giữ nguyên.
+</div>
+
+<script>
+(()=>{
+/* ==========================================================================
+   VH-07 · GẮN TÊN MIỀN RIÊNG TRÊN VIBE HOST — bản ngang 16:9
+   Dựng theo public/kich-ban/kich-ban-video-map-domain-vibe-host-v2 copy.md
+   Hình nền là bản ghi hình thật public/video/map_domain.webm (36 giây).
+
+   VÌ SAO PHẢI "NẮN NHỊP" BẢN GHI HÌNH
+   Bản ghi thao tác chỉ dài 36 giây, còn lời giảng dài hơn gấp đôi. Không kéo
+   giãn đều cả cuốn phim (nhìn ra ngay là quay chậm), mà chia thành từng khúc:
+   khúc nào có thao tác thì cho chạy gần tốc độ thật, khúc nào cần giảng kỹ thì
+   DỪNG HẲN một khung rồi để phần đồ hoạ (phóng to, vòng sáng, bảng giải thích)
+   gánh phần chuyển động. Đó là cách dựng của video hướng dẫn sản phẩm.
+
+   Mọi thứ tính từ MỘT biến thời gian `t` — không dùng CSS transition hay
+   @keyframes — để tua tới đâu vẽ đúng tới đó, và bộ xuất hình lấy khung nào
+   cũng khớp. Riêng thẻ <video> là ngoại lệ có trạng thái: xem dieuKhienVideo().
+   ========================================================================== */
+const DUR=85.0;
+
+/* ---------- hình học ---------- */
+/* Ảnh gốc 1920×1040; 114 dòng đầu là thanh trình duyệt, cắt bỏ.
+   Sân khấu rộng 1280 → hệ số thu S; xuất 1920×1080 là ×1.5 nữa, vừa đúng 1:1
+   với điểm ảnh gốc nên chữ trong giao diện không bị nhoè. */
+const S=1280/1920, CAT=114;
+const MAN_T=58, MAN_H=(1040-CAT)*S;              /* 617.33 */
+const sx=x=>x*S;                                  /* toạ độ ảnh gốc → sân khấu */
+const sy=y=>(y-CAT)*S;
+
+/* ---------- LỜI ĐỌC (một nguồn sự thật) ----------
+   [giây bắt đầu, lời]. Đây cũng chính là chữ chạy phụ đề, nên viết cho ĐÚNG
+   CHÍNH TẢ; chỗ nào máy đọc sai thì nắn ở PHIEN_AM[] bên dưới. */
+const VO=[
+  [ 0.65,'Nhưng địa chỉ vẫn là một tên miền tạm thời.'],
+  [ 3.65,'Để khách vào đúng tên miền thương hiệu, còn một bước: kết nối tên miền riêng.'],
+  [ 8.80,'Ở trang quản lý, bạn mở website muốn gắn tên miền.'],
+  [12.75,'Trong mục Tên miền, chọn Chỉnh sửa.'],
+  [15.75,'Cửa sổ Tên miền hiện ra, kèm địa chỉ tạm thời mà hệ thống cấp sẵn.'],
+  [20.55,'Bấm Thêm để bắt đầu, rồi nhập tên miền của bạn và bấm Tiếp tục.'],
+  [26.80,'Vibe Host đưa ra đúng thông số cần khai báo bên nhà cung cấp tên miền.'],
+  [31.40,'Ở đây là một bản ghi CNAME: bên trái là tên bản ghi, bên phải là giá trị cần khai báo.'],
+  [38.10,'Muốn dùng tên miền chính, bạn tạo bản ghi A cho tên miền gốc, giá trị là địa chỉ IP của Vibe Host.'],
+  [45.70,'Còn địa chỉ ba chữ vê kép ở đầu thì bạn tạo bản ghi CNAME, giá trị là địa chỉ tạm thời.'],
+  [52.10,'Khai báo xong, bạn quay lại Vibe Host và bấm Kiểm tra DNS.'],
+  [57.50,'Hệ thống tự dò và xác nhận tên miền đã chọn đúng.'],
+  [61.10,'Ngay sau đó, chứng chỉ bảo mật miễn phí được cấp tự động, website chạy an toàn trên HTTPS.'],
+  [67.90,'Bạn không phải cài đặt gì thêm.'],
+  [70.70,'Trạng thái chuyển sang Hoạt động, tên miền riêng đã sẵn sàng.'],
+  [74.90,'Tên miền, DNS, rồi chứng chỉ SSL, tất cả trong một luồng.'],
+  [80.40,'Vậy là xong, chỉ vài thao tác là website chạy trên tên miền riêng.'],
+];
+
+/* ---------- LỜI ĐỌC PHẦN BÌA ----------
+   Hai câu đè lên intro và outro — hai thẻ thương hiệu vốn im tiếng.
+   Mốc ở đây tính theo giờ BẢN CUỐI (sau khi ghép), KHÁC với VO[] ở trên vốn
+   tính theo giờ thân bài; sân khấu này không vẽ chúng, chúng chỉ là tiếng.
+     · intro hiện trọn từ giây 0 tới 5,54 (rồi hoà sang thân bài)
+     · outro hiện trọn từ giây 89,67 tới hết 95,21
+   Sinh bằng: node long-tieng-bia.mjs --page vibe-host-map-domain.html */
+const VO_BIA=[
+  ['dan-vao', 1.90,'Website của bạn đã chạy trên Vibe Host.'],
+  ['ket',    90.70,'Vibe Host, triển khai nhanh, kết nối tên miền đơn giản, sẵn sàng lên internet.'],
+];
+
+/* ---------- NẮN CHỮ CHO MÁY ĐỌC ----------
+   [chữ trong VO, cách đọc]. long-tieng.mjs chỉ thay khi GỬI cho máy đọc — chữ
+   trên phụ đề giữ nguyên. Nghe thấy chữ nào sai thì thêm một dòng vào đây, đừng
+   viết méo chữ trong VO[]. Chỉ đổi đúng chữ đứng riêng (ranh giới từ). */
+const PHIEN_AM=[
+  /* Chép mù lại cả track: 7/7 lần "Vibe Host" ra thành "VIP Host" — sai hẳn tên
+     sản phẩm. Thử năm cách viết, chỉ "Vai-bơ" là máy nhả ra âm rõ và chắc
+     (bộ chép nghe thành "ViperHost", tức đọc đúng "vai-bơ hâu-st"); để mộc
+     "Vibe" thì lần nào cũng ra "VIP". */
+  ['Vibe Host','Vai-bơ Host'],
+  ['CNAME','xi-nêm'],            /* để mộc máy đánh vần "xê-en-a-em-ơ" */
+  ['DNS','đi-en-ét'],            /* để mộc thì "DNS" ra thành "đến" */
+  /* HTTPS và SSL: nghe thử thì để MỘC lại đúng nhất — máy đọc tên chữ cái kiểu
+     tiếng Anh, rõ ràng. Phiên âm kiểu Việt ngược lại còn hỏng: "ét-ét-eo" nằm
+     sau "đi-en-ét" thì hai cụm dính vào nhau, nghe ra "SEO". */
+  ['SSL','SSL'],                 /* trùng chữ = KHOÁ, gỡ mục 'ét-ét-eo' của bảng chung */
+  ['IP','ai-pi'],
+  /* "bản ghi a" bị đọc thành "bản ghi Ạ" (dấu nặng). Thêm một tiếng đệm phía
+     trước thì chữ cái đứng đúng nhịp riêng, đọc ra "a" bình thường — mà "bản ghi
+     loại A" cũng là cách dân kỹ thuật Việt hay nói. Phụ đề vẫn là "bản ghi A". */
+  ['bản ghi A','bản ghi loại A'],
+];
+
+/* ---------- NẮN NHỊP BẢN GHI HÌNH ----------
+   [giây trong bản ghi: từ, tới, giây trên phim: từ, tới].
+   `từ === tới` ở cột bản ghi nghĩa là DỪNG HẲN ở khung đó.
+   Mốc trong bản ghi lấy từ chỗ giao diện thật sự đổi (dò bằng
+   ffmpeg silencedetect/scene + xem tay từng khung). */
+const NHIP=[
+  [ 0.00, 4.30,  0.00,  7.60],   /* trang chủ, kéo tới danh sách website */
+  [ 4.30, 9.00,  7.60, 13.70],   /* mở website → phần Cấu hình           */
+  [ 9.00, 9.00, 13.70, 14.40],   /* dừng ở thẻ Tên miền                  */
+  [ 9.00,11.43, 14.40, 20.00],   /* cửa sổ Tên miền                      */
+  [11.43,17.17, 20.00, 26.20],   /* gõ tên miền, bấm Tiếp tục            */
+  [17.17,18.80, 26.20, 30.20],   /* bước Trỏ DNS hiện ra                 */
+  [18.80,18.80, 30.20, 52.00],   /* DỪNG: phóng bản ghi + bảng A/CNAME   */
+  [18.80,19.90, 52.00, 56.60],   /* rê tới nút Kiểm tra DNS              */
+  [19.90,21.30, 56.60, 60.60],   /* đang kiểm tra                        */
+  [21.30,21.60, 60.60, 61.60],   /* màn thành công vừa hiện              */
+  [21.60,21.60, 61.60, 66.60],   /* DỪNG: phóng vào dòng "đã hoạt động"  */
+  [21.60,23.00, 66.60, 68.00],   /* bấm Đóng                             */
+  [23.00,26.90, 68.00, 70.60],   /* về danh sách tên miền                */
+  [26.90,31.00, 70.60, 74.60],   /* trạng thái đổi sang Hoạt động        */
+  [31.00,33.50, 74.60, 79.00],   /* giữ trên hàng đã hoạt động           */
+  [33.50,35.86, 79.00, 83.00],   /* website thật mở trên tên miền        */
+  [35.86,35.86, 83.00, 85.00],   /* DỪNG: thẻ kết                        */
+];
+
+/* ---------- 5 bước hiện dưới chân ---------- */
+const BUOC=[
+  ['Mở Cấu hình website',  0.0, 16.1],
+  ['Nhập tên miền riêng', 16.1, 26.2],
+  ['Trỏ DNS',             26.2, 52.0],
+  ['Kiểm tra kết nối',    52.0, 60.6],
+  ['SSL & hoàn tất',      60.6, 85.0],
+];
+
+/* ---------- vòng sáng (toạ độ ĐO TRÊN ẢNH GỐC 1920×1040) ---------- */
+const VONG=[
+  [12.65,16.10,  310, 322,  784,  100],   /* thẻ "Tên miền · Chưa gắn"   */
+  [20.55,21.70,  706, 602,  116,   54],   /* nút "+ Thêm"                */
+  [28.40,37.60,  574, 500,  772,   92],   /* thẻ bản ghi CNAME           */
+  [54.40,56.55, 1182, 786,  168,   58],   /* nút "Kiểm tra DNS"          */
+  [61.20,66.60,  578, 536,  776,   96],   /* dòng "đã hoạt động"         */
+  [71.00,74.60,  576, 674,  776,   62],   /* hàng trạng thái Hoạt động   */
+  [71.50,74.60, 1524, 128,  388,   88],   /* thông báo "DNS hợp lệ"      */
+];
+
+/* ---------- phóng to (Ken Burns), tâm đo trên ảnh gốc ---------- */
+const PHONG=[
+  [16.30,26.10, 1.22,  960, 570],   /* hộp thoại tên miền + bước nhập   */
+  [30.80,37.60, 1.72,  960, 546],   /* soi thẳng vào bản ghi CNAME      */
+  [61.30,66.60, 1.34,  960, 584],   /* soi vào dòng báo thành công      */
+];
+
+/* ==========================================================================
+   TIỆN
+   ========================================================================== */
+const $=s=>document.querySelector(s);
+const cl=(v,a,b)=>v<a?a:v>b?b:v;
+const eOut=x=>1-Math.pow(1-x,3);
+const eIO=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+/* tiến độ 0→1 giữa hai mốc, kèm hàm làm mềm */
+const seg=(t,a,b,e)=>{const x=cl((t-a)/Math.max(1e-6,b-a),0,1);return e?e(x):x};
+/* hiện rồi tắt: lên trong `v` giây, xuống trong `r` giây */
+const pop=(t,a,b,v,r)=>Math.min(seg(t,a,a+v,eOut),1-seg(t,b-r,b,eIO));
+const px=v=>v.toFixed(2)+'px';
+const setO=(el,v)=>{el.style.opacity=v.toFixed(3)};
+
+/* ==========================================================================
+   DỰNG SẴN CÁC PHẦN LẶP
+   ========================================================================== */
+const E={vid:$('#vid'),zoom:$('#zoom'),phu:$('#phu'),bang:$('#bang'),chu:$('#chu'),
+  luong:$('#luong'),ket:$('#ket'),toi:$('#toi'),pd:$('#pd'),tien:$('#tien'),ray:$('#ray'),
+  hA:$('#hA'),hC:$('#hC')};
+
+/* vòng sáng: dựng một lần, sau chỉ đổi độ mờ */
+const elVong=VONG.map(([,,x,y,w,h])=>{
+  const d=document.createElement('div');d.className='vong';
+  d.style.left=px(sx(x));d.style.top=px(sy(y));
+  d.style.width=px(sx(w));d.style.height=px(sy(y+h)-sy(y));
+  E.zoom.appendChild(d);return d;
+});
+
+/* 5 bước dưới chân */
+const elBuoc=BUOC.map(([ten],i)=>{
+  const d=document.createElement('div');d.className='buoc';
+  d.innerHTML='<s>'+(i+1)+'</s>'+ten;E.ray.appendChild(d);return d;
+});
+
+/* dải luồng */
+const LUONG=[['Tên miền',0],['DNS',0],['Vibe Host',0],['SSL',1],['Website online',1]];
+const elLuong=[];
+LUONG.forEach(([ten,xanh],i)=>{
+  if(i){const m=document.createElement('div');m.className='mui';E.luong.appendChild(m);elLuong.push(m)}
+  const d=document.createElement('div');d.className='o'+(xanh?' xanh':'');
+  d.textContent=ten;E.luong.appendChild(d);elLuong.push(d);
+});
+
+/* ==========================================================================
+   PHỤ ĐỀ — lấy mốc THẬT do long-tieng.mjs đo được sau khi lồng tiếng.
+   Chưa có file thì tạm dùng mốc khai trong VO[] (đủ để xem thử khi dựng).
+   ========================================================================== */
+let PD=VO.map((v,i)=>({tu:v[0],den:(VO[i+1]?VO[i+1][0]:DUR)-0.30,loi:v[1]}));
+async function napPhuDe(){
+  try{
+    const r=await fetch('out/voiceover/phu-de-vibe-host-map-domain.json',{cache:'no-store'});
+    if(r.ok){const j=await r.json();if(Array.isArray(j)&&j.length)PD=j}
+  }catch(e){}
+}
+let pdI=-1;
+
+/* ==========================================================================
+   ĐIỀU KHIỂN BẢN GHI HÌNH
+   Thẻ <video> là thứ duy nhất có trạng thái riêng, không thuần theo `t`:
+   · khúc DỪNG → pause rồi nhảy đúng khung;
+   · khúc CHẠY → phát bằng playbackRate = (đoạn ghi hình)/(đoạn trên phim),
+     và bù trôi bằng cách nhích tốc độ chứ KHÔNG nhảy khung. Nhảy khung mỗi lần
+     lệch sẽ thấy giật; nhích tốc độ thì mắt không nhận ra.
+   ========================================================================== */
+function nhipTai(t){
+  for(const [a,b,ta,tb] of NHIP){
+    if(t<tb||tb>=DUR){
+      if(t<ta)return{src:a,rate:0,dung:true};
+      const k=cl((t-ta)/Math.max(1e-6,tb-ta),0,1);
+      return{src:a+(b-a)*k,rate:(b-a)/(tb-ta),dung:b===a};
+    }
+  }
+  const L=NHIP[NHIP.length-1];return{src:L[1],rate:0,dung:true};
+}
+function dieuKhienVideo(t,dangChay){
+  const v=E.vid;if(!v.duration)return;
+  const n=nhipTai(t);
+  if(n.dung||!dangChay){
+    if(!v.paused)v.pause();
+    /* Ngưỡng phải NHỎ HƠN NHIỀU một khung của bản ghi hình (1/30 = 0,033s).
+       Để 0,04 như trước là sai: lối xuất từng khung chỉ nhảy khung sau mỗi 3–4
+       khung ra, nên bản ghi tiến theo từng bước giật cục thay vì đều đặn —
+       đúng cái "giật, không mượt" người xem thấy ở những đoạn chiếu chậm. */
+    if(Math.abs(v.currentTime-n.src)>0.004)v.currentTime=n.src;
+    return;
+  }
+  const lech=v.currentTime-n.src;
+  if(Math.abs(lech)>0.30){v.currentTime=n.src}
+  else{
+    /* bù trôi: lệch trước thì chạy chậm lại một chút, và ngược lại */
+    const r=cl(n.rate*(1-lech*0.9),0.0625,4);
+    if(Math.abs(v.playbackRate-r)>0.008)v.playbackRate=r;
+  }
+  if(v.paused)v.play().catch(()=>{});
+}
+
+/* ==========================================================================
+   VẼ MỘT KHUNG
+   ========================================================================== */
+function render(t){
+  /* ---- phóng to: gộp mọi khoảng phóng, mỗi khoảng lên/xuống 0.75s ---- */
+  {
+    let k=1,ox=640,oy=MAN_H/2;
+    for(const [a,b,kk,cx,cy] of PHONG){
+      const v=Math.min(seg(t,a,a+0.75,eIO),1-seg(t,b-0.75,b,eIO));
+      if(v>0.001){k=1+(kk-1)*v;ox=sx(cx);oy=sy(cy)}
+    }
+    E.zoom.style.transformOrigin=px(ox)+' '+px(oy);
+    E.zoom.style.transform='scale('+k.toFixed(4)+')';
+  }
+
+  /* ---- vòng sáng ---- */
+  VONG.forEach(([a,b],i)=>setO(elVong[i],pop(t,a,b,.30,.30)));
+
+  /* ---- thanh tiến độ + 5 bước ---- */
+  E.tien.style.width=px(1280*cl(t/DUR,0,1));
+  BUOC.forEach(([,a,b],i)=>{
+    const el=elBuoc[i];const dang=t>=a&&t<b;
+    el.className='buoc'+(dang?' dang':(t>=b?' xong':''));
+    el.firstElementChild.textContent=t>=b?'✓':(i+1);
+  });
+
+  /* ---- thẻ chú thích bản ghi CNAME ----
+     Đặt bên phải khung, ngang tầm bản ghi, chỉ hiện lúc đang phóng vào nó. */
+  {
+    const o=pop(t,31.60,37.40,.35,.30);
+    setO(E.chu,o);
+    E.chu.style.left=px(880);E.chu.style.top=px(430);
+    E.chu.style.transform='translateX('+px((1-o)*22)+')';
+    E.chu.firstElementChild.nextElementSibling.textContent=
+      'Bên trái là TÊN bản ghi, bên phải là ĐỊA CHỈ cần trỏ về. Sao chép nguyên văn sang trang quản lý DNS của bạn.';
+  }
+
+  /* ---- bảng "trỏ DNS" ---- */
+  {
+    const o=pop(t,37.70,51.70,.45,.45);
+    setO(E.phu,o*0.96);setO(E.bang,o);
+    E.bang.style.transform='translateY('+px((1-o)*26)+')';
+    /* nhấn đúng dòng đang được nói tới */
+    E.hA.className=(t>=38.10&&t<45.30)?'h':'';
+    E.hC.className=(t>=45.30&&t<51.70)?'h':'';
+  }
+
+  /* ---- dải luồng ---- */
+  {
+    const o=pop(t,74.80,80.20,.40,.50);
+    setO(E.luong,o?1:0);
+    elLuong.forEach((el,i)=>{
+      const a=74.90+i*0.26;
+      setO(el,o*pop(t,a,80.20,.30,.50));
+      if(el.className.indexOf('mui')<0)
+        el.style.transform='translateY('+px((1-seg(t,a,a+0.34,eOut))*14)+')';
+    });
+    if(o>0.01&&t<80.2)setO(E.phu,Math.max(+E.phu.style.opacity||0,o*0.82));
+  }
+
+  /* ---- thẻ kết ---- */
+  {
+    const o=seg(t,83.30,84.60,eIO);
+    setO(E.ket,o);
+    const v=seg(t,83.50,84.70,eOut);
+    E.ket.children[0].style.transform='translateY('+px((1-v)*18)+')';
+    E.ket.children[1].style.transform='translateY('+px((1-seg(t,83.80,85.00,eOut))*16)+')';
+    E.ket.children[2].style.transform='translateY('+px((1-seg(t,84.10,85.30,eOut))*14)+')';
+    setO(E.ket.children[0],v);
+    setO(E.ket.children[1],seg(t,83.80,85.00,eOut));
+    setO(E.ket.children[2],seg(t,84.10,85.30,eOut));
+  }
+
+  /* ---- KHÔNG tự làm mờ hai đầu ----
+     Mối nối intro→thân→outro do ghep-map-domain.mjs hoà hình (xfade 0.5s).
+     Nếu ở đây cũng làm mờ về đen thì hai lớp chồng nhau, ra một khoảng đen
+     chết ở giữa hai cảnh. Giữ lại #toi để ai cần bản thân rời vẫn dùng được. */
+  setO(E.toi,0);
+
+  /* ---- phụ đề ---- */
+  {
+    const i=PD.findIndex(c=>t>=c.tu-0.12&&t<=c.den+0.18);
+    if(i!==pdI){pdI=i;if(i>=0)E.pd.firstElementChild.textContent=PD[i].loi}
+    setO(E.pd,i<0?0:pop(t,PD[i].tu-0.12,PD[i].den+0.18,.14,.16));
+  }
+}
+
+/* ==========================================================================
+   CHẠY / TUA
+   ========================================================================== */
+const TOC=Math.max(0.25,Math.min(4,parseFloat(new URLSearchParams(location.search).get('toc'))||1));
+let t=0,DUNG=true,last=0;
+function loop(now){
+  if(!DUNG){
+    t+=Math.min(0.30,(now-last)/1000)*TOC;
+    if(t>=DUR){t=DUR;DUNG=true;$('#btnPlay').textContent='▶ Chạy'}
+    render(t);ui();
+  }
+  dieuKhienVideo(t,!DUNG);
+  last=now;requestAnimationFrame(loop);
+}
+function ui(){$('#scrub').value=t.toFixed(2);
+  $('#tnum').textContent=t.toFixed(2)+' / '+DUR.toFixed(2)+'s'}
+$('#btnPlay').addEventListener('click',()=>{
+  if(t>=DUR)t=0;DUNG=!DUNG;last=performance.now();
+  $('#btnPlay').textContent=DUNG?'▶ Chạy':'❚❚ Dừng'});
+$('#scrub').addEventListener('input',e=>{t=parseFloat(e.target.value);render(t);dieuKhienVideo(t,false);ui()});
+BUOC.forEach(([ten,a],i)=>{const b=document.createElement('button');
+  b.textContent='B'+(i+1)+' · '+a+'s · '+ten;
+  b.onclick=()=>{t=a;render(t);dieuKhienVideo(t,false);ui()};$('#chaps').appendChild(b)});
+
+function fit(){
+  if(document.body.classList.contains('exporting')){$('#stage').style.transform='none';return}
+  const k=Math.min((innerWidth-40)/1280,(innerHeight-230)/720,1);
+  $('#stage').style.transform='scale('+k+')';
+  $('#stage').style.margin='0 0 '+((k-1)*720)+'px';
+}
+addEventListener('resize',fit);
+function khoiDong(){render(0);ui()}
+
+/* Nhảy khung xong thì phải CHỜ giải mã. Gán currentTime là lệnh bất đồng bộ:
+   chụp ngay là dính khung cũ, mà sai một khung ở đây thì cả phim lệch. */
+function choKhung(){
+  const v=E.vid;
+  if(!v.seeking) return Promise.resolve();
+  return new Promise(r=>v.addEventListener('seeked',r,{once:true}));
+}
+/* chờ trình duyệt vẽ xong hai nhịp — nhịp đầu áp style, nhịp sau mới lên hình */
+const choVe=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+
+/* chờ bản ghi hình sẵn sàng — không có nó thì khung đầu ra trắng trơn */
+function choVideo(){
+  const v=E.vid;
+  if(v.readyState>=3)return Promise.resolve();
+  return new Promise(r=>{
+    const xong=()=>r();
+    v.addEventListener('canplaythrough',xong,{once:true});
+    setTimeout(xong,20000);
+  });
+}
+
+if(/[?&]export=1/.test(location.search)){
+  document.body.classList.add('exporting');
+  window.__clip={
+    duration:DUR/TOC,
+    ready:async()=>{
+      await napPhuDe();
+      await document.fonts.ready;
+      await choVideo();
+      E.vid.currentTime=0;
+      await new Promise(r=>setTimeout(r,300));
+      fit();khoiDong();dieuKhienVideo(0,false);
+    },
+    play:()=>{DUNG=false;last=performance.now()},
+    at:()=>t/TOC,
+    seek:s=>{t=cl(s*TOC,0,DUR);render(t);dieuKhienVideo(t,false)},
+    /* step() dùng cho lối xuất TỪNG KHUNG (xuat-khung.mjs): trả về Promise,
+       xong nghĩa là hình đã vẽ đúng giây đó và chụp được. */
+    step:async s=>{t=cl(s*TOC,0,DUR);render(t);dieuKhienVideo(t,false);
+      await choKhung();await choVe()},
+  };
+}
+fit();
+napPhuDe().then(()=>document.fonts.ready).then(choVideo).then(khoiDong);
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

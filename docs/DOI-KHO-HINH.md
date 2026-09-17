@@ -55,6 +55,61 @@ Và nó chia hai cực:
   biểu đồ ngang thì không có cách nào nhét vào khung 1080×1920 mà còn đọc được.
   Đó là **vẽ lại giao diện**, không phải đổi khổ.
 
+## Auto layout — làm được tới đâu, và vì sao không hơn
+
+Câu hỏi hay gặp: *"sao không tự đổi toạ độ sang `place` cho clip đổi khổ nào
+cũng chạy?"*
+
+**Vì `place` không phải thuộc tính chỉ đổi CHỖ. Nó đặt cả chỗ lẫn bề rộng.**
+Một khối 400×220 đang nằm giữa khung, đổi sang `place: 'giua'` là nó **phình ra
+kín cả khung**. Với phần lớn phần tử, thay như vậy là **đổi hình**, không phải
+đổi cách khai.
+
+Đo trên 11 clip, 1.379 món ngoài cùng (`tools/tu-xep-lai.mjs`):
+
+| | Số món | Nghĩa |
+|---|---|---|
+| Đã khai `place` | **46** | đổi khổ nào cũng tự xếp lại |
+| Phủ kín khung sẵn | **22** | đổi sang `place:'day'` mà hình **không đổi** |
+| Có cỡ riêng | **1.311** | máy không quyết thay người được |
+
+Thêm **64 món** nằm trong cụm — đã do flex xếp, đổi khổ tự chạy.
+
+### Nhưng bảng theo từng clip mới là chỗ đáng nhìn
+
+| Clip | Ngoài cùng | Đã `place` | Phải xếp tay |
+|---|---|---|---|
+| `cta` | 2 | **2** | 0 |
+| `thuong-hieu` | 13 | **13** | 0 |
+| `vibe-host` | 8 | **8** | 0 |
+| `nguon-toi` | 13 | 12 | **1** |
+| `kich-ban-thu` | 10 | 9 | **1** |
+| `dung-lai` | 5 | 2 | 0 *(3 đổi được)* |
+| `gioi-thieu` | 12 | 0 | **12** |
+| `thu-nghiem` | 12 | 0 | **12** |
+| `thu-trien-khai-doc` | 472 | 0 | **458** |
+| `thu-trien-khai-html` | 676 | 0 | **672** |
+| `thu-ve-lai-s02` | 156 | 0 | **155** |
+
+**Sáu clip dựng tay đã gần như đổi khổ được rồi** — `cta`, `thuong-hieu`,
+`vibe-host` là xong hẳn; `nguon-toi` và `kich-ban-thu` chỉ còn **một** món mỗi
+clip. `gioi-thieu` và `thu-nghiem` mỗi cái 12 món, làm tay một buổi là xong.
+
+**Ba clip vẽ lại giao diện sản phẩm thì không.** 1.285 món trong số 1.311 "phải
+xếp tay" nằm ở đó. Và như đã nói ở trên: thứ cần xếp lại **không tồn tại** ở khổ
+dọc — đó là vẽ lại giao diện, không phải đổi khổ.
+
+### Cách đỡ tốn nhất
+
+Dựng clip mới bằng **"Bộ dựng sẵn"** (xem `docs/KHO-THANH-PHAN.md`): mọi bộ đều
+khai `place` sẵn, nên clip dựng bằng bộ là đổi khổ nào cũng chạy, không phải đi
+sửa sau.
+
+```bash
+node tools/tu-xep-lai.mjs          # chỉ đo
+node tools/tu-xep-lai.mjs --ghi    # đổi 22 món phủ kín khung sang place:'day'
+```
+
 ## Kiểm
 
 ```bash

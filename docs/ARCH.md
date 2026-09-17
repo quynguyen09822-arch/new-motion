@@ -46,9 +46,22 @@ chưa clip nào dùng. Thư mục `clip/` gói kèm nặng **2,3 MB**.
 | `PORT` | `3000` | cổng lắng nghe (`0.0.0.0`) |
 | `PROJ_ROOT` | `/app/clip` | chỗ chứa dữ liệu clip |
 
+## Gói kèm những gì
+
+| Phần | Cỡ |
+|---|---|
+| 9 kịch bản đời mới + bộ dựng + `types.ts` | ~0,8 MB |
+| 5 tệp ảnh 9 clip ấy thật sự dùng | 1,6 MB |
+| **12 clip đời cũ** (`.html` tự chứa) | 1,9 MB |
+| **15 tệp ảnh/phim 12 clip ấy nhắc tới** | 12,0 MB |
+| **Cộng `clip/`** | **≈ 17 MB** |
+
+Danh sách tài nguyên **dò từ chính mã của từng clip**, không chép cả thư mục:
+`public/` của dự án gốc nặng 147 MB, nhưng 21 clip cộng lại chỉ chạm tới 13,6 MB.
+
 ## Giới hạn đã biết của bản triển khai
 
 - **Không xuất được video.** Cần `ffmpeg` + Chromium; ảnh này không có, để nhẹ.
-- **Không có 12 clip đời cũ** (`.html` rời) — chúng không nằm trong repo.
-- **Không thêm được nền video** — thư mục video nguồn không gói kèm.
+- **Không thêm được nền video MỚI** — chỉ có những tệp phim 12 clip đời cũ đang
+  dùng, không phải cả kho `public/video/`.
 - **Sửa trên bản triển khai không về máy**, và ngược lại. Hai bản độc lập.

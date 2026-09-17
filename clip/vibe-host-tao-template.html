@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>VH-V2 · Triển khai từ mẫu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cam:#ff671a;--cam-2:#ffa24d;--cam-mo:rgba(255,103,26,.16);
+  --nen:#07130d;--nen-2:#0d2118;--vien:rgba(255,255,255,.10);
+  --luc:#21c07a;--chu:#eaf4ee;--chu-mo:#8fae9c;
+}
+*{box-sizing:border-box;margin:0}
+body{background:#11151b;font-family:'Be Vietnam Pro',system-ui,sans-serif;color:#fff;
+  display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px 0 0}
+body.exporting{background:var(--nen);padding:0;gap:0}
+body.exporting #ui,body.exporting #chaps,body.exporting #ghichu{display:none}
+
+#stage{position:relative;width:1280px;height:720px;overflow:hidden;background:var(--nen);
+  transform-origin:top left;flex:none}
+
+/* ---------- cửa sổ chiếu bản ghi hình ---------- */
+#man{position:absolute;left:0;top:58px;width:1280px;height:617.33px;overflow:hidden;background:#fff}
+#zoom{position:absolute;left:0;top:0;width:1280px;height:617.33px;will-change:transform}
+#vid{position:absolute;left:0;top:-76px;width:1280px;display:block}
+
+/* che thông tin tài khoản (mục 13.2 của guide) */
+#che{position:absolute;backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);
+  background:rgba(240,243,248,.55);border-radius:7px;pointer-events:none;opacity:0}
+
+.vong{position:absolute;border:2.5px solid var(--cam);border-radius:9px;
+  box-shadow:0 0 0 3px rgba(255,103,26,.18),0 8px 26px rgba(255,103,26,.26);
+  pointer-events:none;opacity:0;will-change:opacity}
+
+/* ---------- thanh trên ---------- */
+#thanh{position:absolute;left:0;top:0;width:1280px;height:58px;
+  background:linear-gradient(180deg,#0b1c13,#07130d);border-bottom:1px solid var(--vien);
+  display:flex;align-items:center;gap:14px;padding:0 22px}
+#hieu{display:flex;align-items:center;gap:9px;font-size:16px;font-weight:700;letter-spacing:-.01em}
+#hieu i{width:9px;height:9px;border-radius:99px;background:var(--cam);
+  box-shadow:0 0 0 4px var(--cam-mo);font-style:normal}
+#diachi{display:flex;align-items:center;gap:8px;padding:6px 13px;border-radius:99px;
+  background:rgba(255,255,255,.06);border:1px solid var(--vien);
+  font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12.5px;color:#b9cfc2}
+#tieude{margin-left:auto;font-size:14px;font-weight:600;color:#cfe3d6}
+#tieude b{color:var(--cam-2);font-weight:700}
+
+/* ---------- thanh dưới: 3 bước, đúng bộ bước của sản phẩm ---------- */
+#ray{position:absolute;left:0;top:675.33px;width:1280px;height:44.67px;
+  background:linear-gradient(0deg,#0b1c13,#07130d);border-top:1px solid var(--vien);
+  display:flex;align-items:center;gap:10px;padding:0 22px}
+#tien{position:absolute;left:0;top:675.33px;height:2px;background:var(--cam);
+  box-shadow:0 0 12px rgba(255,103,26,.7);width:0}
+.buoc{display:flex;align-items:center;gap:7px;padding:5px 13px;border-radius:99px;
+  font-size:12.5px;font-weight:600;white-space:nowrap;
+  background:rgba(255,255,255,.045);border:1px solid transparent;color:#6f8a7b}
+.buoc s{display:grid;place-items:center;width:17px;height:17px;border-radius:99px;
+  background:rgba(255,255,255,.10);color:#8fae9c;font-size:10.5px;font-weight:700;
+  text-decoration:none;flex:none}
+.buoc.xong{color:#9fc4ae}
+.buoc.xong s{background:rgba(33,192,122,.20);color:var(--luc)}
+.buoc.dang{background:var(--cam-mo);border-color:rgba(255,103,26,.45);color:#ffd8b8}
+.buoc.dang s{background:var(--cam);color:#20140a}
+.noi{width:26px;height:1.5px;background:rgba(255,255,255,.14);flex:none}
+
+/* ---------- phụ đề ---------- */
+#pd{position:absolute;left:110px;right:110px;bottom:60px;text-align:center;pointer-events:none}
+#pd span{display:inline-block;padding:9px 20px;border-radius:12px;
+  background:rgba(7,19,13,.86);border:1px solid rgba(255,255,255,.09);
+  font-size:24px;font-weight:600;line-height:1.32;color:#fff;
+  text-shadow:0 2px 10px rgba(0,0,0,.55)}
+
+/* ---------- lớp phủ ---------- */
+#phu{position:absolute;left:0;top:58px;width:1280px;height:617.33px;
+  background:rgba(4,12,8,.78);opacity:0;pointer-events:none}
+
+/* chữ mở đầu (S01) */
+#hook{position:absolute;left:0;top:58px;width:1280px;height:617.33px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  pointer-events:none;opacity:0}
+#hook b{font-size:52px;font-weight:700;letter-spacing:-.025em;color:#fff;
+  text-shadow:0 6px 34px rgba(0,0,0,.75);will-change:transform,opacity}
+#hook b em{font-style:normal;color:var(--cam-2)}
+#hook i{font-style:normal;font-size:22px;font-weight:500;color:#cfe3d6;
+  text-shadow:0 3px 18px rgba(0,0,0,.7);will-change:transform,opacity}
+
+/* thẻ chú thích nhỏ */
+.chu{position:absolute;width:300px;padding:15px 17px;border-radius:13px;
+  background:linear-gradient(180deg,#0e2419,#08170f);border:1px solid rgba(255,103,26,.32);
+  box-shadow:0 20px 46px rgba(0,0,0,.5);opacity:0;will-change:transform,opacity}
+.chu b{display:block;font-size:11px;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--cam-2)}
+.chu span{display:block;margin-top:6px;font-size:15px;line-height:1.42;color:var(--chu)}
+.chu.tip{border-color:rgba(255,180,60,.45)}
+.chu.tip b{color:#ffc061}
+
+/* dải chốt (S07) */
+#luong{position:absolute;left:0;top:290px;width:1280px;display:flex;align-items:center;
+  justify-content:center;opacity:0}
+#luong .o{display:flex;flex-direction:column;align-items:center;gap:7px;
+  padding:16px 24px;border-radius:14px;min-width:186px;
+  background:linear-gradient(180deg,#0e2419,#08170f);border:1px solid rgba(255,103,26,.32);
+  box-shadow:0 16px 40px rgba(0,0,0,.45);opacity:0;will-change:transform,opacity}
+#luong .o u{text-decoration:none;font-size:11px;font-weight:700;letter-spacing:.10em;
+  color:var(--cam-2)}
+#luong .o s{text-decoration:none;font-size:18px;font-weight:700;color:#fff}
+#luong .mui{width:30px;height:2px;background:rgba(255,103,26,.55);position:relative;
+  opacity:0;flex:none}
+#luong .mui::after{content:'';position:absolute;right:0;top:-3px;
+  border-left:7px solid rgba(255,103,26,.8);border-top:4px solid transparent;
+  border-bottom:4px solid transparent}
+
+/* thẻ kết */
+#ket{position:absolute;inset:0;background:var(--nen);opacity:0;pointer-events:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+#ket b{font-size:44px;font-weight:700;letter-spacing:-.02em;color:#fff}
+#ket b em{font-style:normal;color:var(--cam-2)}
+#ket i{font-style:normal;font-size:20px;font-weight:500;color:#a9c9b6}
+#ket u{text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:15px;color:#7fd8ab;
+  padding:7px 16px;border-radius:99px;border:1px solid rgba(127,216,171,.30);
+  background:rgba(33,192,122,.08)}
+
+#ui{display:flex;gap:12px;align-items:center;font-size:13px}
+#ui button{background:#20293a;color:#fff;border:0;border-radius:8px;padding:7px 14px;cursor:pointer}
+#scrub{width:620px}
+#chaps{display:flex;flex-wrap:wrap;gap:6px;max-width:1280px;justify-content:center}
+#chaps button{background:#1b2331;color:#c9d3e2;border:0;border-radius:7px;padding:5px 10px;
+  font-size:12px;cursor:pointer}
+#ghichu{max-width:900px;font-size:12.5px;line-height:1.6;color:#8fa3bb;text-align:center;padding-bottom:24px}
+#ghichu code{background:#1b2331;padding:2px 6px;border-radius:5px;color:#cfe3d6}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="man">
+    <div id="zoom">
+      <video id="vid" muted playsinline preload="auto" src="public/video/tao_template.webm"></video>
+      <div id="che"></div>
+    </div>
+  </div>
+  <div id="phu"></div>
+
+  <div id="hook">
+    <b>Không cần cài <em>từng bước từ đầu</em></b>
+    <i>Chọn mẫu · cấu hình · triển khai</i>
+  </div>
+
+  <div id="luong"></div>
+
+  <div id="ket">
+    <b>Chọn mẫu · cấu hình · <em>triển khai</em></b>
+    <i>Không cần tự dựng môi trường từ đầu.</i>
+    <u>vibehost.matbao.ai</u>
+  </div>
+
+  <div id="thanh">
+    <div id="hieu"><i></i>Vibe Host</div>
+    <div id="diachi">vibehost.matbao.ai</div>
+    <div id="tieude">Hướng dẫn · <b>Triển khai từ mẫu</b></div>
+  </div>
+  <div id="tien"></div>
+  <div id="ray"></div>
+
+  <div id="pd"><span></span></div>
+</div>
+
+<div id="ui">
+  <button id="btnPlay">▶ Chạy</button>
+  <input id="scrub" type="range" min="0" max="69" step="0.01" value="0">
+  <span id="tnum">0.00 / 69.00s</span>
+</div>
+<div id="chaps"></div>
+<div id="ghichu">
+  Lời đọc ở <code>VO[]</code>, hai câu đè intro/outro ở <code>VO_BIA[]</code>,
+  chữ máy đọc sai thì nắn ở <code>PHIEN_AM[]</code> — tất cả nằm trong file này.
+  Xuất hình bằng <code>node xuat-khung.mjs</code> (từng khung, khớp tuyệt đối).
+</div>
+
+<script>
+(()=>{
+/* ==========================================================================
+   VH-V2 · TRIỂN KHAI TỪ MẪU — bản ngang 16:9
+   Dựng theo public/kich-ban/Dinh-huong-motion/VH_V2_Template_Deployment_Tutorial_Motion_Guide.md
+   Hình nền là bản ghi thao tác thật public/video/tao_template.webm (57,3 giây).
+
+   KHÁC VH-07 Ở CHỖ NÀO (theo yêu cầu của guide, mục 3.3):
+   máy quay chỉ được PUSH-IN 100%→104%, ngoài ra là CROP vào vùng thao tác và
+   MATCH-CUT. Nên ở đây không có cú phóng to chạy dần như VH-07: mỗi khuôn hình
+   là một CROP CỐ ĐỊNH, cắt vào cắt ra dứt khoát, trong lúc giữ thì đẩy nhẹ
+   1.00→1.035. Xem mảng KHUNG[].
+
+   Guide đề xuất 9:16 nhưng bản này làm 16:9 theo yêu cầu người đặt.
+   ========================================================================== */
+const DUR=69.0;
+
+const S=1280/1920, CAT=114;
+const MAN_T=58, MAN_H=(1040-CAT)*S;
+const sx=x=>x*S;
+const sy=y=>(y-CAT)*S;
+
+/* ---------- LỜI ĐỌC ---------- */
+const VO=[
+  [ 0.80,'Muốn đưa nhanh một ứng dụng phổ biến lên mạng mà không phải cài đặt từ đầu?'],
+  [ 5.70,'Vibe Host có sẵn hơn hai mươi mẫu triển khai cho bạn.'],
+  [ 9.60,'Từ trang chủ, mở mục Triển khai từ mẫu ở menu bên trái.'],
+  [13.90,'Thư viện hiện ra, tìm ứng dụng phù hợp.'],
+  [17.40,'Ô nào cũng ghi sẵn CPU và RAM tối thiểu.'],
+  [20.90,'Xem xong thì bấm vào Dùng mẫu này.'],
+  [23.40,'Đặt tên website, rồi chọn địa chỉ truy cập.'],
+  [26.60,'Nếu địa chỉ đã có người dùng, hệ thống báo ngay để bạn chọn một tên khác.'],
+  [31.70,'Khi hệ thống báo địa chỉ còn trống, tức là dùng được.'],
+  [35.40,'Kiểm tra lại CPU, RAM và đường dẫn xem trước, rồi bấm Triển khai ngay.'],
+  [40.80,'Vibe Host lo hết phần kỹ thuật: nhận nguồn, đóng gói, rồi cho ứng dụng chạy.'],
+  [47.00,'Bạn chỉ cần đợi quá trình hoàn tất.'],
+  [49.40,'Từng bước đều hiện rõ trên màn hình.'],
+  [52.40,'Xong rồi. Vibe Host cấp cho bạn một đường dẫn công khai.'],
+  [56.60,'Bạn mở website ngay, hoặc sao chép liên kết để dùng sau.'],
+  [61.40,'Chọn mẫu, đặt vài thông số, rồi triển khai.'],
+  [65.30,'Vibe Host lo phần đưa ứng dụng lên mạng.'],
+];
+
+/* ---------- LỜI ĐỌC PHẦN BÌA (giờ tính theo BẢN CUỐI) ---------- */
+const VO_BIA=[
+  ['dan-vao', 1.90,'Đưa một ứng dụng lên mạng, không cần dựng môi trường từ đầu.'],
+  ['ket',    74.30,'Vibe Host, triển khai nhanh, sẵn sàng đưa ứng dụng của bạn lên mạng.'],
+];
+
+/* ---------- NẮN CHỮ CHO MÁY ĐỌC ----------
+   Đã nghe mù từng câu bằng thu-cach-doc.mjs trước khi chốt lời. Những chữ dưới
+   đây là chỗ máy đọc sai; chữ trên phụ đề vẫn giữ nguyên. */
+const PHIEN_AM=[
+  ['Vibe Host','Vai-bơ Host'],   /* để mộc thì ra "VIP Host" — sai tên sản phẩm */
+  ['SSL','SSL'],                 /* trùng chữ = KHOÁ, gỡ mục 'ét-ét-eo' của bảng chung */
+];
+
+/* ---------- NẮN NHỊP BẢN GHI HÌNH ----------
+   [ghi từ, ghi tới, phim từ, phim tới]; `ghi từ === ghi tới` là DỪNG HẲN.
+   Bản ghi dài 57,3s nhưng riêng quãng đứng ở 91% đã chiếm hơn 30 giây — guide
+   (mục 13.5) yêu cầu KHÔNG bắt người xem chờ. Nên: chạy nhanh 82→91%, rồi CẮT
+   thẳng từ giây 24 sang giây 48 của bản ghi. Cắt vào đúng chỗ màn hình gần như
+   không đổi (vẫn 91%, chỉ khác dòng trạng thái) nên mắt không bắt được mối nối,
+   mà đúng tinh thần "status text thay đổi ngắn" guide mô tả. */
+const NHIP=[
+  [ 0.00, 0.80,  0.00,  3.20],   /* trang chủ                            */
+  [ 0.80, 0.80,  3.20,  8.90],   /* DỪNG: chữ mở đầu                     */
+  [ 0.80, 2.30,  8.90, 12.60],   /* con trỏ sang menu trái, bấm          */
+  [ 2.30, 2.80, 12.60, 14.20],   /* chuyển trang → thư viện mẫu          */
+  [ 2.80, 2.80, 14.20, 18.60],   /* DỪNG: lưới mẫu, soi CPU/RAM          */
+  [ 2.80, 4.20, 18.60, 20.60],   /* con trỏ tới thẻ Adminer              */
+  [ 4.20, 4.50, 20.60, 21.40],   /* bấm Dùng mẫu này                     */
+  [ 4.50, 7.00, 21.40, 25.60],   /* hộp cấu hình: tên + địa chỉ          */
+  [ 7.00, 9.00, 25.60, 30.60],   /* báo địa chỉ đã có người dùng         */
+  [ 9.00,11.20, 30.60, 33.60],   /* gõ lại, đang kiểm tra                */
+  [11.20,12.60, 33.60, 39.80],   /* còn trống → soi CPU/RAM/xem trước    */
+  [12.60,13.00, 39.80, 40.80],   /* bấm Triển khai ngay                  */
+  [13.00,15.00, 40.80, 45.20],   /* tiến trình 0 → 82%                   */
+  [15.00,22.00, 45.20, 48.20],   /* 82 → 91%, chạy nhanh                 */
+  [22.00,24.00, 48.20, 50.20],   /* 91%, dòng trạng thái đổi             */
+  [48.00,52.30, 50.20, 52.60],   /* CẮT bỏ quãng chờ → 100% → thành công */
+  [52.30,54.50, 52.60, 56.40],   /* Website đã sẵn sàng + đường dẫn      */
+  [54.50,57.33, 56.40, 61.00],   /* nút Mở website / Sao chép + thông báo*/
+  [57.33,57.33, 61.00, 69.00],   /* DỪNG: dải chốt + thẻ kết             */
+];
+
+/* ---------- 3 bước, đúng bộ bước hiện trên sản phẩm ---------- */
+const BUOC=[
+  ['Chọn mẫu',      0.0, 21.4],
+  ['Cấu hình',     21.4, 39.8],
+  ['Đưa lên mạng', 39.8, 69.0],
+];
+
+/* ---------- KHUNG NGẮM: crop cố định, cắt vào cắt ra ----------
+   [từ, tới, hệ số, tâm x, tâm y] — toạ độ đo trên ảnh gốc 1920×1040.
+   Trong lúc giữ thì đẩy thêm 3,5% (push-in) đúng như guide cho phép. */
+const KHUNG=[
+  [14.20,20.60, 1.85,  562, 424],   /* thẻ Adminer trong lưới mẫu         */
+  [21.40,39.80, 1.20,  962, 581],   /* hộp cấu hình — chừa lề cho thẻ mẹo */
+  [39.80,52.60, 1.35, 1290, 380],   /* tiến trình + bộ bước góc phải      */
+  [52.60,61.00, 1.40, 1250, 320],   /* thành công + thông báo góc phải    */
+];
+
+/* ---------- vòng sáng (toạ độ ảnh gốc) ---------- */
+const VONG=[
+  [ 9.60,12.60,   10, 306,  256,   44],   /* menu "Triển khai từ mẫu"    */
+  [17.40,20.10,  386, 450,  184,   34],   /* dòng CPU · RAM trên thẻ     */
+  [19.60,20.70,  690, 450,  124,   34],   /* nút "Dùng mẫu này" — tắt TRƯỚC khi mở hộp */
+  [23.50,25.90,  580, 370,  382,   52],   /* ô "Tên website"             */
+  [26.60,30.50,  962, 370,  346,   80],   /* ô địa chỉ + dòng báo lỗi    */
+  [31.40,33.60,  962, 370,  346,   80],   /* ô địa chỉ đã hợp lệ         */
+  [35.00,37.00,  580, 460,  760,  170],   /* CPU + RAM                   */
+  [37.00,39.20,  966, 718,  240,   62],   /* "Xem trước URL"             */
+  [38.20,39.72, 1170, 840,  172,   48],   /* nút "Triển khai ngay" — tắt trước khi sang trang */
+  [53.00,56.20,  974, 414,  232,   32],   /* đường dẫn công khai         */
+  [56.80,59.00,  862, 456,  148,   44],   /* nút "Mở website"            */
+  [59.00,60.80, 1012, 456,  172,   44],   /* nút "Sao chép liên kết"     */
+];
+
+/* ---------- thẻ chú thích ---------- */
+const CHU=[
+  [17.50,20.20, 'Tài nguyên tối thiểu','Mỗi mẫu ghi sẵn CPU và RAM cần có — xem trước khi chọn.', 946,150],
+  [26.80,30.50, 'Mẹo nhỏ','Địa chỉ đã có người dùng thì hệ thống báo ngay. Đổi sang tên khác là xong.', 972,196,1],
+];
+
+/* ==========================================================================
+   TIỆN
+   ========================================================================== */
+const $=s=>document.querySelector(s);
+const cl=(v,a,b)=>v<a?a:v>b?b:v;
+const eOut=x=>1-Math.pow(1-x,3);
+const eIO=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+const seg=(t,a,b,e)=>{const x=cl((t-a)/Math.max(1e-6,b-a),0,1);return e?e(x):x};
+const pop=(t,a,b,v,r)=>Math.min(seg(t,a,a+v,eOut),1-seg(t,b-r,b,eIO));
+const px=v=>v.toFixed(2)+'px';
+const setO=(el,v)=>{el.style.opacity=v.toFixed(3)};
+
+const E={vid:$('#vid'),zoom:$('#zoom'),che:$('#che'),phu:$('#phu'),hook:$('#hook'),
+  luong:$('#luong'),ket:$('#ket'),pd:$('#pd'),tien:$('#tien'),ray:$('#ray')};
+
+/* che thông tin tài khoản — guide mục 13.2 */
+E.che.style.left=px(sx(1692));E.che.style.top=px(sy(126));
+E.che.style.width=px(sx(198));E.che.style.height=px(sy(126+56)-sy(126));
+
+const elVong=VONG.map(([,,x,y,w,h])=>{
+  const d=document.createElement('div');d.className='vong';
+  d.style.left=px(sx(x));d.style.top=px(sy(y));
+  d.style.width=px(sx(w));d.style.height=px(sy(y+h)-sy(y));
+  E.zoom.appendChild(d);return d;
+});
+
+const elChu=CHU.map(([,,tit,noi,x,y,tip])=>{
+  const d=document.createElement('div');d.className='chu'+(tip?' tip':'');
+  d.innerHTML='<b>'+tit+'</b><span>'+noi+'</span>';
+  d.style.left=px(x);d.style.top=px(y);
+  $('#stage').insertBefore(d,$('#luong'));return d;
+});
+
+const elBuoc=BUOC.map(([ten],i)=>{
+  if(i){const m=document.createElement('div');m.className='noi';E.ray.appendChild(m)}
+  const d=document.createElement('div');d.className='buoc';
+  d.innerHTML='<s>'+(i+1)+'</s>'+ten;E.ray.appendChild(d);return d;
+});
+
+const LUONG=[['Bước 1','Chọn mẫu'],['Bước 2','Cấu hình'],['Bước 3','Đưa lên mạng']];
+const elLuong=[];
+LUONG.forEach(([so,ten],i)=>{
+  if(i){const m=document.createElement('div');m.className='mui';E.luong.appendChild(m);elLuong.push(m)}
+  const d=document.createElement('div');d.className='o';
+  d.innerHTML='<u>'+so+'</u><s>'+ten+'</s>';E.luong.appendChild(d);elLuong.push(d);
+});
+
+/* ---------- phụ đề ---------- */
+let PD=VO.map((v,i)=>({tu:v[0],den:(VO[i+1]?VO[i+1][0]:DUR)-0.30,loi:v[1]}));
+async function napPhuDe(){
+  try{
+    const r=await fetch('out/voiceover/phu-de-vibe-host-tao-template.json',{cache:'no-store'});
+    if(r.ok){const j=await r.json();if(Array.isArray(j)&&j.length)PD=j}
+  }catch(e){}
+}
+let pdI=-1;
+/* Câu bìa nằm ngoài giờ thân bài; trang không vẽ chúng. Trừ đi phần intro
+   chiếm để mốc trong phu-de.json (giờ thân bài) khớp với `t` của trang. */
+
+/* ---------- điều khiển bản ghi hình ---------- */
+function nhipTai(t){
+  for(const [a,b,ta,tb] of NHIP){
+    if(t<tb||tb>=DUR){
+      if(t<ta)return{src:a,rate:0,dung:true};
+      const k=cl((t-ta)/Math.max(1e-6,tb-ta),0,1);
+      return{src:a+(b-a)*k,rate:(b-a)/(tb-ta),dung:b===a};
+    }
+  }
+  const L=NHIP[NHIP.length-1];return{src:L[1],rate:0,dung:true};
+}
+function dieuKhienVideo(t,dangChay){
+  const v=E.vid;if(!v.duration)return;
+  const n=nhipTai(t);
+  if(n.dung||!dangChay){
+    if(!v.paused)v.pause();
+    /* ngưỡng phải nhỏ hơn nhiều một khung bản ghi (1/30 = 0,033s) */
+    if(Math.abs(v.currentTime-n.src)>0.004)v.currentTime=n.src;
+    return;
+  }
+  const lech=v.currentTime-n.src;
+  if(Math.abs(lech)>0.30){v.currentTime=n.src}
+  else{
+    const r=cl(n.rate*(1-lech*0.9),0.0625,4);
+    if(Math.abs(v.playbackRate-r)>0.008)v.playbackRate=r;
+  }
+  if(v.paused)v.play().catch(()=>{});
+}
+
+/* ==========================================================================
+   VẼ MỘT KHUNG
+   ========================================================================== */
+function render(t){
+  /* ---- khuôn hình: CẮT vào, giữ, CẮT ra; trong lúc giữ đẩy nhẹ 3,5% ----
+     KHÔNG dùng transform-origin để ngắm. transform-origin chỉ GIỮ NGUYÊN chỗ
+     điểm ngắm đang đứng: điểm nằm ở một phần ba trên thì phóng xong vẫn nằm ở
+     một phần ba trên, nửa khung dưới bỏ trống. Muốn "crop vào vùng thao tác"
+     thì phải DỜI điểm ngắm về giữa khung — tức là dịch rồi mới phóng.
+     Kèm chặn mép: dời quá tay là hở nền trắng ở rìa. */
+  {
+    let k=1,fx=960,fy=(CAT+1040)/2;
+    for(const [a,b,kk,cx,cy] of KHUNG){
+      if(t>=a&&t<b){
+        k=kk*(1+0.035*seg(t,a,b));      /* push-in chậm suốt khuôn hình */
+        fx=cx;fy=cy;
+      }
+    }
+    const W=1280,H=MAN_H;
+    let tx=W/2-k*sx(fx), ty=H/2-k*sy(fy);
+    tx=Math.min(0,Math.max(tx,W-W*k));
+    ty=Math.min(0,Math.max(ty,H-H*k));
+    E.zoom.style.transformOrigin='0 0';
+    E.zoom.style.transform='translate('+px(tx)+','+px(ty)+') scale('+k.toFixed(4)+')';
+  }
+
+  /* ---- che tài khoản: tắt khi thông báo góc phải hiện lên đè lên đó ---- */
+  setO(E.che, t<52.4?1:0);
+
+  VONG.forEach(([a,b],i)=>setO(elVong[i],pop(t,a,b,.24,.14)));
+
+  E.tien.style.width=px(1280*cl(t/DUR,0,1));
+  BUOC.forEach(([,a,b],i)=>{
+    const el=elBuoc[i];const dang=t>=a&&t<b;
+    el.className='buoc'+(dang?' dang':(t>=b?' xong':''));
+    el.firstElementChild.textContent=t>=b?'✓':(i+1);
+  });
+
+  /* ---- chữ mở đầu ---- */
+  {
+    const o=pop(t,2.60,8.60,.55,.55);
+    setO(E.hook,o);
+    if(o>0.001){
+      setO(E.phu,o*0.55);
+      const v=seg(t,2.80,4.00,eOut);
+      E.hook.children[0].style.transform='translateY('+px((1-v)*20)+')';
+      E.hook.children[1].style.transform='translateY('+px((1-seg(t,3.10,4.30,eOut))*16)+')';
+    } else setO(E.phu,0);
+  }
+
+  /* ---- thẻ chú thích ---- */
+  CHU.forEach(([a,b],i)=>{
+    const o=pop(t,a,b,.32,.30);
+    setO(elChu[i],o);
+    elChu[i].style.transform='translateY('+px((1-o)*14)+')';
+  });
+
+  /* ---- dải chốt ---- */
+  {
+    const o=pop(t,61.20,67.90,.40,.50);
+    setO(E.luong,o?1:0);
+    elLuong.forEach((el,i)=>{
+      const a=61.40+i*0.30;
+      setO(el,o*pop(t,a,67.90,.32,.50));
+      if(el.className.indexOf('mui')<0)
+        el.style.transform='translateY('+px((1-seg(t,a,a+0.36,eOut))*16)+')';
+    });
+    if(o>0.01)setO(E.phu,Math.max(+E.phu.style.opacity||0,o*0.84));
+  }
+
+  /* ---- thẻ kết ---- */
+  {
+    const o=seg(t,67.80,68.70,eIO);
+    setO(E.ket,o);
+  }
+
+  /* ---- phụ đề ---- */
+  {
+    const i=PD.findIndex(c=>t>=c.tu-0.12&&t<=c.den+0.18);
+    if(i!==pdI){pdI=i;if(i>=0)E.pd.firstElementChild.textContent=PD[i].loi}
+    setO(E.pd,i<0?0:pop(t,PD[i].tu-0.12,PD[i].den+0.18,.14,.16));
+  }
+}
+
+/* ==========================================================================
+   CHẠY / TUA
+   ========================================================================== */
+const TOC=Math.max(0.25,Math.min(4,parseFloat(new URLSearchParams(location.search).get('toc'))||1));
+let t=0,DUNG=true,last=0;
+function loop(now){
+  if(!DUNG){
+    t+=Math.min(0.30,(now-last)/1000)*TOC;
+    if(t>=DUR){t=DUR;DUNG=true;$('#btnPlay').textContent='▶ Chạy'}
+    render(t);ui();
+  }
+  dieuKhienVideo(t,!DUNG);
+  last=now;requestAnimationFrame(loop);
+}
+function ui(){$('#scrub').value=t.toFixed(2);
+  $('#tnum').textContent=t.toFixed(2)+' / '+DUR.toFixed(2)+'s'}
+$('#btnPlay').addEventListener('click',()=>{
+  if(t>=DUR)t=0;DUNG=!DUNG;last=performance.now();
+  $('#btnPlay').textContent=DUNG?'▶ Chạy':'❚❚ Dừng'});
+$('#scrub').addEventListener('input',e=>{t=parseFloat(e.target.value);render(t);dieuKhienVideo(t,false);ui()});
+[[0,'S01 Hook'],[8.9,'S02 Menu'],[14.2,'S03 Thư viện'],[21.4,'S04 Cấu hình'],
+ [39.8,'S05 Triển khai'],[52.6,'S06 Hoàn tất'],[61.2,'S07 Chốt']]
+.forEach(([s,n])=>{const b=document.createElement('button');
+  b.textContent=s+'s · '+n;
+  b.onclick=()=>{t=s;render(t);dieuKhienVideo(t,false);ui()};$('#chaps').appendChild(b)});
+
+function fit(){
+  if(document.body.classList.contains('exporting')){$('#stage').style.transform='none';return}
+  const k=Math.min((innerWidth-40)/1280,(innerHeight-230)/720,1);
+  $('#stage').style.transform='scale('+k+')';
+  $('#stage').style.margin='0 0 '+((k-1)*720)+'px';
+}
+addEventListener('resize',fit);
+function khoiDong(){render(0);ui()}
+
+function choKhung(){
+  const v=E.vid;
+  if(!v.seeking) return Promise.resolve();
+  return new Promise(r=>v.addEventListener('seeked',r,{once:true}));
+}
+const choVe=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+function choVideo(){
+  const v=E.vid;
+  if(v.readyState>=3)return Promise.resolve();
+  return new Promise(r=>{
+    const xong=()=>r();
+    v.addEventListener('canplaythrough',xong,{once:true});
+    setTimeout(xong,20000);
+  });
+}
+
+if(/[?&]export=1/.test(location.search)){
+  document.body.classList.add('exporting');
+  window.__clip={
+    duration:DUR/TOC,
+    ready:async()=>{
+      await napPhuDe();
+      await document.fonts.ready;
+      await choVideo();
+      E.vid.currentTime=0;
+      await new Promise(r=>setTimeout(r,300));
+      fit();khoiDong();dieuKhienVideo(0,false);
+    },
+    play:()=>{DUNG=false;last=performance.now()},
+    at:()=>t/TOC,
+    seek:s=>{t=cl(s*TOC,0,DUR);render(t);dieuKhienVideo(t,false)},
+    step:async s=>{t=cl(s*TOC,0,DUR);render(t);dieuKhienVideo(t,false);
+      await choKhung();await choVe()},
+  };
+}
+fit();
+napPhuDe().then(()=>document.fonts.ready).then(choVideo).then(khoiDong);
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

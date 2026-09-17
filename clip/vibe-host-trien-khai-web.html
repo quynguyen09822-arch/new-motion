@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>VH-V2 · Triển khai website bằng Git URL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cam:#ff671a;--cam-2:#ffa24d;--cam-mo:rgba(255,103,26,.16);
+  --nen:#07130d;--nen-2:#0d2118;--vien:rgba(255,255,255,.10);
+  --luc:#21c07a;--chu:#eaf4ee;--chu-mo:#8fae9c;
+}
+*{box-sizing:border-box;margin:0}
+body{background:#11151b;font-family:'Be Vietnam Pro',system-ui,sans-serif;color:#fff;
+  display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px 0 0}
+body.exporting{background:var(--nen);padding:0;gap:0}
+body.exporting #ui,body.exporting #chaps,body.exporting #ghichu{display:none}
+
+#stage{position:relative;width:1280px;height:720px;overflow:hidden;background:var(--nen);
+  transform-origin:top left;flex:none}
+
+/* ---------- cửa sổ chiếu bản ghi hình ----------
+   Viền cửa sổ ĐO trên chính bản ghi này (xem mục hình học trong khối JS):
+   giao diện thật nằm từ y=113 tới y=1027 → CAT=113, DAY=12, cao 915px.
+   915 × 1280/1920 = 610px. Đừng chép CAT của clip khác sang. */
+#man{position:absolute;left:0;top:58px;width:1280px;height:610px;overflow:hidden;background:#fff}
+#zoom{position:absolute;left:0;top:0;width:1280px;height:610px;will-change:transform}
+#vid{position:absolute;left:0;top:-75.33px;width:1280px;display:block}
+
+/* che tên + email tài khoản (guide mục 16) */
+#che{position:absolute;backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);
+  background:rgba(240,243,248,.55);border-radius:7px;pointer-events:none;opacity:0}
+
+.vong{position:absolute;border:2.5px solid var(--cam);border-radius:9px;
+  box-shadow:0 0 0 3px rgba(255,103,26,.18),0 8px 26px rgba(255,103,26,.26);
+  pointer-events:none;opacity:0;will-change:opacity}
+
+/* ---------- thanh trên ---------- */
+#thanh{position:absolute;left:0;top:0;width:1280px;height:58px;
+  background:linear-gradient(180deg,#0b1c13,#07130d);border-bottom:1px solid var(--vien);
+  display:flex;align-items:center;gap:14px;padding:0 22px}
+#hieu{display:flex;align-items:center;gap:9px;font-size:16px;font-weight:700;letter-spacing:-.01em}
+#hieu i{width:9px;height:9px;border-radius:99px;background:var(--cam);
+  box-shadow:0 0 0 4px var(--cam-mo);font-style:normal}
+#diachi{display:flex;align-items:center;gap:8px;padding:6px 13px;border-radius:99px;
+  background:rgba(255,255,255,.06);border:1px solid var(--vien);
+  font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12.5px;color:#b9cfc2}
+#tieude{margin-left:auto;font-size:14px;font-weight:600;color:#cfe3d6}
+#tieude b{color:var(--cam-2);font-weight:700}
+
+/* ---------- thanh dưới: đúng bộ bước của sản phẩm ---------- */
+#ray{position:absolute;left:0;top:668px;width:1280px;height:52px;
+  background:linear-gradient(0deg,#0b1c13,#07130d);border-top:1px solid var(--vien);
+  display:flex;align-items:center;gap:10px;padding:0 22px}
+#tien{position:absolute;left:0;top:668px;height:2px;background:var(--cam);
+  box-shadow:0 0 12px rgba(255,103,26,.7);width:0}
+.buoc{display:flex;align-items:center;gap:7px;padding:5px 13px;border-radius:99px;
+  font-size:12.5px;font-weight:600;white-space:nowrap;
+  background:rgba(255,255,255,.045);border:1px solid transparent;color:#6f8a7b}
+.buoc s{display:grid;place-items:center;width:17px;height:17px;border-radius:99px;
+  background:rgba(255,255,255,.10);color:#8fae9c;font-size:10.5px;font-weight:700;
+  text-decoration:none;flex:none}
+.buoc.xong{color:#9fc4ae}
+.buoc.xong s{background:rgba(33,192,122,.20);color:var(--luc)}
+.buoc.dang{background:var(--cam-mo);border-color:rgba(255,103,26,.45);color:#ffd8b8}
+.buoc.dang s{background:var(--cam);color:#20140a}
+.noi{width:26px;height:1.5px;background:rgba(255,255,255,.14);flex:none}
+
+/* ---------- phụ đề ---------- */
+#pd{position:absolute;left:110px;right:110px;bottom:64px;text-align:center;pointer-events:none}
+#pd span{display:inline-block;padding:9px 20px;border-radius:12px;
+  background:rgba(7,19,13,.86);border:1px solid rgba(255,255,255,.09);
+  font-size:24px;font-weight:600;line-height:1.32;color:#fff;
+  text-shadow:0 2px 10px rgba(0,0,0,.55)}
+
+/* ---------- lớp phủ ---------- */
+#phu{position:absolute;left:0;top:58px;width:1280px;height:610px;
+  background:rgba(4,12,8,.78);opacity:0;pointer-events:none}
+
+/* chữ mở đầu (S01) */
+#hook{position:absolute;left:0;top:58px;width:1280px;height:610px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  pointer-events:none;opacity:0}
+#hook b{font-size:50px;font-weight:700;letter-spacing:-.025em;color:#fff;
+  text-shadow:0 6px 34px rgba(0,0,0,.75);will-change:transform,opacity}
+#hook b em{font-style:normal;color:var(--cam-2)}
+#hook i{font-style:normal;font-size:22px;font-weight:500;color:#cfe3d6;
+  text-shadow:0 3px 18px rgba(0,0,0,.7);will-change:transform,opacity}
+
+/* thẻ chú thích nhỏ */
+.chu{position:absolute;width:300px;padding:15px 17px;border-radius:13px;
+  background:linear-gradient(180deg,#0e2419,#08170f);border:1px solid rgba(255,103,26,.32);
+  box-shadow:0 20px 46px rgba(0,0,0,.5);opacity:0;will-change:transform,opacity}
+.chu b{display:block;font-size:11px;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--cam-2)}
+.chu span{display:block;margin-top:6px;font-size:15px;line-height:1.42;color:var(--chu)}
+.chu.tip{border-color:rgba(255,180,60,.45)}
+.chu.tip b{color:#ffc061}
+
+/* dải chốt (S08) */
+#luong{position:absolute;left:0;top:286px;width:1280px;display:flex;align-items:center;
+  justify-content:center;opacity:0}
+#luong .o{display:flex;flex-direction:column;align-items:center;gap:7px;
+  padding:16px 24px;border-radius:14px;min-width:190px;
+  background:linear-gradient(180deg,#0e2419,#08170f);border:1px solid rgba(255,103,26,.32);
+  box-shadow:0 16px 40px rgba(0,0,0,.45);opacity:0;will-change:transform,opacity}
+#luong .o u{text-decoration:none;font-size:11px;font-weight:700;letter-spacing:.10em;
+  color:var(--cam-2)}
+#luong .o s{text-decoration:none;font-size:18px;font-weight:700;color:#fff}
+#luong .mui{width:30px;height:2px;background:rgba(255,103,26,.55);position:relative;
+  opacity:0;flex:none}
+#luong .mui::after{content:'';position:absolute;right:0;top:-3px;
+  border-left:7px solid rgba(255,103,26,.8);border-top:4px solid transparent;
+  border-bottom:4px solid transparent}
+
+/* thẻ kết */
+#ket{position:absolute;inset:0;background:var(--nen);opacity:0;pointer-events:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+#ket b{font-size:42px;font-weight:700;letter-spacing:-.02em;color:#fff}
+#ket b em{font-style:normal;color:var(--cam-2)}
+#ket i{font-style:normal;font-size:20px;font-weight:500;color:#a9c9b6}
+#ket u{text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:15px;color:#7fd8ab;
+  padding:7px 16px;border-radius:99px;border:1px solid rgba(127,216,171,.30);
+  background:rgba(33,192,122,.08)}
+
+#ui{display:flex;gap:12px;align-items:center;font-size:13px}
+#ui button{background:#20293a;color:#fff;border:0;border-radius:8px;padding:7px 14px;cursor:pointer}
+#scrub{width:620px}
+#chaps{display:flex;flex-wrap:wrap;gap:6px;max-width:1280px;justify-content:center}
+#chaps button{background:#1b2331;color:#c9d3e2;border:0;border-radius:7px;padding:5px 10px;
+  font-size:12px;cursor:pointer}
+#ghichu{max-width:900px;font-size:12.5px;line-height:1.6;color:#8fa3bb;text-align:center;padding-bottom:24px}
+#ghichu code{background:#1b2331;padding:2px 6px;border-radius:5px;color:#cfe3d6}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="man">
+    <div id="zoom">
+      <video id="vid" muted playsinline preload="auto" src="public/video/trien_khai_web.webm"></video>
+      <div id="che"></div>
+    </div>
+  </div>
+  <div id="phu"></div>
+
+  <div id="hook">
+    <b>Mã nguồn nằm trên <em>kho Git công khai</em>?</b>
+    <i>Dán đường dẫn · kiểm tra · đưa lên mạng</i>
+  </div>
+
+  <div id="luong"></div>
+
+  <div id="ket">
+    <b>Dán Git URL · chuẩn bị · <em>đưa lên mạng</em></b>
+    <i>Từ kho Git công khai tới website chạy thật.</i>
+    <u>vibehost.matbao.ai</u>
+  </div>
+
+  <div id="thanh">
+    <div id="hieu"><i></i>Vibe Host</div>
+    <div id="diachi">vibehost.matbao.ai</div>
+    <div id="tieude">Hướng dẫn · <b>Triển khai website bằng Git URL</b></div>
+  </div>
+  <div id="tien"></div>
+  <div id="ray"></div>
+
+  <div id="pd"><span></span></div>
+</div>
+
+<div id="ui">
+  <button id="btnPlay">▶ Chạy</button>
+  <input id="scrub" type="range" min="0" max="85.5" step="0.01" value="0">
+  <span id="tnum">0.00 / 85.50s</span>
+</div>
+<div id="chaps"></div>
+<div id="ghichu">
+  Lời đọc ở <code>VO[]</code>, hai câu đè intro/outro ở <code>VO_BIA[]</code>,
+  chữ máy đọc sai thì nắn ở <code>PHIEN_AM[]</code> — tất cả nằm trong file này.
+  Xuất hình bằng <code>node xuat-khung.mjs</code> (từng khung, khớp tuyệt đối).
+</div>
+
+<script>
+(()=>{
+/* ==========================================================================
+   VH-V2 · TRIỂN KHAI WEBSITE BẰNG GIT URL — bản ngang 16:9
+   Kịch bản  public/kich-ban/VH_V2_Web_Deploy_GitURL_VO_Script.md
+   Motion    public/kich-ban/Dinh-huong-motion/VH_V2_Web_Deploy_GitURL_Motion_Guide.md
+   Hình nền  public/video/trien_khai_web.webm (bản ghi thao tác thật, 74,37 giây)
+
+   Guide đề xuất 9:16 nhưng bản này làm 16:9 theo yêu cầu người đặt.
+
+   MÁY QUAY theo guide mục 3: chỉ CROP vào vùng thao tác + push-in ≤5%, không
+   zoom giật, không camera orbit. Mỗi khuôn hình trong KHUNG[] là một crop CỐ
+   ĐỊNH, cắt vào cắt ra dứt khoát, trong lúc giữ thì đẩy thêm 3,5%.
+
+   HÌNH HỌC CỬA SỔ — ĐO trên chính bản ghi này, đừng chép từ clip trước.
+   Quét độ sáng từng hàng/cột của khung giây 30: giao diện thật nằm từ y=113
+   (mép trên khung cửa sổ) tới y=1027, hai bên 0→1907. Nên CAT=113, DAY=12.
+   Bản "Triển khai từ mẫu" cắt 114 và bản "Database" cắt 128 — cả hai đều sai
+   với bản ghi này.
+   ========================================================================== */
+const DUR=85.5;
+
+const S=1280/1920, CAT=113, DAY=12;
+const MAN_T=58, MAN_H=(1040-CAT-DAY)*S;
+const sx=x=>x*S;
+const sy=y=>(y-CAT)*S;
+
+/* ---------- LỜI ĐỌC ----------
+   Đã nghe mù (scribe_v1) trước khi chốt. Ba luật rút từ các bản trước, áp sẵn:
+   · "Vibe Host" LUÔN đứng đầu câu — đứng cuối câu là ra "VIP Host / Vipe Host".
+   · Tránh "cấu hình" (ra "cầu hình") và "định tuyến" (ra "định tuyển") trong LỜI;
+     chữ trên giao diện và trên thanh bước vẫn giữ nguyên, đó là tên bước sản phẩm.
+   · Tránh "kho" đứng đầu câu hoặc đứng ngay trước "mã" (ra "khổ mã" / "Khô lưu trữ").
+   · "rồi khởi chạy" ra "rời khỏi trại" ở CẢ HAI giọng thử → đổi thành
+     "cho ứng dụng chạy". Cả "Ứng dụng đã khởi chạy" cũng ra "đã khỏi trại", nên
+     câu 18 nói "Ứng dụng chạy được rồi"; chữ trên giao diện vẫn giữ nguyên.
+
+   Vòng nghe mù trên chính track đã sinh (không phải bản thử) bắt thêm 8 chỗ:
+     "bấm ô Git URL" → "bấm O Git URL"      ⇒ bỏ "ô", chỉ còn "chọn Git URL"
+     "Để trống phần nhánh" → "Để trong phân nhánh" ⇒ "Phần nhánh bỏ trống thì…"
+     "Rồi bấm Tiếp tục" → "Rồi bám tiếp tục" ⇒ "Rồi chọn Tiếp tục."
+     "chỉ chữ, số" → "chỉ chủ, sổ"           ⇒ trả lại "chỉ DÙNG chữ, số" (bản
+        thử đọc đúng cụm có "dùng"; bỏ chữ đệm là vỡ), và nới khe 5,4 → 6,2s vì
+        câu này từng bị ép ×1,15 — ép ở câu nhiều thuật ngữ là chỗ dễ vỡ nhất
+     "Bảng tóm tắt … hiện" → "Bằng tóm tắt … hiển" ⇒ "Bên phải là bảng tóm tắt, có…"
+   Vòng nghe mù thứ hai bắt nốt hai chữ mất dấu:
+     "Phần nhánh" → "Phan nhánh"   ⇒ đưa "phần" ra khỏi đầu câu: "Nếu bỏ trống,…"
+     "mức tài nguyên" → "mực…"     ⇒ bỏ hẳn chữ "mức": "…có địa chỉ và tài nguyên đề xuất"
+     "Ba chặng" → "Ba chẳng"                 ⇒ "Tiến trình hiện rõ trên màn hình"
+     "hệ thống lo" → "hệ thống lộ"           ⇒ "rồi để hệ thống làm nốt" */
+const VO=[
+  [ 1.40,'Mã nguồn đã có sẵn trên một kho Git công khai?'],
+  [ 5.00,'Vibe Host đưa lên mạng chỉ với đường dẫn đó.'],
+  [ 8.60,'Bắt đầu ở menu Triển khai website.'],
+  [11.30,'Bước một là chọn nguồn: chọn Git URL.'],
+  [14.40,'Dán đường dẫn kho Git công khai vào ô URL bên dưới.'],
+  [18.60,'Bấm Kiểm tra để hệ thống xác thực mã nguồn.'],
+  [23.30,'Đường dẫn hợp lệ, trạng thái công khai hiện ra ngay.'],
+  [28.20,'Không chọn nhánh thì hệ thống dùng nhánh mặc định.'],
+  [32.20,'Rồi chọn Tiếp tục.'],
+  [34.60,'Sang bước Chuẩn bị, đặt tên cho website.'],
+  [37.60,'Tiếp theo là địa chỉ truy cập, hay còn gọi là subdomain.'],
+  [41.60,'Subdomain từ ba tới sáu mươi ba ký tự, chỉ dùng chữ, số và dấu gạch ngang.'],
+  [47.80,'Khi báo khả dụng là dùng được.'],
+  [50.00,'Bên phải là bảng tóm tắt, có địa chỉ và tài nguyên đề xuất.'],
+  [54.70,'Vibe Host quét mã nguồn để nhận diện các biến môi trường cần thiết.'],
+  [59.80,'Sau đó hệ thống lấy nguồn, đóng gói, cho ứng dụng chạy và mở đường truy cập.'],
+  [65.60,'Tiến trình hiện rõ trên màn hình, theo thời gian thực.'],
+  [69.70,'Bạn chỉ cần đợi hệ thống làm xong.'],
+  [72.40,'Ứng dụng chạy được rồi, hệ thống đang cập nhật đường truy cập.'],
+  [77.10,'Bạn mở website, hoặc sao chép liên kết để dùng sau.'],
+  [81.10,'Dán đường dẫn, đặt vài thông số, rồi để hệ thống làm nốt.'],
+];
+
+/* ---------- LỜI ĐỌC PHẦN BÌA (giờ tính theo BẢN CUỐI) ----------
+   Bản cuối = 6,04 (intro) + 85,5 (thân) + 6,04 (outro) − 2×0,5 (hoà hình)
+            = 96,58 giây. Giây 0 của thân bài rơi vào giây 5,54 của bản cuối,
+   outro mở ra ở giây 90,54. */
+const VO_BIA=[
+  ['dan-vao', 1.75,'Đưa mã nguồn từ một kho Git công khai lên mạng.'],
+  ['ket',    91.10,'Vibe Host — triển khai website nhanh và gọn.'],
+];
+
+/* ---------- NẮN CHỮ CHO MÁY ĐỌC ----------
+   ['Vibe Host','Vibe Host'] = trùng chữ = KHOÁ: để mộc và gỡ mọi mục của bảng
+   chung khớp với chữ này. Bản "Database" đã đo: để mộc mà đứng ĐẦU câu thì đúng
+   6/6 lượt, còn phiên âm "Vai-bơ Host" lại hỏng. Luật là VỊ TRÍ, không phải
+   chính tả — xem lại VO[] ở trên, tên luôn nằm đầu câu. */
+const PHIEN_AM=[
+  ['Vibe Host','Vibe Host'],
+];
+
+/* ---------- NẮN NHỊP BẢN GHI HÌNH ----------
+   [ghi từ, ghi tới, phim từ, phim tới]; `ghi từ === ghi tới` là DỪNG HẲN.
+
+   Bản ghi dài 74,37 giây nhưng phần có việc chỉ nằm ở 0–36s và 65–74s. Riêng
+   quãng đứng ở 91% "Health Check" chiếm từ giây 35 tới giây 65 — đúng 30 giây
+   không có gì đổi ngoài đồng hồ. Không nén được (chạy nhanh thì dòng trạng thái
+   nhấp nháy loạn) nên CẮT THẲNG 36,20 → 65,60. Hai bên mối nối màn hình gần như
+   y hệt (vẫn thanh tiến trình, vẫn ba chặng, chỉ khác dòng phụ và đồng hồ), và
+   cắt đúng lúc KHUNG[] chưa đổi nên mắt đọc ra là một cú match-cut cố ý.
+
+   Chiều lại, phần thao tác thật thì quá nhanh so với lời đọc, nên phần lớn nhịp
+   ở đây là GIỮ HẲN một khung để người xem kịp đọc — chậm đều cả đoạn sẽ làm con
+   trỏ trôi như phim quay chậm, giữ hẳn thì đọc ra là chủ ý. */
+const NHIP=[
+  [ 0.00, 0.60,  0.00,  1.30],   /* trang chủ                                */
+  [ 0.60, 0.60,  1.30,  8.60],   /* DỪNG: chữ mở đầu → vòng sáng menu trái   */
+  [ 0.60, 1.30,  8.60, 10.20],   /* sang trang "Đưa website lên mạng"        */
+  [ 1.30, 1.30, 10.20, 12.80],   /* DỪNG: bước 1 Mã nguồn, thẻ Git URL sáng  */
+  [ 1.30, 2.40, 12.80, 15.00],   /* con trỏ vào ô URL kho lưu trữ            */
+  [ 2.40, 3.00, 15.00, 16.10],   /* URL hiện ra trong ô (dán ở đúng ghi 2,90)*/
+  [ 3.00, 3.00, 16.10, 19.40],   /* DỪNG: đọc URL + thẻ chú thích            */
+  [ 3.00, 4.20, 19.40, 21.40],   /* con trỏ tới nút Kiểm tra                 */
+  [ 4.20, 4.95, 21.40, 23.20],   /* bấm Kiểm tra → đang xác thực             */
+  [ 4.95, 4.95, 23.20, 25.80],   /* DỪNG: kho hợp lệ "test · Public"         */
+  [ 4.95, 6.10, 25.80, 28.20],   /* nhánh mặc định + đang xem cấu trúc nguồn */
+  [ 6.10, 6.10, 28.20, 30.20],   /* DỪNG: vòng sáng ô Nhánh                  */
+  [ 6.10, 7.70, 30.20, 32.60],   /* con trỏ tới Tiếp tục rồi bấm             */
+  [ 7.70, 8.60, 32.60, 34.40],   /* sang bước 2 Chuẩn bị                     */
+  [ 8.60, 8.60, 34.40, 36.80],   /* DỪNG: ô Tên website                      */
+  [ 8.60,11.30, 36.80, 39.00],   /* con trỏ xuống ô Subdomain                */
+  [11.30,13.10, 39.00, 41.40],   /* gõ subdomain                             */
+  [13.10,13.10, 41.40, 43.80],   /* DỪNG: thẻ mẹo 3–63 ký tự                 */
+  [13.10,16.10, 43.80, 46.40],   /* gõ tiếp cho tới khi hợp lệ               */
+  [16.10,17.50, 46.40, 48.60],   /* "Subdomain khả dụng" xanh                */
+  [17.50,17.50, 48.60, 50.80],   /* DỪNG: bảng tóm tắt bên phải              */
+  [17.50,18.55, 50.80, 52.40],   /* bấm "Đưa website lên mạng"               */
+  [18.55,20.35, 52.40, 55.80],   /* Đang kiểm tra biến môi trường / lập kế hoạch */
+  [20.35,21.10, 55.80, 57.40],   /* sang bước 3 Đưa lên mạng                 */
+  [21.10,25.40, 57.40, 61.40],   /* chặng 1 Nhận & xác thực nguồn → 27%      */
+  [25.40,29.55, 61.40, 65.20],   /* chặng 2 Build & đóng gói → 84%           */
+  [29.55,34.90, 65.20, 68.60],   /* chặng 3 Khởi chạy & định tuyến → 91%     */
+  [34.90,36.20, 68.60, 70.20],   /* Health Check                             */
+  [65.60,67.05, 70.20, 72.20],   /* CẮT bỏ 30 giây đứng yên → ứng dụng chạy  */
+  [67.05,71.60, 72.20, 76.80],   /* trạng thái cuối + đường dẫn + ba nút     */
+  [71.60,74.30, 76.80, 79.40],   /* giữ, thông báo góc phải tan              */
+  [74.30,74.30, 79.40, 85.50],   /* DỪNG: dải chốt + thẻ kết                 */
+];
+
+/* ---------- 3 bước, đúng bộ bước hiện trên sản phẩm ---------- */
+const BUOC=[
+  ['Mã nguồn',      0.0, 32.6],
+  ['Chuẩn bị',     32.6, 55.8],
+  ['Đưa lên mạng', 55.8, 85.5],
+];
+
+/* ---------- CHE TÊN + EMAIL TÀI KHOẢN (guide mục 16) ----------
+   Ô che tính theo GIỜ BẢN GHI chứ không theo giờ phim: sửa NHIP[] thì che vẫn
+   dính đúng chỗ. Tắt trong hai quãng có THÔNG BÁO SẢN PHẨM trượt ra đè lên đúng
+   góc đó — che tiếp là che luôn thông báo:
+     ghi 5,20–8,75  "Xác thực kho lưu trữ thành công"
+     ghi 67,50–70,95 "Ứng dụng đã khởi chạy, đang cập nhật đường truy cập…"
+
+   ⚠️ BẪY ĐÃ VẤP — LẤY MỐC THEO LÚC THÔNG BÁO *HIỆN RA* LÀ LỘ EMAIL.
+   Bản đầu lấy đúng mốc thông báo bắt đầu/kết thúc (4,85–8,95 và 66,90–71,30).
+   Soi lại bản dựng ở mức 0,05 giây/khung mới thấy: thông báo TRƯỢT vào chứ
+   không hiện ngay, và trong lúc trượt nó còn trong suốt — tên và email vẫn đọc
+   được xuyên qua. Đo từng khung:
+     vào  4,90→5,10 · ra 8,85→8,95   (lộ ~0,3s)
+     vào 67,00→67,35 · ra 71,05→71,15 (lộ ~0,45s)
+   Nên mốc phải lấy theo lúc thông báo PHỦ KÍN, không phải lúc nó bắt đầu hiện:
+   co vào mỗi đầu ~0,3s. Đổi lại lớp che nằm đè lên một góc thông báo trong lúc
+   nó trượt — góc đó là nền, không có chữ, nên đổi được.
+   Bài học chung: quãng có CHUYỂN ĐỘNG thì phải soi ≤0,05s/khung, soi 0,1s vẫn lọt. */
+const CHE_TAT=[[5.20,8.75],[67.50,70.95]];
+
+/* ---------- KHUNG NGẮM: crop cố định, cắt vào cắt ra ----------
+   [từ, tới, hệ số, tâm x, tâm y] — toạ độ đo trên ảnh gốc 1920×1040.
+   Giao diện này để rất nhiều nền trắng (nội dung chỉ chiếm x 280–1900,
+   y 300–900), nên không crop là chữ bé như hạt gạo trên khung 16:9. */
+const KHUNG=[
+  [10.20,16.10, 1.50,  880, 500],   /* bước 1: các ô chọn nguồn + ô Git URL  */
+  [16.10,25.80, 1.65,  900, 660],   /* ô URL + nút Kiểm tra + kết quả xanh   */
+  [25.80,32.60, 1.55,  890, 730],   /* ô Nhánh + nút Tiếp tục                */
+  [32.60,39.00, 1.65,  890, 430],   /* Tên website + Subdomain               */
+  [39.00,48.60, 1.40, 1000, 460],   /* Subdomain                             */
+  [48.60,52.00, 1.40, 1200, 450],   /* bảng tóm tắt — tâm dời phải, không thì
+                                        dòng Địa chỉ (x tới 1875) bị cắt mép */
+  [52.00,57.40, 1.55, 1150, 560],   /* nút CTA và các trạng thái của nút     */
+  [57.40,71.00, 1.42, 1100, 460],   /* ba chặng + thanh tiến trình           */
+  [71.00,79.40, 1.45, 1090, 450],   /* trạng thái cuối + đường dẫn + ba nút  */
+];
+
+/* ---------- vòng sáng (toạ độ ảnh gốc 1920×1040) ----------
+   Luật của các bản trước: vòng phải TẮT TRƯỚC khi đổi khuôn hình hoặc đổi màn,
+   không thì nó nổi lơ lửng giữa một màn chẳng có gì. */
+const VONG=[
+  [ 6.20, 8.45,   10, 273,  245,  34],   /* menu "Triển khai website"          */
+  [11.20,13.30,  337, 431,  362,  64],   /* thẻ nguồn "Git URL"                */
+  [13.60,19.90,  337, 601,  987,  46],   /* ô "URL kho lưu trữ"                */
+  [20.60,22.60, 1326, 603,  118,  44],   /* nút "Kiểm tra" — tắt trước kết quả */
+  [23.60,25.60,  337, 653, 1105,  66],   /* kho hợp lệ "test · Public"         */
+  [28.40,30.10,  337, 751, 1105,  48],   /* ô "Nhánh"                          */
+  [31.30,32.30, 1323, 854,  122,  46],   /* nút "Tiếp tục" — tắt trước bước 2  */
+  [34.70,36.60,  337, 373, 1105,  42],   /* ô "Tên website"                    */
+  [39.30,41.30,  337, 448,  936,  44],   /* ô "Subdomain" đang gõ              */
+  [44.90,48.40,  337, 446,  936,  74],   /* Subdomain + dòng "khả dụng" — vòng
+                                             phải CHỨA TRỌN dòng xanh bên dưới ô;
+                                             h=66 thì viền dưới cắt ngang chữ   */
+  /* Đã bỏ vòng dòng "Địa chỉ" ở bảng tóm tắt: bảng nằm sát mép phải bản ghi
+     (chữ chạy tới x=1848), khuôn ngắm đủ rộng để chứa trọn vòng thì lại hở viền
+     tối của cửa sổ ở rìa phải. Khuôn hình đã đẩy vào đúng bảng tóm tắt rồi nên
+     vòng là thừa. */
+  [50.90,51.90, 1234, 600,  212,  46],   /* nút "Đưa website lên mạng" — tắt
+                                             trước khi đổi khuôn hình ở 52,00 */
+  /* ⚠️ ĐÃ BỎ 4 VÒNG SÁNG Ở MÀN DEPLOY — đừng thêm lại bằng toạ độ cố định.
+     Ba chặng và thanh tiến trình KHÔNG đứng yên: mỗi chặng xong thì dòng phụ của
+     nó ("Chưa bắt đầu" / "Build" / "SSL Certificate") biến mất, mọi thứ bên dưới
+     trượt lên vài chục điểm ảnh. Vòng đặt theo toạ độ đo ở giây 25 nên tới lúc
+     chặng 2, chặng 3 chạy thì vòng nằm lệch hẳn: cắt ngang chữ, hoặc rơi xuống
+     đè lên thanh tiến trình. Bản giao đầu đã dính đúng lỗi đó.
+     Vòng ở màn này cũng thừa: giao diện thật đã đánh dấu chặng đang chạy bằng
+     vòng quay cam + nhãn "Đang chạy", rõ hơn mọi lớp phủ vẽ thêm.
+     Muốn nhấn lại thì phải BÁM PHẦN TỬ (đo theo từng khung ghi), không phải một
+     hộp cố định — mà guide mục 19 đã nói: animation không giúp người xem biết
+     bấm chỗ nào thì nên bỏ. */
+  [73.60,75.20,  993, 490,  194,  32],   /* đường dẫn website                  */
+  [75.60,77.00,  866, 524,  142,  44],   /* nút "Mở website"                   */
+  [77.00,78.60, 1008, 524,  182,  44],   /* nút "Sao chép liên kết"            */
+];
+
+/* ---------- thẻ chú thích (toạ độ khung 1280×720) ---------- */
+const CHU=[
+  [16.60,19.60,'Nguồn Git URL','Đường dẫn phải trỏ tới một kho Git công khai — hệ thống clone thẳng từ đó.', 900,458],
+  [41.60,44.40,'Mẹo nhỏ','Subdomain 3–63 ký tự, chỉ chữ, số và dấu gạch ngang.', 820,118, 1],
+  [53.20,56.00,'Trước khi đưa lên','Vibe Host kiểm tra thông số rồi quét mã nguồn để nhận diện biến môi trường.', 60,470],
+];
+
+/* ==========================================================================
+   TIỆN
+   ========================================================================== */
+const $=s=>document.querySelector(s);
+const cl=(v,a,b)=>v<a?a:v>b?b:v;
+const eOut=x=>1-Math.pow(1-x,3);
+const eIO=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+const seg=(t,a,b,e)=>{const x=cl((t-a)/Math.max(1e-6,b-a),0,1);return e?e(x):x};
+const pop=(t,a,b,v,r)=>Math.min(seg(t,a,a+v,eOut),1-seg(t,b-r,b,eIO));
+const px=v=>v.toFixed(2)+'px';
+const setO=(el,v)=>{el.style.opacity=v.toFixed(3)};
+
+const E={vid:$('#vid'),zoom:$('#zoom'),che:$('#che'),phu:$('#phu'),hook:$('#hook'),
+  luong:$('#luong'),ket:$('#ket'),pd:$('#pd'),tien:$('#tien'),ray:$('#ray')};
+
+/* che tên + email tài khoản */
+E.che.style.left=px(sx(1700));E.che.style.top=px(sy(128));
+E.che.style.width=px(sx(180));E.che.style.height=px(sy(128+48)-sy(128));
+
+const elVong=VONG.map(([,,x,y,w,h])=>{
+  const d=document.createElement('div');d.className='vong';
+  d.style.left=px(sx(x));d.style.top=px(sy(y));
+  d.style.width=px(sx(w));d.style.height=px(sy(y+h)-sy(y));
+  E.zoom.appendChild(d);return d;
+});
+
+const elChu=CHU.map(([,,tit,noi,x,y,tip])=>{
+  const d=document.createElement('div');d.className='chu'+(tip?' tip':'');
+  d.innerHTML='<b>'+tit+'</b><span>'+noi+'</span>';
+  d.style.left=px(x);d.style.top=px(y);
+  $('#stage').insertBefore(d,$('#luong'));return d;
+});
+
+const elBuoc=BUOC.map(([ten],i)=>{
+  if(i){const m=document.createElement('div');m.className='noi';E.ray.appendChild(m)}
+  const d=document.createElement('div');d.className='buoc';
+  d.innerHTML='<s>'+(i+1)+'</s>'+ten;E.ray.appendChild(d);return d;
+});
+
+const LUONG=[['Bước 1','Git URL'],['Bước 2','Chuẩn bị'],['Bước 3','Đưa lên mạng']];
+const elLuong=[];
+LUONG.forEach(([so,ten],i)=>{
+  if(i){const m=document.createElement('div');m.className='mui';E.luong.appendChild(m);elLuong.push(m)}
+  const d=document.createElement('div');d.className='o';
+  d.innerHTML='<u>'+so+'</u><s>'+ten+'</s>';E.luong.appendChild(d);elLuong.push(d);
+});
+
+/* ---------- phụ đề ---------- */
+let PD=VO.map((v,i)=>({tu:v[0],den:(VO[i+1]?VO[i+1][0]:DUR)-0.30,loi:v[1]}));
+async function napPhuDe(){
+  try{
+    const r=await fetch('out/voiceover/phu-de-vibe-host-trien-khai-web.json',{cache:'no-store'});
+    if(r.ok){const j=await r.json();if(Array.isArray(j)&&j.length)PD=j}
+  }catch(e){}
+}
+let pdI=-1;
+
+/* ---------- điều khiển bản ghi hình ---------- */
+function nhipTai(t){
+  for(const [a,b,ta,tb] of NHIP){
+    if(t<tb||tb>=DUR){
+      if(t<ta)return{src:a,rate:0,dung:true};
+      const k=cl((t-ta)/Math.max(1e-6,tb-ta),0,1);
+      return{src:a+(b-a)*k,rate:(b-a)/(tb-ta),dung:b===a};
+    }
+  }
+  const L=NHIP[NHIP.length-1];return{src:L[1],rate:0,dung:true};
+}
+function dieuKhienVideo(t,dangChay){
+  const v=E.vid;if(!v.duration)return;
+  const n=nhipTai(t);
+  if(n.dung||!dangChay){
+    if(!v.paused)v.pause();
+    if(Math.abs(v.currentTime-n.src)>0.004)v.currentTime=n.src;
+    return;
+  }
+  const lech=v.currentTime-n.src;
+  if(Math.abs(lech)>0.30){v.currentTime=n.src}
+  else{
+    const r=cl(n.rate*(1-lech*0.9),0.0625,4);
+    if(Math.abs(v.playbackRate-r)>0.008)v.playbackRate=r;
+  }
+  if(v.paused)v.play().catch(()=>{});
+}
+
+/* ==========================================================================
+   VẼ MỘT KHUNG
+   ========================================================================== */
+function render(t){
+  /* ---- khuôn hình: CẮT vào, giữ, CẮT ra; trong lúc giữ đẩy nhẹ 3,5% ----
+     KHÔNG dùng transform-origin để ngắm: nó chỉ GIỮ NGUYÊN chỗ điểm ngắm đang
+     đứng. Phải DỜI điểm ngắm về giữa khung rồi mới phóng, kèm chặn mép. */
+  {
+    let k=1,fx=960,fy=(CAT+1040-DAY)/2;
+    for(const [a,b,kk,cx,cy] of KHUNG){
+      if(t>=a&&t<b){
+        k=kk*(1+0.035*seg(t,a,b));
+        fx=cx;fy=cy;
+      }
+    }
+    const W=1280,H=MAN_H;
+    let tx=W/2-k*sx(fx), ty=H/2-k*sy(fy);
+    tx=Math.min(0,Math.max(tx,W-W*k));
+    ty=Math.min(0,Math.max(ty,H-H*k));
+    E.zoom.style.transformOrigin='0 0';
+    E.zoom.style.transform='translate('+px(tx)+','+px(ty)+') scale('+k.toFixed(4)+')';
+  }
+
+  /* ---- che tài khoản: tắt đúng hai quãng có thông báo sản phẩm đè lên ---- */
+  {
+    const s=nhipTai(t).src;
+    setO(E.che, CHE_TAT.some(([a,b])=>s>=a&&s<=b) ? 0 : 1);
+  }
+
+  VONG.forEach(([a,b],i)=>setO(elVong[i],pop(t,a,b,.24,.14)));
+
+  E.tien.style.width=px(1280*cl(t/DUR,0,1));
+  BUOC.forEach(([,a,b],i)=>{
+    const el=elBuoc[i];const dang=t>=a&&t<b;
+    el.className='buoc'+(dang?' dang':(t>=b?' xong':''));
+    el.firstElementChild.textContent=t>=b?'✓':(i+1);
+  });
+
+  /* ---- chữ mở đầu ---- */
+  {
+    const o=pop(t,1.10,6.20,.55,.55);
+    setO(E.hook,o);
+    if(o>0.001){
+      setO(E.phu,o*0.55);
+      const v=seg(t,1.30,2.50,eOut);
+      E.hook.children[0].style.transform='translateY('+px((1-v)*20)+')';
+      E.hook.children[1].style.transform='translateY('+px((1-seg(t,1.60,2.80,eOut))*16)+')';
+    } else setO(E.phu,0);
+  }
+
+  /* ---- thẻ chú thích ---- */
+  CHU.forEach(([a,b],i)=>{
+    const o=pop(t,a,b,.32,.30);
+    setO(elChu[i],o);
+    elChu[i].style.transform='translateY('+px((1-o)*14)+')';
+  });
+
+  /* ---- dải chốt ---- */
+  {
+    const o=pop(t,79.60,84.20,.40,.50);
+    setO(E.luong,o?1:0);
+    elLuong.forEach((el,i)=>{
+      const a=79.80+i*0.30;
+      setO(el,o*pop(t,a,84.20,.32,.50));
+      if(el.className.indexOf('mui')<0)
+        el.style.transform='translateY('+px((1-seg(t,a,a+0.36,eOut))*16)+')';
+    });
+    if(o>0.01)setO(E.phu,Math.max(+E.phu.style.opacity||0,o*0.84));
+  }
+
+  /* ---- thẻ kết ---- */
+  setO(E.ket, seg(t,84.10,85.00,eIO));
+
+  /* ---- phụ đề ---- */
+  {
+    const i=PD.findIndex(c=>t>=c.tu-0.12&&t<=c.den+0.18);
+    if(i!==pdI){pdI=i;if(i>=0)E.pd.firstElementChild.textContent=PD[i].loi}
+    setO(E.pd,i<0?0:pop(t,PD[i].tu-0.12,PD[i].den+0.18,.14,.16));
+  }
+}
+
+/* ==========================================================================
+   CHẠY / TUA
+   ========================================================================== */
+const TOC=Math.max(0.25,Math.min(4,parseFloat(new URLSearchParams(location.search).get('toc'))||1));
+let t=0,DUNG=true,last=0;
+function loop(now){
+  if(!DUNG){
+    t+=Math.min(0.30,(now-last)/1000)*TOC;
+    if(t>=DUR){t=DUR;DUNG=true;$('#btnPlay').textContent='▶ Chạy'}
+    render(t);ui();
+  }
+  dieuKhienVideo(t,!DUNG);
+  last=now;requestAnimationFrame(loop);
+}
+function ui(){$('#scrub').value=t.toFixed(2);
+  $('#tnum').textContent=t.toFixed(2)+' / '+DUR.toFixed(2)+'s'}
+$('#btnPlay').addEventListener('click',()=>{
+  if(t>=DUR)t=0;DUNG=!DUNG;last=performance.now();
+  $('#btnPlay').textContent=DUNG?'▶ Chạy':'❚❚ Dừng'});
+$('#scrub').addEventListener('input',e=>{t=parseFloat(e.target.value);render(t);dieuKhienVideo(t,false);ui()});
+[[0,'S01 Hook'],[8.6,'S02 Git URL'],[16.1,'S03 Dán URL'],[23.2,'S04 Kho hợp lệ'],
+ [32.6,'S05 Chuẩn bị'],[50.8,'S06 Đưa lên mạng'],[57.4,'S07 Ba chặng'],
+ [71.0,'S08 Khởi chạy'],[79.4,'S09 Chốt']]
+.forEach(([s,n])=>{const b=document.createElement('button');
+  b.textContent=s+'s · '+n;
+  b.onclick=()=>{t=s;render(t);dieuKhienVideo(t,false);ui()};$('#chaps').appendChild(b)});
+
+function fit(){
+  if(document.body.classList.contains('exporting')){$('#stage').style.transform='none';return}
+  const k=Math.min((innerWidth-40)/1280,(innerHeight-230)/720,1);
+  $('#stage').style.transform='scale('+k+')';
+  $('#stage').style.margin='0 0 '+((k-1)*720)+'px';
+}
+addEventListener('resize',fit);
+function khoiDong(){render(0);ui()}
+
+function choKhung(){
+  const v=E.vid;
+  if(!v.seeking) return Promise.resolve();
+  return new Promise(r=>v.addEventListener('seeked',r,{once:true}));
+}
+const choVe=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+function choVideo(){
+  const v=E.vid;
+  if(v.readyState>=3)return Promise.resolve();
+  return new Promise(r=>{
+    const xong=()=>r();
+    v.addEventListener('canplaythrough',xong,{once:true});
+    setTimeout(xong,20000);
+  });
+}
+
+if(/[?&]export=1/.test(location.search)){
+  document.body.classList.add('exporting');
+  window.__clip={
+    duration:DUR/TOC,
+    ready:async()=>{
+      await napPhuDe();
+      await document.fonts.ready;
+      await choVideo();
+      E.vid.currentTime=0;
+      await new Promise(r=>setTimeout(r,300));
+      fit();khoiDong();dieuKhienVideo(0,false);
+    },
+    play:()=>{DUNG=false;last=performance.now()},
+    at:()=>t/TOC,
+    seek:s=>{t=cl(s*TOC,0,DUR);render(t);dieuKhienVideo(t,false)},
+    step:async s=>{t=cl(s*TOC,0,DUR);render(t);dieuKhienVideo(t,false);
+      await choKhung();await choVe()},
+  };
+}
+fit();
+napPhuDe().then(()=>document.fonts.ready).then(choVideo).then(khoiDong);
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

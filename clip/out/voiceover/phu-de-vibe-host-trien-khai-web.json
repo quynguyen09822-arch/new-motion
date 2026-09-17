@@ -1,0 +1,107 @@
+[
+ {
+  "tu": 1.4,
+  "den": 3.944,
+  "loi": "Mã nguồn đã có sẵn trên một kho Git công khai?"
+ },
+ {
+  "tu": 5,
+  "den": 7.904,
+  "loi": "Vibe Host đưa lên mạng chỉ với đường dẫn đó."
+ },
+ {
+  "tu": 8.6,
+  "den": 10.568,
+  "loi": "Bắt đầu ở menu Triển khai website."
+ },
+ {
+  "tu": 11.3,
+  "den": 14.156,
+  "loi": "Bước một là chọn nguồn: chọn Git URL."
+ },
+ {
+  "tu": 14.4,
+  "den": 18.504,
+  "loi": "Dán đường dẫn kho Git công khai vào ô URL bên dưới."
+ },
+ {
+  "tu": 18.624,
+  "den": 21.288,
+  "loi": "Bấm Kiểm tra để hệ thống xác thực mã nguồn."
+ },
+ {
+  "tu": 23.3,
+  "den": 26.324,
+  "loi": "Đường dẫn hợp lệ, trạng thái công khai hiện ra ngay."
+ },
+ {
+  "tu": 28.2,
+  "den": 31.176,
+  "loi": "Không chọn nhánh thì hệ thống dùng nhánh mặc định."
+ },
+ {
+  "tu": 32.2,
+  "den": 34.504,
+  "loi": "Rồi chọn Tiếp tục."
+ },
+ {
+  "tu": 34.624,
+  "den": 37.096,
+  "loi": "Sang bước Chuẩn bị, đặt tên cho website."
+ },
+ {
+  "tu": 37.6,
+  "den": 41.488,
+  "loi": "Tiếp theo là địa chỉ truy cập, hay còn gọi là subdomain."
+ },
+ {
+  "tu": 41.608,
+  "den": 46.456,
+  "loi": "Subdomain từ ba tới sáu mươi ba ký tự, chỉ dùng chữ, số và dấu gạch ngang."
+ },
+ {
+  "tu": 47.8,
+  "den": 49.528,
+  "loi": "Khi báo khả dụng là dùng được."
+ },
+ {
+  "tu": 50,
+  "den": 53.768,
+  "loi": "Bên phải là bảng tóm tắt, có địa chỉ và tài nguyên đề xuất."
+ },
+ {
+  "tu": 54.7,
+  "den": 58.804,
+  "loi": "Vibe Host quét mã nguồn để nhận diện các biến môi trường cần thiết."
+ },
+ {
+  "tu": 59.8,
+  "den": 65.152,
+  "loi": "Sau đó hệ thống lấy nguồn, đóng gói, cho ứng dụng chạy và mở đường truy cập."
+ },
+ {
+  "tu": 65.6,
+  "den": 68.528,
+  "loi": "Tiến trình hiện rõ trên màn hình, theo thời gian thực."
+ },
+ {
+  "tu": 69.7,
+  "den": 72.076,
+  "loi": "Bạn chỉ cần đợi hệ thống làm xong."
+ },
+ {
+  "tu": 72.4,
+  "den": 75.568,
+  "loi": "Ứng dụng chạy được rồi, hệ thống đang cập nhật đường truy cập."
+ },
+ {
+  "tu": 77.1,
+  "den": 80.316,
+  "loi": "Bạn mở website, hoặc sao chép liên kết để dùng sau."
+ },
+ {
+  "tu": 81.1,
+  "den": 84.364,
+  "loi": "Dán đường dẫn, đặt vài thông số, rồi để hệ thống làm nốt."
+ }
+]

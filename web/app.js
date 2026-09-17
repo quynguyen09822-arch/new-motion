@@ -17,13 +17,14 @@ import { taoLopPhu } from './overlay.js';
 import { taoDanhSach } from './layers.js';
 import { taoBang, tenMon } from './inspector/index.js';
 import { ganKeo } from './drag.js';
-import { MAU_MON, nhanBanCanh, nhanBanMon, themCanh, themMon, xoaCanh, xoaMon } from './them.js';
+import { BO_KIT, BO_MON, KIT, MAU_MON, nhanBanCanh, nhanBanMon, themCanh, themKit, themMon, xoaCanh, xoaMon } from './them.js';
 import { taoBangXuat } from './exportpanel.js';
 import { taoKhung } from './khung.js';
 import { taoBangVideo } from './videos.js';
 import { taoZoom } from './zoom.js';
 import { taoAnhNho } from './anhnho.js';
 import { taoKeoCot } from './cot.js';
+import { hinhKit, hinhMon } from './hinhmon.js';
 
 const $ = (id) => document.getElementById(id);
 const chonClip = $('chon-clip'), dangClip = $('dang-clip'), dsCanhEl = $('ds-canh');
@@ -202,32 +203,145 @@ $('mon-them').onclick = (ev) => {
   // dùng khi họ vừa bấm vào cụm rồi bấm dấu cộng.
   const t = chon?.monId ? timMon(kho.doc(), chon.canhId, chon.monId) : null;
   const trongCum = t?.el.kind === 'group' ? t.el.id : null;
-  if (trongCum) {
-    const h = document.createElement('div');
-    h.className = 'num-goi';
-    h.style.padding = '4px 12px';
-    h.textContent = 'Thêm vào trong cụm đang chọn';
-    menuThem.appendChild(h);
-  }
-  for (const m of MAU_MON) {
+
+  /*
+   * BẢNG CHỌN THEO BỘ, không phải một danh sách phẳng.
+   *
+   * Kho có 24 món. Đổ hết ra một cột thì phải cuộn, và cuộn một danh sách toàn
+   * chữ thì không ai nhớ được món nào nằm đâu. Chia bộ + một dòng tả ngắn cho
+   * mỗi món là nhìn lướt cũng chọn được.
+   */
+  const them = (m) => {
+    menuThem.classList.add('an');
+    let idMoi = null;
+    kho.sua(`thêm ${m.ten.toLowerCase()}`, (doc) => {
+      idMoi = themMon(doc, chon.canhId, m.kind, trongCum);
+    });
+    if (idMoi) datChon({ canhId: chon.canhId, monId: idMoi });
+    bao(`Đã thêm ${m.ten.toLowerCase()}.`);
+  };
+
+  const themBo = (k) => {
+    menuThem.classList.add('an');
+    let idMoi = null;
+    kho.sua(`thêm bộ ${k.ten.toLowerCase()}`, (doc) => {
+      idMoi = themKit(doc, chon.canhId, k.id, trongCum);
+    });
+    if (idMoi) datChon({ canhId: chon.canhId, monId: idMoi });
+    bao(`Đã thêm bộ "${k.ten}" — sửa lại chữ cho hợp clip của bạn.`);
+  };
+
+  const dau = document.createElement('div');
+  dau.className = 'kho-dau';
+  dau.textContent = trongCum ? 'Thêm vào trong cụm đang chọn' : 'Thêm vào cảnh';
+  menuThem.appendChild(dau);
+
+  /*
+   * HAI THẺ: cả một bộ đã bày sẵn, hay một món lẻ.
+   *
+   * Bộ đứng TRƯỚC vì nó là thứ người dùng cần hơn: thêm từng món ai cũng làm
+   * được, nhưng bày cho ĐẸP mới là phần khó — câu dẫn đặt đâu, cách món khoe
+   * bao xa, món nào vào trước. Bộ gói sẵn những quyết định đó.
+   */
+  const the = document.createElement('div');
+  the.className = 'kho-the';
+  the.setAttribute('role', 'tablist');
+  let dangXem = 'bo';
+  for (const [id, ten] of [['bo', 'Bộ dựng sẵn'], ['mon', 'Một món']]) {
     const b = document.createElement('button');
     b.type = 'button';
-    b.textContent = m.ten;
+    b.className = 'kho-the-nut';
+    b.textContent = ten;
+    b.setAttribute('role', 'tab');
+    b.setAttribute('aria-selected', String(id === dangXem));
     b.onclick = () => {
-      menuThem.classList.add('an');
-      let idMoi = null;
-      kho.sua(`thêm ${m.ten.toLowerCase()}`, (doc) => {
-        idMoi = themMon(doc, chon.canhId, m.kind, trongCum);
-      });
-      if (idMoi) datChon({ canhId: chon.canhId, monId: idMoi });
-      bao(`Đã thêm ${m.ten.toLowerCase()}.`);
+      dangXem = id;
+      for (const x of the.children) x.setAttribute('aria-selected', String(x === b));
+      veKho(oTim.value);
     };
-    menuThem.appendChild(b);
+    the.appendChild(b);
   }
+  menuThem.appendChild(the);
+
+  const oTim = document.createElement('input');
+  oTim.className = 'nhap-tim kho-tim';
+  oTim.type = 'search';
+  oTim.placeholder = 'Tìm…';
+  oTim.setAttribute('aria-label', 'Tìm bộ hoặc thành phần');
+  menuThem.appendChild(oTim);
+
+  const than = document.createElement('div');
+  than.className = 'kho-than';
+  menuThem.appendChild(than);
+
+  /* Bỏ dấu để gõ "bieu mau" cũng ra "Biểu mẫu" — người dùng gõ không dấu là
+     chuyện thường, mà tên món thì toàn chữ có dấu. */
+  const phang = (x) => String(x).normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd').toLowerCase();
+
+  function veKho(loc = '') {
+    than.innerHTML = '';
+    const q = phang(loc).trim();
+    let co = 0;
+    const nhomBo = dangXem === 'bo' ? BO_KIT : BO_MON;
+    const dsTatCa = dangXem === 'bo' ? KIT : MAU_MON;
+    for (const bo of nhomBo) {
+      const ds = dsTatCa.filter((m) => m.bo === bo.id
+        && (!q || phang(m.ten).includes(q) || phang(m.mo).includes(q)));
+      if (!ds.length) continue;
+      co += ds.length;
+      const h = document.createElement('div');
+      h.className = 'kho-bo';
+      h.textContent = bo.ten;
+      than.appendChild(h);
+      const luoi = document.createElement('div');
+      luoi.className = 'kho-luoi';
+      than.appendChild(luoi);
+      for (const m of ds) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'kho-mon';
+        /*
+         * Hình vẽ trước, tên sau. Người mở bảng này ra là đang muốn LƯỚT, mà
+         * lướt thì mắt bắt hình nhanh hơn bắt chữ. Dòng tả để trong `title` —
+         * cần thì rê chuột vào, không thì đừng chiếm chỗ.
+         */
+        b.innerHTML = (dangXem === 'bo' ? hinhKit(m.id) : hinhMon(m.kind))
+          + '<span class="kho-ten"></span>';
+        b.querySelector('.kho-ten').textContent = m.ten;
+        b.title = `${m.ten} — ${m.mo}`;
+        b.setAttribute('aria-label', `${m.ten}. ${m.mo}`);
+        b.onclick = () => (dangXem === 'bo' ? themBo(m) : them(m));
+        luoi.appendChild(b);
+      }
+    }
+    if (!co) {
+      const t2 = document.createElement('div');
+      t2.className = 'kho-trong';
+      t2.textContent = `Không có ${dangXem === 'bo' ? 'bộ' : 'thành phần'} nào khớp "${loc}".`;
+      than.appendChild(t2);
+    }
+  }
+  veKho();
+
+  oTim.oninput = () => veKho(oTim.value);
+  oTim.onkeydown = (e) => {
+    if (e.key === 'Escape') { menuThem.classList.add('an'); return; }
+    // Enter khi chỉ còn đúng một món: thêm luôn, khỏi phải với chuột.
+    if (e.key === 'Enter') {
+      const nut = than.querySelectorAll('.kho-mon');
+      if (nut.length === 1) nut[0].click();
+    }
+  };
+
   const r = ev.currentTarget.getBoundingClientRect();
-  menuThem.style.left = `${r.left}px`;
-  menuThem.style.top = `${r.bottom + 4}px`;
   menuThem.classList.remove('an');
+  // Đặt chỗ SAU khi bỏ lớp ẩn: còn `display:none` thì đo ra 0, bảng rơi tụt
+  // xuống dưới mép màn hình. Cùng cái bẫy đã vấp ở ô xem lớn của bảng lớp.
+  const cao = menuThem.offsetHeight;
+  menuThem.style.left = `${Math.min(r.left, innerWidth - menuThem.offsetWidth - 10)}px`;
+  menuThem.style.top = `${Math.min(r.bottom + 4, innerHeight - cao - 10)}px`;
+  oTim.focus();
 };
 document.addEventListener('click', (ev) => {
   // Phải dùng closest(): nút chứa một <svg>, bấm vào là `ev.target` thành cái

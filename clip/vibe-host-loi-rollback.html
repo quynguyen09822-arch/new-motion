@@ -1,0 +1,803 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>VH-05 · Chẩn đoán lỗi &amp; Rollback — "Trên máy tôi chạy ngon mà"</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--cam:#f25c05;--cam-2:#ff8a3d;--muc:#0f1722;--xam:#5b6676;--luc:#16a34a;--do:#e11d48}
+*{box-sizing:border-box;margin:0}
+body{background:#11151b;font-family:'Be Vietnam Pro',system-ui,sans-serif;color:#fff;
+  display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px 0 0}
+body.exporting{background:#fff;padding:0;gap:0}
+body.exporting #ui,body.exporting #chaps{display:none}
+
+/* sân khấu 9:16 — bộ ảnh 941×1672 đã là khung dọc, không có bản ngang */
+#stage{position:relative;overflow:hidden;background:#fff;transform-origin:top left;flex:none}
+.sc{position:absolute;inset:0;will-change:opacity}
+.kb{position:absolute;inset:0;transform-origin:0 0;will-change:transform}
+.kb>img{position:absolute;left:0;top:0;image-rendering:-webkit-optimize-contrast}
+.che{position:absolute;will-change:transform,opacity;display:flex;align-items:center}
+.vong{position:absolute;border-radius:12px;pointer-events:none;will-change:opacity,transform}
+.truot{position:absolute;overflow:hidden;will-change:opacity}
+.truot>img{position:absolute;will-change:transform}
+.glow{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(46% 30% at 50% 47%,rgba(226,255,190,.34),transparent 70%)}
+
+/* con trỏ + gợn sóng lúc bấm */
+#tro{position:absolute;width:0;height:0;pointer-events:none;will-change:transform,opacity;z-index:9}
+#tro svg{position:absolute;left:0;top:0;filter:drop-shadow(0 3px 7px rgba(9,15,25,.45))}
+.song{position:absolute;border-radius:50%;border:3px solid rgba(242,92,5,.85);
+  pointer-events:none;will-change:transform,opacity;z-index:8}
+
+#khoi{position:absolute;left:0;right:0;bottom:0;padding:0 56px 250px;pointer-events:none}
+#nen{position:absolute;left:0;right:0;bottom:0;height:470px;pointer-events:none;
+  background:linear-gradient(to top,rgba(255,255,255,.995) 30%,rgba(255,255,255,.95) 62%,transparent 100%)}
+/* Bản cho cảnh NỀN TỐI. Khung nhật ký là mảng navy gần đen; dải trắng phủ lên nó
+   thì chữ mực navy tụt hết tương phản — đã thấy rõ ở khung giây 13. Cảnh nào tối
+   thì lật cả dải lẫn chữ. */
+#nen.toi{background:linear-gradient(to top,rgba(9,15,26,.97) 30%,rgba(9,15,26,.88) 62%,transparent 100%)}
+#khoi.toi #c1{color:#fff}
+#khoi.toi #c1 em{color:var(--cam-2)}
+#khoi.toi #c2{color:#a8b4c4}
+#gach{width:56px;height:5px;border-radius:99px;background:linear-gradient(90deg,var(--cam-2),var(--cam));
+  margin-bottom:14px;will-change:transform,opacity}
+#c1{font-size:38px;font-weight:700;line-height:1.14;letter-spacing:-.02em;color:var(--muc);
+  will-change:transform,opacity}
+#c1 em{font-style:normal;color:var(--cam)}
+#c2{margin-top:9px;font-size:20px;font-weight:500;line-height:1.3;color:var(--xam);
+  will-change:transform,opacity}
+
+#pd{position:absolute;left:54px;right:54px;bottom:132px;text-align:center;pointer-events:none}
+#pd span{display:inline-block;padding:7px 15px;border-radius:12px;
+  background:rgba(14,20,28,.82);font-size:23px;font-weight:600;line-height:1.3;color:#fff;
+  text-shadow:0 2px 10px rgba(0,0,0,.5)}
+
+#ui{display:flex;gap:12px;align-items:center;font-size:13px}
+#ui button{background:#20293a;color:#fff;border:0;border-radius:8px;padding:7px 14px;cursor:pointer}
+#scrub{width:520px}
+#chaps{display:flex;flex-wrap:wrap;gap:6px;max-width:1000px;justify-content:center}
+#chaps button{background:#1b2331;color:#c9d3e2;border:0;border-radius:7px;padding:5px 10px;
+  font-size:12px;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="nen"></div>
+  <div id="khoi"><div id="gach"></div><div id="c1"></div><div id="c2"></div></div>
+  <div id="pd"><span></span></div>
+</div>
+<div id="ui">
+  <button id="btnPlay">▶ Chạy</button>
+  <input id="scrub" type="range" min="0" max="68" step="0.01" value="0">
+  <span id="tnum">0.00 / 68.00s</span>
+</div>
+<div id="chaps"></div>
+
+<script>
+(()=>{
+/* ==========================================================================
+   VH-05 · CHẨN ĐOÁN LỖI & ROLLBACK — "TRÊN MÁY TÔI CHẠY NGON MÀ"
+
+   Dựng theo:
+     public/kich-ban/VH-05-Tinh-nang-Chan-doan-loi-Rollback.md            (câu chuyện)
+     public/kich-ban/Dinh-huong-motion/VH05_Motion_Direction_Guide.md     (nhịp, motion)
+     public/image/hinh-kich-ban-05/  (7 tấm, 941×1672 — 6 cảnh + 1 thẻ outro)
+
+   CẢNH S05 (AI tự sửa) KHÔNG CÓ trong bản này — kịch bản khoá cảnh đó chờ pháp
+   chế (việc 38, 39), và bộ ảnh cũng không vẽ. Nối thẳng S04 → S06 đúng như kịch
+   bản dặn; clip vẫn trọn nghĩa.
+
+   OUTRO NẰM TRONG TRANG (khác VH-04). Tấm 7 của bộ ảnh chính là thẻ thương hiệu
+   dọc 941×1672 vẽ sẵn cho bộ này, nên không cần ghép `public/video/outro.mp4`
+   (video đó là khung NGANG, ghép vào phải làm nền mờ hai đầu).
+
+   Cách dựng vẫn là của VH-03/VH-04: PHỦ rồi HÉ chính điểm ảnh storyboard, KHÔNG
+   vẽ lại giao diện bằng HTML — 7 tấm này là thiết kế đã duyệt, vẽ lại là làm sai
+   phông chữ, màu và bóng đổ.
+
+   Mọi thứ tính từ MỘT biến thời gian `t` — không CSS transition, không
+   @keyframes — để tua tới đâu vẽ đúng tới đó.
+   ========================================================================== */
+const DUR=68.0;
+const NEN_W=720, NEN_H=1280;
+const ST_W=720, ST_H=1280;              /* xuất 1080×1920 là ×1.5 */
+const IMG_W=941, IMG_H=1672;
+const KX=NEN_W/IMG_W, KY=NEN_H/IMG_H;
+const MK='public/image/hinh-kich-ban-05/';
+const ANH=[
+ 'ChatGPT Image Sep 7, 2026, 09_27_18 AM (1).png',   /* 0 · S01 chia đôi: máy bạn / internet */
+ 'ChatGPT Image Sep 7, 2026, 09_27_18 AM (2).png',   /* 1 · S02 nhật ký lỗi tiếng Anh */
+ 'ChatGPT Image Sep 7, 2026, 09_27_18 AM (3).png',   /* 2 · S03 panel AI phân tích */
+ 'ChatGPT Image Sep 7, 2026, 09_27_18 AM (4).png',   /* 3 · S04 nhật ký 4 nhóm, nhóm đỏ */
+ 'ChatGPT Image Sep 7, 2026, 09_27_18 AM (5).png',   /* 4 · S06 danh sách phiên bản + rollback */
+ 'ChatGPT Image Sep 7, 2026, 09_27_18 AM (6).png',   /* 5 · S07 thẻ kết */
+ 'ChatGPT Image Sep 7, 2026, 09_27_18 AM (7).png',   /* 6 · outro thương hiệu nền xanh */
+];
+
+const $=s=>document.querySelector(s);
+const el=(t,c,html)=>{const e=document.createElement(t);if(c)e.className=c;
+  if(html!=null)e.innerHTML=html;return e};
+const cl=(v,a,b)=>v<a?a:v>b?b:v;
+const tt=(t,a,b)=>b<=a?(t>=b?1:0):cl((t-a)/(b-a),0,1);
+const eOut=x=>1-Math.pow(1-x,3);
+const eIn=x=>x*x*x;
+const eIO=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+const lerp=(a,b,k)=>a+(b-a)*k;
+const seg=(t,a,b,e=eIO)=>e(tt(t,a,b));
+const pop=(t,a,b,v=.28,r=.32)=>Math.min(seg(t,a,a+v,eOut),1-seg(t,b-r,b,eIn));
+const px=v=>v.toFixed(2)+'px';
+const setO=(e,o)=>{e.style.opacity=o.toFixed(3);e.style.visibility=o<0.002?'hidden':'visible'};
+
+/* ==========================================================================
+   BẢNG CẢNH
+
+   `vk` là ĐƯỜNG ĐI CỦA MÁY QUAY: từng mốc [giây, khung ngắm]. Khung ngắm là hộp
+   [x0,y0,x1,y1] theo toạ độ ảnh gốc 941×1672, khai ĐÚNG tỉ lệ 9:16 để thấy đúng
+   cái hộp đã khai. Giữa hai mốc thì nới đều có vào-ra mềm, nên mốc trùng nhau
+   nghĩa là MÁY ĐỨNG YÊN — đó là cách giữ nhịp "thở" ở S03 và nhịp hold cuối cảnh.
+
+   Vì sao dùng đường đi nhiều mốc chứ không phải v0→v1 như VH-04: S03 và S06 mỗi
+   cảnh có hai nhịp máy quay khác nhau (đứng yên rồi mới đẩy vào). Tách thành hai
+   cảnh dùng chung một tấm thì chỗ nối phải hoà hình, mà hoà hình giữa hai cỡ
+   khác nhau của CÙNG một tấm nhìn ra ngay là ảnh chồng ảnh.
+   ========================================================================== */
+const SC=[
+ /* S01 · Hook — cùng một đoạn mã, trên chạy ngon, dưới lỗi */
+ {a: 0.0,b: 6.8, src:0, ten:'S01 Hook', vk:[
+   [ 0.0,[ 25, 100, 906,1667]],
+   /* Đẩy vào rất khẽ thôi (4%). Đẩy sâu hơn là xén mất bốn cái nhãn nằm sát hai
+      mép tấm — "Máy của bạn", "Chạy bình thường", "Trên internet", "Không thể
+      truy cập" — mà bốn nhãn đó chính là thứ kể cả câu chuyện của cảnh. */
+   [ 6.8,[ 42, 150, 889,1656]]]},
+
+ /* S02 · Pain — hai trăm dòng tiếng Anh cuộn qua */
+ {a: 6.8,b:14.4, src:1, ten:'S02 Nhật ký lỗi', vk:[
+   [ 6.8,[110, 300, 830,1580]],
+   [10.4,[110, 300, 830,1580]],
+   [13.2,[200, 660, 740,1620]],
+   [14.4,[210, 700, 730,1624]]]},
+
+ /* S03 · ⭐ AI phân tích — trục chính, dài nhất, có nhịp thở */
+ {a:14.4,b:31.4, src:2, ten:'S03 AI phân tích', vk:[
+   [14.4,[ 15,  52, 926,1672]],
+   [19.0,[ 15,  52, 926,1672]],
+   [20.7,[440, 262, 920,1115]],
+   [28.20,[440, 262, 920,1115]],
+   [31.05,[440, 545, 920,1398]],
+   [31.4,[440, 545, 920,1398]]]},
+
+ /* S04 · Hỏng ở đâu thấy ngay ở đó */
+ {a:31.4,b:41.4, src:3, ten:'S04 Chỗ lỗi', vk:[
+   [31.4,[ 15, 100, 926,1666]],
+   [35.4,[ 15, 100, 926,1666]],
+   [38.6,[180, 284, 890,1546]],
+   [41.4,[190, 318, 880,1545]]]},
+
+ /* S06 · Rollback — danh sách phiên bản, bấm khôi phục, website chạy lại */
+ {a:41.4,b:54.4, src:4, ten:'S06 Rollback', vk:[
+   [41.4,[190, 101, 900,1363]],
+   [45.0,[190, 101, 900,1363]],
+   [49.2,[195, 230, 875,1439]],
+   [51.0,[ 15,  52, 926,1672]],
+   [54.4,[ 60, 120, 900,1614]]]},
+
+ /* S07 · Thẻ kết — tấm này đã có sẵn CTA, giá và dòng "Tính năng AI có từ gói Pro" */
+ {a:54.4,b:61.2, src:5, ten:'S07 Kết', vk:[
+   [54.4,[  0,   0, 941,1672]],
+   [61.2,[ 22,  20, 919,1614]]]},
+
+ /* OUTRO · thẻ thương hiệu, đẩy vào rất chậm, không thêm chữ nào */
+ {a:61.2,b:68.0, src:6, ten:'Outro thương hiệu', vk:[
+   [61.2,[  0,   0, 941,1672]],
+   [68.0,[ 24,  22, 917,1610]]]},
+];
+
+/* ==========================================================================
+   LỚP VẼ ĐÈ — PHỦ RỒI HÉ
+
+   Sáu kiểu:
+     mo     miếng phủ mờ đi          → thẻ, dòng, dấu tick hiện ra
+                                       `o` = độ đục lúc đầu (mặc định 1). Để 0.27
+                                       với miếng trắng thì nó thành LỚP NÂNG SÁNG,
+                                       tắt đi là màn hình tối lại — xem S03.
+     che    miếng phủ co về mép phải → thanh tiến trình chạy
+     cheD   miếng phủ tụt xuống dưới → nhật ký cuộn ra, accordion bung
+     vong   vòng sáng                → chỉ vào thành phần (`mau` đổi màu)
+     truot  bản sao chính tấm ảnh,   → panel AI trượt vào từ phải
+            xén đúng hộp rồi trượt
+     hien   miếng hiện ra rồi tắt    → thẻ trạng thái "Đang phân tích…"
+
+   `text` biến miếng phủ thành MIẾNG VÁ CHỮ (xem S02). `fs` là cỡ chữ tính theo
+   toạ độ ẢNH GỐC, code tự quy về cỡ trên sân khấu.
+
+   [sc] = số thứ tự CẢNH trong SC. box = [x0,y0,x1,y1] theo ảnh gốc 941×1672.
+   a,b = giây bắt đầu / xong. a=99 nghĩa là KHÔNG BAO GIỜ hé — dùng cho miếng che
+   nhãn sản xuất in sẵn trên storyboard và cho các miếng vá chữ.
+   ========================================================================== */
+const LOP=[
+ /* ---------- S01 ---------- */
+ /* Nhãn "S01 · 00:00–00:06 · Hook" và dòng chú thích dưới chân là chữ SẢN XUẤT
+    in sẵn trên tấm, không thuộc phim. Che vĩnh viễn rồi để lớp chữ HTML lo phần
+    tiêu đề — lớp đó mới chạy được theo nhịp. */
+ {sc:0,k:'mo',box:[  0,   0, 941, 110], mau:'#fdfefe', a:99,b:99},
+ {sc:0,k:'mo',box:[  0,1560, 941,1672], mau:'#fdfefe', a:99,b:99},
+ /* trang portfolio bên trên dựng dần rồi mới đóng dấu "Chạy bình thường" */
+ {sc:0,k:'mo',box:[ 95, 280, 885, 590], mau:'#fefefe', a:0.45,b:1.00},
+ {sc:0,k:'mo',box:[ 88, 592, 858, 890], mau:'#fefefe', a:1.00,b:1.50},
+ {sc:0,k:'mo',box:[636, 140, 884, 202], mau:'#f6fcfa', a:1.55,b:1.80},
+ {sc:0,k:'vong',box:[632, 138, 888, 204], mau:'#16a34a', a:1.85,b:3.05},
+ /* rồi mới tới nửa dưới: đúng trang đó, trắng bóc, báo không truy cập được */
+ {sc:0,k:'mo',box:[ 58,1030, 884,1522], mau:'#fefefe', a:2.35,b:2.90},
+ {sc:0,k:'mo',box:[634, 962, 884,1022], mau:'#fef5f6', a:3.05,b:3.30},
+ {sc:0,k:'vong',box:[630, 958, 888,1026], mau:'#e11d48', a:3.50,b:5.70},
+
+ /* ---------- S02 ---------- */
+ {sc:1,k:'mo',box:[  0,   0, 941, 205], mau:'#fefefe', a:99,b:99},
+ {sc:1,k:'mo',box:[  0,1558, 941,1672], mau:'#fefefe', a:99,b:99},
+ /* MIẾNG VÁ TÊN ĐỐI THỦ. Tấm storyboard vẽ nhật ký lỗi trên "vercel.com" — đây
+    là phim quảng cáo của Mắt Bão, để nguyên là vừa quảng cáo không công cho đối
+    thủ vừa thành quảng cáo so sánh trực tiếp (Luật Quảng cáo cấm). Vá lại thành
+    địa chỉ của chính Vibe Host, cũng khớp luôn với S03 — cảnh sau chính là nhật
+    ký đó mở trên bảng điều khiển Vibe Host. Muốn trả lại như ảnh gốc thì xoá ba
+    miếng dưới đây. */
+ /* Cỡ chữ và vị trí lấy bằng cách ĐO chữ trên chính tấm ảnh: dòng nhật ký có
+    bước chữ 8,6 điểm ảnh nên phông đều cỡ 14,5; cụm "Vercel..." nằm đúng
+    x 415–492 (quét cột sáng trong dải y 346–370 mà ra). Ướm bằng mắt thì lần
+    đầu đã vá đè lên chữ "to" đứng trước, đọc thành "Deploying tVibe Host". */
+ {sc:1,k:'mo',box:[374, 252, 738, 300], mau:'#eef0f2', a:99,b:99,
+  text:'trien-khai.vibehost.app', fs:26,
+  css:'color:#3c434b;font-weight:500;padding-left:11px;white-space:nowrap'},
+ {sc:1,k:'mo',box:[410, 344, 500, 370], mau:'#0e1829', a:99,b:99,
+  text:'Vibe Host', fs:14.5, css:'color:#dfe6ee;padding-left:5px;white-space:nowrap;'
+    +'font-family:ui-monospace,Menlo,Consolas,monospace'},
+ {sc:1,k:'mo',box:[380,1422, 800,1450], mau:'#0e1829', a:99,b:99,
+  text:'https://trien-khai.vibehost.app/abc123', fs:14.5,
+  css:'color:#7fb2f5;padding-left:5px;white-space:nowrap;'
+    +'font-family:ui-monospace,Menlo,Consolas,monospace'},
+ /* NHẬT KÝ CUỘN RA. Miếng phủ đúng màu nền khung log, neo mép dưới rồi tụt
+    xuống — mép trên của nó chạy xuống, chữ lộ dần từ trên xuống. Đây là cách duy
+    nhất làm "log auto-scroll" mà không phải gõ lại 44 dòng bằng HTML. */
+ {sc:1,k:'cheD',box:[128, 330, 818,1540], mau:'#0e1829', a:7.00,b:10.40},
+ /* Hai vòng phải nằm gọn trong khung ngắm CUỐI cảnh (x 200–740), không phải
+    khung lúc bắt đầu — máy đang đẩy vào trong lúc chúng còn sáng. */
+ {sc:1,k:'vong',box:[272,1004, 470,1038], mau:'#e11d48', a:10.80,b:12.60},
+ {sc:1,k:'vong',box:[272,1452, 556,1488], mau:'#e11d48', a:13.10,b:14.35},
+
+ /* ---------- S03 ---------- */
+ {sc:2,k:'mo',box:[  0,   0, 941, 132], mau:'#fdfdfd', a:99,b:99},
+ {sc:2,k:'mo',box:[  0, 132, 941, 242], mau:'#fdfdfd', a:99,b:99},
+ {sc:2,k:'mo',box:[  0,1470, 941,1672], mau:'#fdfdfd', a:99,b:99},
+ /* VÁ MÂU THUẪN NỘI DUNG giữa hai tấm: panel S03 ghi "Bước Khởi chạy ứng dụng bị
+    lỗi", còn bảng S04 lại tick xanh cho nhóm "Khởi chạy" và tô đỏ nhóm "Build và
+    đóng gói". Hai cảnh cách nhau 12 giây, chữ nào cũng đọc được rõ, để nguyên là
+    người xem bắt được ngay. Kịch bản nói nhóm thứ hai (Build và đóng gói) mới là
+    nhóm hỏng → sửa theo kịch bản. */
+
+ /* NỀN NẰM DƯỚI PANEL. Tấm vẽ panel AI đè lên rồi, nên phần bảng điều khiển bị
+    che không có điểm ảnh nào. Muốn panel TRƯỢT VÀO thì phải có cái gì nằm dưới:
+    ba miếng này dựng lại đúng thứ vốn ở đó — khung nhật ký chạy tiếp sang phải,
+    trên dưới là nền thẻ. Chúng tắt đúng lúc panel phủ kín. */
+ /* Màu lấy ở chỗ KHÔNG dính bóng đổ của panel (x 170–330), không lấy sát mép
+    panel: sát mép tối hơn chừng 8%, đắp cả mảng bằng màu đó là ra một khối xám
+    đậm nằm cạnh khung sáng. Ăn sang trái tới x=434 để chỗ nối rơi vào giữa mảng
+    phẳng chứ không rơi đúng mép bóng. */
+ {sc:2,k:'mo',box:[434, 268, 915, 508], mau:'#b9bdc5', a:20.10,b:20.80, r:'0 30px 0 0'},
+ {sc:2,k:'mo',box:[434, 508, 896,1318], mau:'#151f2d', a:20.10,b:20.80},
+ {sc:2,k:'mo',box:[896, 508, 915,1318], mau:'#b9bdc5', a:20.10,b:20.80},
+ {sc:2,k:'mo',box:[434,1318, 915,1398], mau:'#a8adb6', a:20.10,b:20.80, r:'0 0 30px 0'},
+ /* LỚP NÂNG SÁNG. Tấm vẽ bảng điều khiển ĐÃ BỊ LÀM TỐI (đo được nền trắng 255 tụt
+    còn 186) vì trong tấm thì panel đang mở. Phim thì phải ngược lại: sáng bình
+    thường trước, bấm nút xong mới tối đi. Nên đắp trắng 27% lên đúng phần khung
+    sáng — trừ khung nhật ký và thanh bên vốn KHÔNG bị làm tối (đã đo, màu khớp
+    tấm S04), và trừ nút cam vốn cũng để nguyên độ sáng. */
+ {sc:2,k:'mo',box:[157, 268, 915, 432], mau:'#ffffff', o:0.27, a:16.90,b:17.60},
+ {sc:2,k:'mo',box:[157, 432, 180, 496], mau:'#ffffff', o:0.27, a:16.90,b:17.60},
+ {sc:2,k:'mo',box:[326, 432, 915, 496], mau:'#ffffff', o:0.27, a:16.90,b:17.60},
+ {sc:2,k:'mo',box:[157, 496, 915, 508], mau:'#ffffff', o:0.27, a:16.90,b:17.60},
+ {sc:2,k:'mo',box:[157, 508, 176,1318], mau:'#ffffff', o:0.27, a:16.90,b:17.60},
+ {sc:2,k:'mo',box:[896, 508, 915,1318], mau:'#ffffff', o:0.27, a:16.90,b:17.60},
+ {sc:2,k:'mo',box:[157,1318, 915,1398], mau:'#ffffff', o:0.27, a:16.90,b:17.60},
+ /* trạng thái xử lý — 2,6 giây, đủ để thấy máy đang làm việc chứ không đứng hình */
+ {sc:2,k:'hien',box:[345, 851, 727, 971], mau:'#24344f', r:'22px', a:17.35,b:19.95,
+  text:'Đang phân tích…', fs:38,
+  css:'color:#e9eff8;font-weight:600;letter-spacing:.01em;justify-content:center;width:100%;text-align:center'},
+ /* PANEL AI TRƯỢT VÀO — bản sao chính tấm ảnh, xén đúng hộp panel rồi trượt 70px
+    từ phải vào. Bản định hướng đòi translateX(40px→0) + opacity(0→1). */
+ {sc:2,k:'truot',box:[438, 258, 920,1404], dx:70, a:20.10,b:20.90},
+ /* Từ đây tới hết cảnh S03, mọi lớp khai `trong:1` được gắn VÀO TRONG panel
+    trượt ở trên, không gắn vào cảnh. Hai lý do, cả hai đều đã sập một lần:
+      · panel là BẢN SAO của chính tấm ảnh, nên miếng vá nào nằm dưới nó đều bị
+        nó vẽ đè lên — miếng sửa chữ "Khởi chạy → Build và đóng gói" biến mất;
+      · miếng hé để ngoài thì đục sẵn từ giây 0, tức là suốt 20 giây đầu cảnh có
+        một mảng trắng gạch ngang nằm chình ình chỗ panel sắp hiện.
+    Nằm trong thì chúng trượt cùng panel và chỉ hiện khi panel hiện. */
+
+ /* VÁ MÂU THUẪN NỘI DUNG giữa hai tấm: panel S03 ghi "Bước Khởi chạy ứng dụng bị
+    lỗi", còn bảng S04 lại tick xanh cho nhóm "Khởi chạy" và tô đỏ nhóm "Build và
+    đóng gói". Hai cảnh cách nhau 12 giây, chữ nào cũng đọc được rõ, để nguyên là
+    người xem bắt được ngay. Kịch bản nói nhóm thứ hai (Build và đóng gói) mới là
+    nhóm hỏng → sửa theo kịch bản. */
+ {sc:2,k:'mo',trong:1,box:[575, 528, 875, 610], mau:'#fdeef0', a:99,b:99,
+  text:'Bước Build và đóng gói<br>bị lỗi.', fs:22.5,
+  css:'color:#1f2a37;font-weight:400;line-height:1.36;padding-left:18px'},
+ /* ba phần của panel hé lần lượt — KHÔNG hiện cùng lúc, đây là nhịp thở của clip.
+    Miếng phủ kéo tới x=920 (quá mép panel) vì lúc panel còn đang trượt, nội dung
+    nằm lệch sang phải 70px, phủ đúng mép là hở ra một dải. */
+ /* Mốc bám theo LỜI ĐỌC: câu "…hỏng ở đâu, vì sao, và nên sửa gì" chạy từ giây
+    21,6 tới 27,3, ba cụm rơi vào quãng 23,8 · 25,2 · 26,6. Ba phần hé ngay
+    TRƯỚC mỗi cụm chừng một nhịp. */
+ {sc:2,k:'mo',trong:1,box:[458, 444, 920, 646], mau:'#fdfdfd', a:23.30,b:23.80},
+ {sc:2,k:'mo',trong:1,box:[458, 650, 920, 892], mau:'#fdfdfd', a:25.00,b:25.50},
+ {sc:2,k:'mo',trong:1,box:[458, 896, 920, 998], mau:'#fdfdfd', a:26.30,b:26.70},
+ {sc:2,k:'mo',trong:1,box:[458, 998, 920,1100], mau:'#fdfdfd', a:26.90,b:27.25},
+ {sc:2,k:'mo',trong:1,box:[458,1100, 920,1180], mau:'#fdfdfd', a:27.35,b:27.70},
+ {sc:2,k:'mo',trong:1,box:[458,1180, 920,1278], mau:'#fdfdfd', a:27.80,b:28.15},
+ /* Dòng "Kết quả mang tính tham khảo." — kịch bản bắt buộc có, hiện sau cùng.
+    Phải hé SAU khi máy quay lia xuống tới nó (giây 30,3), không thì nó mờ vào
+    ở ngoài khung, khán giả chẳng thấy gì. */
+ {sc:2,k:'mo',trong:1,box:[458,1318, 920,1386], mau:'#fdfdfd', a:30.30,b:30.80},
+
+ /* ---------- S04 ---------- */
+ {sc:3,k:'mo',box:[  0,   0, 941, 112], mau:'#fdfdfd', a:99,b:99},
+ {sc:3,k:'mo',box:[  0, 112, 941, 218], mau:'#fdfdfd', a:99,b:99},
+ {sc:3,k:'mo',box:[  0,1546, 941,1672], mau:'#fdfdfd', a:99,b:99},
+ /* ba nhóm chạy được tick xanh lần lượt. Thứ tự trên tấm là Chuẩn bị → Build và
+    đóng gói (đỏ) → Khởi chạy → Kiểm tra, nên ba nhóm xanh hiện theo thứ tự 1-3-4
+    rồi mới tới nhóm đỏ — đúng nhịp bản định hướng đòi (xanh trước, đỏ sau). */
+ {sc:3,k:'mo',box:[203, 469, 884, 581], mau:'#fdfdfd', a:31.90,b:32.25},
+ {sc:3,k:'mo',box:[232, 498, 288, 552], mau:'#fefdfe', a:32.20,b:32.42},
+ {sc:3,k:'mo',box:[203,1064, 884,1184], mau:'#fdfdfd', a:32.45,b:32.80},
+ {sc:3,k:'mo',box:[232,1095, 288,1149], mau:'#fefdfe', a:32.75,b:32.97},
+ {sc:3,k:'mo',box:[203,1195, 884,1315], mau:'#fdfdfd', a:33.00,b:33.35},
+ {sc:3,k:'mo',box:[232,1226, 288,1280], mau:'#fefdfe', a:33.30,b:33.52},
+ {sc:3,k:'mo',box:[203,1338, 884,1482], mau:'#fdfdfd', a:33.60,b:34.00},
+ /* nhóm đỏ hiện sau cùng, có nhịp đập nhẹ rồi con trỏ bấm vào cho bung ra */
+ /* Phủ TRỌN nhóm đỏ, viền và tất cả. Lần đầu chỉ phủ phần đầu nhóm thì cái viền
+    đỏ bo tròn cao 450 điểm ảnh nằm chình ình từ giây 0, ruột rỗng — nhìn như
+    giao diện lỗi chứ không như thẻ chưa mở. */
+ {sc:3,k:'mo',box:[199, 591, 888,1052], mau:'#fdfdfd', a:34.30,b:34.70},
+ {sc:3,k:'mo',box:[232, 626, 288, 680], mau:'#feeded', a:34.65,b:34.90},
+ {sc:3,k:'vong',box:[199, 591, 888, 704], mau:'#e11d48', a:34.90,b:36.20},
+ /* Ruột nhóm là nền TRẮNG (đã đo: #fefdfe), chỉ phần đầu nhóm và ô báo lỗi mới
+    hồng. Lần đầu tô miếng này màu hồng thì nó nằm đè lên miếng phủ trắng của cả
+    nhóm, thành ra suốt ba giây trước khi nhóm hiện đã thấy một khối hồng to.
+    Chừa 4 điểm ảnh hai bên cho viền đỏ của nhóm khỏi bị xoá. */
+ {sc:3,k:'cheD',box:[209, 703, 878,1044], mau:'#fefdfe', a:35.30,b:36.35},
+ /* dòng lỗi thật — giữ vòng sáng lâu, đây là điểm chốt của cảnh */
+ {sc:3,k:'vong',box:[214, 856, 872, 974], mau:'#e11d48', a:36.90,b:40.40},
+
+ /* ---------- S06 ---------- */
+ {sc:4,k:'mo',box:[  0,   0, 941, 120], mau:'#fefefe', a:99,b:99},
+ {sc:4,k:'mo',box:[  0, 120, 941, 248], mau:'#fefefe', a:99,b:99},
+ {sc:4,k:'mo',box:[  0,1548, 941,1672], mau:'#fefefe', a:99,b:99},
+ /* Mép hàng đo trên chính tấm ảnh (quét cột x=400): v3 y 446–583, v2 y 598–735,
+    v1 y 750–888. Ướm thiếu vài điểm ảnh là hở đúng cái viền bo, ra một vạch xanh
+    kéo ngang khung — đã dính ở lượt dựng đầu. */
+ {sc:4,k:'mo',box:[200, 320, 890, 410], mau:'#fefdfe', a:41.80,b:42.15},
+ {sc:4,k:'mo',box:[201, 444, 888, 585], mau:'#fefdfe', a:42.35,b:42.75},
+ {sc:4,k:'mo',box:[644, 486, 806, 542], mau:'#fefdfe', a:42.90,b:43.15},
+ {sc:4,k:'vong',box:[640, 482, 810, 546], mau:'#e11d48', a:43.25,b:44.45},
+ /* Hàng v2 hiện NGUYÊN CẢ NÚT "Khôi phục". Tách nút ra thành miếng riêng thì lúc
+    hàng còn bị phủ trắng, miếng nút màu xanh nổi lên thành một ô xanh lơ lửng
+    giữa nền trắng. Nút được nhấn bằng vòng sáng ở dưới, đủ rồi. */
+ {sc:4,k:'mo',box:[201, 596, 888, 737], mau:'#fefdfe', a:43.60,b:44.00},
+ {sc:4,k:'mo',box:[201, 748, 888, 890], mau:'#fefdfe', a:44.20,b:44.55},
+ {sc:4,k:'vong',box:[682, 630, 862, 702], mau:'#16a34a', a:45.55,b:47.00},
+ {sc:4,k:'mo',box:[203, 903, 886,1018], mau:'#fefdfe', a:47.10,b:47.55},
+ {sc:4,k:'vong',box:[199, 899, 890,1022], mau:'#16a34a', a:47.75,b:49.40},
+ /* đồng hồ 00:12 ở góc thanh địa chỉ — hiện sau cùng, như một cái nhãn phụ */
+ {sc:4,k:'mo',box:[794,1080, 894,1138], mau:'#fefdfe', a:52.30,b:52.60},
+ /* Miếng phủ cả khung trình duyệt phải khai SAU miếng 00:12 để nó nằm ĐÈ LÊN.
+    Khai trước thì miếng 00:12 nổi lên trên, thành một ô trắng lơ lửng ngoài rìa
+    thẻ suốt mười giây. */
+ {sc:4,k:'mo',box:[ 26,1044, 914,1548], mau:'#f9fafb', a:51.10,b:51.90},
+
+ /* ---------- S07 ---------- */
+ /* Chỉ che tới x=610: quá đó là mảng cam trang trí của thẻ kết, che là mất. */
+ {sc:5,k:'mo',box:[  0,   0, 610, 124], mau:'#fdfdfd', a:99,b:99},
+ {sc:5,k:'mo',box:[ 44, 254, 322, 660], mau:'#fbfcfd', a:54.90,b:55.30},
+ {sc:5,k:'mo',box:[333, 254, 611, 660], mau:'#fbfcfd', a:55.10,b:55.50},
+ {sc:5,k:'mo',box:[621, 254, 899, 660], mau:'#fbfcfd', a:55.30,b:55.70},
+ {sc:5,k:'mo',box:[ 50, 750, 900, 830], mau:'#fbfcfd', a:56.30,b:56.75},
+ {sc:5,k:'mo',box:[ 80, 836, 880, 882], mau:'#fbfcfd', a:57.00,b:57.35},
+ {sc:5,k:'mo',box:[ 82, 928, 862,1032], mau:'#fbfcfd', a:57.70,b:58.15},
+ {sc:5,k:'vong',box:[ 78, 924, 866,1036], mau:'#f25c05', a:58.30,b:59.90},
+ /* Dòng "Tính năng AI có từ gói Pro" — kịch bản ghi BẮT BUỘC, không được bỏ. */
+ {sc:5,k:'mo',box:[330,1050, 620,1092], mau:'#fbfcfd', a:58.60,b:58.95},
+ {sc:5,k:'mo',box:[140,1158, 800,1278], mau:'#fbfcfd', a:59.30,b:59.80},
+ {sc:5,k:'mo',box:[195,1294, 750,1332], mau:'#fbfcfd', a:60.05,b:60.40},
+];
+
+/* Vầng sáng nở ra ở outro. Không hé logo bằng miếng phủ như các cảnh khác: nền
+   thẻ này là dải chuyển màu, đắp một mảng phẳng lên là lộ ngay vệt vá. */
+const HAO=[{sc:6, a:61.30, b:64.20}];
+
+/* ==========================================================================
+   CON TRỎ — đi tới, dừng nửa nhịp, bấm
+
+   `kf` là các mốc [giây, x, y] theo toạ độ ảnh gốc; `bam` là các giây bấm, mỗi
+   lần bấm nở một gợn sóng tại chỗ con trỏ đang đứng.
+   ========================================================================== */
+const CON=[
+ {sc:2, a:15.00,b:17.50, kf:[[15.00,640,1180],[16.55,262,472]], bam:[16.70]},
+ {sc:3, a:34.30,b:36.00, kf:[[34.30,700, 900],[35.05,420,655]], bam:[35.20]},
+ {sc:4, a:45.30,b:47.05, kf:[[45.30,480, 880],[46.30,772,668]], bam:[46.45]},
+];
+
+/* ==========================================================================
+   CHỮ TIÊU ĐỀ — dải chữ dưới chân khung, có nền trắng loang lên
+
+   Đặt theo NHỊP LỜI ĐỌC chứ không rải đều: S03 từ giây 19,6 tới 31,4 KHÔNG có
+   dòng nào — kịch bản dặn thẳng "đừng lấp lời đọc chồng lên khoảng lặng", mà dải
+   chữ chiếm gần một phần ba dưới khung thì đúng chỗ panel AI đang mở ra.
+   ========================================================================== */
+const TXT=[
+ /* `toi:1` = cảnh nền tối, lật dải nền và màu chữ. Dòng nào cũng phải NGẮN: ô
+    chữ rộng 608 điểm ảnh, cỡ 38 đậm là vừa chừng 26 ký tự — dài hơn thì xuống
+    dòng, mà xuống dòng là đè lên hình. */
+ {a: 4.60,b: 6.60, c1:'Cùng một đoạn mã', c2:'ra hai kết quả'},
+ {a: 8.20,b:11.00, c1:'Và đây là <em>câu trả lời</em>', c2:'bạn nhận được', toi:1},
+ {a:11.60,b:14.20, c1:'Hai trăm dòng tiếng Anh', c2:'đọc không kịp', toi:1},
+ {a:15.60,b:18.60, c1:'Đọc được · <em>bằng tiếng Việt</em>', c2:''},
+ {a:32.30,b:35.00, c1:'Không phải dò <em>cả trăm dòng</em>', c2:''},
+ {a:38.90,b:41.30, c1:'Hỏng ở đâu · <em>thấy ngay ở đó</em>', c2:''},
+ {a:42.30,b:44.10, c1:'Về bản chạy được', c2:'một lần bấm'},
+ {a:51.60,b:54.20, c1:'Lùi lại bản ổn định', c2:'rồi bình tĩnh xử lý sau'},
+];
+
+/* ==========================================================================
+   BẢNG CÁCH ĐỌC RIÊNG CỦA TRANG NÀY
+
+   Chỉ đổi chuỗi GỬI CHO MÁY ĐỌC, KHÔNG đổi VO[] — VO[] còn là chữ chạy trên
+   phụ đề và là chỗ đối chiếu với kịch bản.
+   ========================================================================== */
+const PHIEN_AM=[
+  /* Đã chứng minh ở VH-07: để mộc thì 7/7 lượt máy đọc "Vibe Host" ra "VIP Host"
+     — sai hẳn tên sản phẩm. Trong năm cách viết đã thử, chỉ cách này nhả âm chắc. */
+  ['Vibe Host','Vai-bơ Host'],
+];
+
+/* ==========================================================================
+   LỜI ĐỌC
+
+   Kịch bản cho quyền sửa chữ để máy đọc đúng. Bốn luật áp từ đầu, rút từ VH-02,
+   VH-03, VH-04 và VH-07:
+
+   1. CHỮ ĐẦU CÂU KHÔNG MANG DẤU SẮC / DẤU NGÃ. Mỗi câu là một lượt gọi riêng nên
+      chữ nào đứng đầu câu cũng bị nuốt dấu ("Bấm"→"Bậm", "Nối"→"Nội", "Tạo"→
+      "Tao"). Mọi câu dưới đây mở bằng chữ ngang, huyền hoặc nặng: Không · Bên ·
+      Cùng · Bạn · rồi · Và · Hệ · Chưa · Vài · còn · Chuyện · Quan · Vibe · để.
+      Vì thế "Bấm một nút" phải viết thành "Bạn bấm một nút thôi".
+
+   2. CHỮ MANG DẤU KHÔNG ĐỨNG ÁP CHÓT TRƯỚC DẤU PHẨY — chỗ đó bị nuốt thanh điệu.
+      Nên bỏ hẳn dấu phẩy ở "Cùng một đoạn mã mà ra hai kết quả" (nếu để phẩy thì
+      "mã" dấu ngã đứng ngay trước phẩy), ở "Hệ thống tô sáng ngay cái bước bị
+      lỗi" và ở "chọn phiên bản chạy được trước đó rồi bấm khôi phục".
+
+   3. TRÁNH CHỮ CÓ CẶP TỐI THIỂU DẤU HỎI / DẤU HUYỀN khi có từ khác tranh chỗ —
+      giọng này không phân biệt được hai dấu đó. Vì vậy gọi "phiên bản" chứ không
+      gọi trống là "bản" ("bản"↔"bàn"↔"bán" đều là từ thông dụng), và bỏ câu "đó
+      là chỗ để bạn bắt đầu, không phải BẢN ÁN" của kịch bản.
+
+   4. KHÔNG NÓI SỐ ĐO KHÔNG CẦN THIẾT. Trên hình có đồng hồ "00:12" nhưng lời đọc
+      chỉ nói "vài giây" — đọc thành con số là biến một khung hình minh hoạ thành
+      lời hứa về tốc độ khôi phục.
+
+   Nội dung thì bám đúng ranh giới claim của kịch bản: trục là AI ĐỌC HỘ NHẬT KÝ
+   (tính năng ổn định), không câu nào hứa AI tự sửa được lỗi, không câu nào hứa
+   "không bao giờ lỗi".
+
+   Kiểm sau khi sinh: chép mù lại track bằng scribe.mjs rồi đối chiếu; đo dấu
+   bằng tools/do-thanh-dieu.py. Tin máy nhận dạng về CHỮ, đừng tin nó về DẤU.
+   ========================================================================== */
+/* Mốc đặt theo ĐỘ DÀI THẬT của tiếng sau lượt sinh đầu, không đặt bằng cảm tính.
+   Lượt đầu đặt bằng ước lượng 0,072 giây/ký tự thì hai câu bị bộ lồng tiếng ÉP
+   ×1,18 cho vừa khe — mà ép quá 1,18 là tai nghe ra ngay giọng chạy, và một
+   trong hai câu đó lại là câu trục của cả clip ("hỏng ở đâu, vì sao, nên sửa
+   gì"). Giọng này đọc nhanh hơn ước lượng nhiều, thực đo ~0,055 giây/ký tự.
+   Khe của MỌI câu bây giờ đều rộng hơn tiếng ít nhất 0,3 giây, không câu nào
+   còn bị ép. Đổi chữ trong câu nào thì đo lại đúng câu đó rồi nắn mốc. */
+const VO=[
+  [ 0.60,'Không biết bạn đã gặp cảnh này chưa.'],
+  [ 3.35,'Bên trên là máy của bạn, bên dưới là internet.'],
+  [ 7.05,'Cùng một đoạn mã mà ra hai kết quả.'],
+  [10.05,'Bạn hỏi vì sao, thì hệ thống trả lời bằng hai trăm dòng tiếng Anh.'],
+  [15.10,'Bạn muốn biết nó nói gì?'],
+  /* "đọc hộ" bị chép mù nghe thành "đọc HỌ" hai lượt liền, độ tin cậy -0,65 và
+     -0,74 — thấp nhất cả bài. Đổi sang "đọc nhật ký giúp bạn": cùng nghĩa, bỏ
+     hẳn chữ dễ nghe nhầm, mà lại kết vế bằng chữ dấu nặng đúng luật. */
+  [17.85,'Bạn bấm một nút thôi, Vibe Host đọc nhật ký giúp bạn.'],
+  /* Chép mù lượt đầu ra "HỒNG ở đâu" — đúng cái bẫy dấu hỏi thành dấu huyền, mà
+     lại rơi vào cụm chữ trục của cả clip. Nguyên nhân: dấu hai chấm làm máy ngắt
+     hẳn hơi, nên "hỏng" thành chữ ĐẦU CÂU rồi bị nuốt dấu. Thay hai chấm bằng
+     dấu phẩy và chèn chữ "xem" phía trước là dấu bật đúng — cùng cách chữa đã
+     dùng cho "Bấm"→"Bạn bấm" ở câu trên. */
+  [22.45,'rồi nói lại bằng tiếng Việt, xem hỏng ở đâu, vì sao, nên sửa gì.'],
+  [28.10,'Và đó là chỗ để bạn bắt đầu, chứ không phải chỗ để bỏ cuộc.'],
+  [32.30,'Bạn cũng không phải dò cả trăm dòng để tìm chỗ hỏng.'],
+  [36.20,'Hệ thống tô sáng ngay cái bước bị lỗi.'],
+  [42.10,'Chưa sửa kịp thì sao?'],
+  [44.10,'Bạn chọn phiên bản chạy được trước đó rồi bấm khôi phục.'],
+  [49.60,'Vài giây sau là website chạy lại bình thường,'],
+  [52.60,'còn bạn thì bình tĩnh xử lý sau.'],
+  /* Chép mù lượt đầu ra "Chuyện LỜI thì ở đâu cũng có" — "lỗi" (ngã) nghe thành
+     "lời" (huyền). Chỗ khác trong bài thì "lỗi" nghe đúng cả, nên vấn đề là cụm
+     "chuyện lỗi" vốn không phải cách nói quen, không có gì đỡ cho cái dấu. Đổi
+     sang "gặp lỗi" — cụm rất quen, và "lỗi" đứng cuối câu chứ không kẹt giữa. */
+  [56.00,'Chạy website thì ở đâu cũng có lúc bị lỗi.'],
+  [59.20,'Quan trọng là bạn có đường lùi hay không.'],
+  [61.90,'Vibe Host lo phần đưa website lên mạng,'],
+  [65.10,'để bạn cứ thoải mái sáng tạo.'],
+];
+
+/* ==========================================================================
+   DỰNG CẢNH
+   ========================================================================== */
+/* Vài khung ngắm chạm mép ảnh, nên phần ngoài ảnh phải tô ĐÚNG màu nền tấm đó */
+const NEN_TAM=['#fdfefe','#fefefe','#fdfdfd','#fdfdfd','#fefefe','#fdfdfd','#0d2113'];
+const stage=$('#stage');
+stage.style.width=ST_W+'px'; stage.style.height=ST_H+'px';
+
+const truoc=$('#nen');
+SC.forEach(s=>{
+  const sc=el('div','sc'), kb=el('div','kb');
+  const im=el('img'); im.src=MK+ANH[s.src]; im.alt='';
+  im.style.width=NEN_W+'px'; im.style.height=NEN_H+'px';
+  kb.appendChild(im); sc.appendChild(kb);
+  sc.style.background=NEN_TAM[s.src];
+  stage.insertBefore(sc,truoc);
+  s.el=sc; s.kb=kb;
+});
+
+function datHop(e,box){
+  const [x0,y0,x1,y1]=box;
+  e.style.left=px(x0*KX); e.style.top=px(y0*KY);
+  e.style.width=px((x1-x0)*KX); e.style.height=px((y1-y0)*KY);
+}
+
+/* Lớp nào khai `trong:1` thì gắn vào TRONG cái panel trượt gần nhất phía trên nó
+   — và gắn vào tấm TRONG CÙNG (`ruot`), tức là trượt cùng panel chứ không đứng
+   yên. Đứng yên thì suốt 0,8 giây panel còn đang trượt, nội dung lệch sang phải
+   70 điểm ảnh mà miếng phủ vẫn nằm chỗ cũ, hở ra một dải. */
+let noiTruot=null;
+LOP.forEach(L=>{
+  if(L.k==='truot'){
+    const w=el('div','truot'); datHop(w,L.box);
+    const ruot=el('div'); ruot.style.cssText='position:absolute;inset:0;will-change:transform';
+    const im=el('img'); im.src=MK+ANH[SC[L.sc].src]; im.alt='';
+    im.style.width=NEN_W+'px'; im.style.height=NEN_H+'px';
+    im.style.position='absolute';
+    im.style.left=px(-L.box[0]*KX); im.style.top=px(-L.box[1]*KY);
+    ruot.appendChild(im); w.appendChild(ruot); SC[L.sc].kb.appendChild(w);
+    L.el=w; L.im=ruot; noiTruot=L; return;
+  }
+  const cha=(L.trong&&noiTruot)?noiTruot:null;
+  if(L.k==='vong'){
+    const e=el('div','vong'); datHop(e,L.box);
+    if(cha){ e.style.left=px((L.box[0]-cha.box[0])*KX); e.style.top=px((L.box[1]-cha.box[1])*KY) }
+    const m=L.mau||'#f25c05';
+    e.style.border='3px solid '+m;
+    e.style.boxShadow='0 0 0 4px '+m+'29, 0 10px 34px '+m+'38';
+    (cha?cha.im:SC[L.sc].kb).appendChild(e); L.el=e; return;
+  }
+  const e=el('div','che'); datHop(e,L.box);
+  if(cha){ e.style.left=px((L.box[0]-cha.box[0])*KX); e.style.top=px((L.box[1]-cha.box[1])*KY) }
+  e.style.background=L.mau;
+  if(L.r) e.style.borderRadius=L.r;
+  if(L.k==='che') e.style.transformOrigin='right center';
+  if(L.k==='cheD') e.style.transformOrigin='center bottom';
+  if(L.text){
+    const s=el('span',null,L.text);
+    s.style.cssText='display:block;font-size:'+(L.fs*KY).toFixed(2)+'px;'+(L.css||'');
+    e.appendChild(s);
+  }
+  (cha?cha.im:SC[L.sc].kb).appendChild(e); L.el=e;
+});
+
+HAO.forEach(H=>{ const e=el('div','glow'); SC[H.sc].kb.appendChild(e); H.el=e });
+
+/* con trỏ + gợn sóng: mỗi cảnh có con trỏ thì dựng riêng một bộ */
+const MUI='<svg width="30" height="38" viewBox="0 0 30 38"><path d="M3 2l21 20-9 1.4 5 10.6-4.6 2.2-5-10.7L3 32z" '
+  +'fill="#fff" stroke="#0f1722" stroke-width="2.2" stroke-linejoin="round"/></svg>';
+CON.forEach(C=>{
+  const e=el('div',null,MUI); e.id=''; e.className='tro';
+  e.style.cssText='position:absolute;width:0;height:0;pointer-events:none;z-index:9;'
+    +'will-change:transform,opacity';
+  SC[C.sc].kb.appendChild(e); C.el=e;
+  C.song=C.bam.map(()=>{
+    const s=el('div','song'); SC[C.sc].kb.appendChild(s); return s;
+  });
+});
+
+/* ==========================================================================
+   MÁY QUAY — nhận khung ngắm theo toạ độ ảnh, tự tính phóng và dời
+   ========================================================================== */
+function ngam(v){
+  const [x0,y0,x1,y1]=v;
+  const w=(x1-x0)*KX, h=(y1-y0)*KY;
+  const s=Math.min(ST_W/w, ST_H/h);
+  const cx=(x0+x1)/2*KX, cy=(y0+y1)/2*KY;
+  return {s, tx:ST_W/2-s*cx, ty:ST_H/2-s*cy};
+}
+const trung=(a,b,k)=>[lerp(a[0],b[0],k),lerp(a[1],b[1],k),lerp(a[2],b[2],k),lerp(a[3],b[3],k)];
+function duong(kf,t){
+  if(t<=kf[0][0])return kf[0][1];
+  for(let i=0;i<kf.length-1;i++){
+    if(t<=kf[i+1][0]) return trung(kf[i][1],kf[i+1][1],eIO(tt(t,kf[i][0],kf[i+1][0])));
+  }
+  return kf[kf.length-1][1];
+}
+function diem(kf,t){          /* đường đi của con trỏ: [giây,x,y] */
+  if(t<=kf[0][0])return [kf[0][1],kf[0][2]];
+  for(let i=0;i<kf.length-1;i++){
+    if(t<=kf[i+1][0]){
+      const q=eIO(tt(t,kf[i][0],kf[i+1][0]));
+      return [lerp(kf[i][1],kf[i+1][1],q), lerp(kf[i][2],kf[i+1][2],q)];
+    }
+  }
+  const l=kf[kf.length-1]; return [l[1],l[2]];
+}
+
+/* ==========================================================================
+   PHỤ ĐỀ — mốc lấy từ vị trí thật của tiếng, do bộ lồng tiếng ghi ra
+   ========================================================================== */
+let PD=VO.map((v,i,a)=>({tu:v[0], den:(a[i+1]?a[i+1][0]:DUR)-0.05, loi:v[1]}));
+async function napPhuDe(){
+  try{
+    const r=await fetch('out/voiceover/phu-de-vibe-host-loi-rollback.json',{cache:'no-store'});
+    if(r.ok){const j=await r.json(); if(Array.isArray(j)&&j.length)PD=j}
+  }catch(e){}
+}
+let pdI=-1;
+
+const E={nen:$('#nen'),khoi:$('#khoi'),gach:$('#gach'),c1:$('#c1'),c2:$('#c2'),pd:$('#pd')};
+let chuI=-1;
+const HOA=0.42;
+
+function render(t){
+  SC.forEach((s,i)=>{
+    const vao=seg(t,s.a-(i?HOA:0),s.a-(i?HOA:0)+HOA,eIO);
+    const ra=i===SC.length-1?0:seg(t,s.b-HOA,s.b,eIO);
+    const o=i===0?1-ra:vao*(1-ra);
+    setO(s.el,o);
+    if(o<0.002)return;
+    const c=ngam(duong(s.vk,t));
+    s.kb.style.transform='translate('+px(c.tx)+','+px(c.ty)+') scale('+c.s.toFixed(4)+')';
+  });
+
+  LOP.forEach(L=>{
+    if(L.k==='che'){
+      const q=1-tt(t,L.a,L.b);
+      L.el.style.transform='scaleX('+q.toFixed(4)+')';
+      setO(L.el, t>L.b+0.25?0:1);
+      return;
+    }
+    if(L.k==='cheD'){
+      const q=1-tt(t,L.a,L.b);
+      L.el.style.transform='scaleY('+q.toFixed(4)+')';
+      setO(L.el, t>L.b+0.25?0:1);
+      return;
+    }
+    if(L.k==='truot'){
+      const q=seg(t,L.a,L.b,eOut);
+      L.im.style.transform='translateX('+px(L.dx*KX*(1-q))+')';
+      setO(L.el,q);
+      return;
+    }
+    if(L.k==='hien'){ setO(L.el, pop(t,L.a,L.b,.30,.34)); return }
+    if(L.k==='mo'){
+      const o=L.o!=null?L.o:1;
+      setO(L.el, o*(t<L.a?1:(t>L.b?0:1-eIO(tt(t,L.a,L.b)))));
+      return;
+    }
+    setO(L.el, pop(t,L.a,L.b,.26,.30));       /* vong */
+  });
+
+  HAO.forEach(H=>{
+    const q=seg(t,H.a,H.b,eOut);
+    setO(H.el,q);
+    H.el.style.transform='scale('+(0.72+0.28*q).toFixed(3)+')';
+  });
+
+  CON.forEach(C=>{
+    const hien=pop(t,C.a,C.b,.22,.26);
+    setO(C.el,hien);
+    if(hien>0.002){
+      const [x,y]=diem(C.kf,t);
+      C.el.style.transform='translate('+px(x*KX)+','+px(y*KY)+')';
+    }
+    C.bam.forEach((tb,k)=>{
+      const q=tt(t,tb,tb+0.55);
+      const s=C.song[k];
+      if(t<tb-0.01||q>=1){ setO(s,0); return }
+      const [x,y]=diem(C.kf,tb);
+      const r=14+46*eOut(q);
+      s.style.left=px(x*KX-r); s.style.top=px(y*KY-r);
+      s.style.width=px(r*2); s.style.height=px(r*2);
+      setO(s,(1-q)*0.85);
+    });
+  });
+
+  let ci=-1;
+  TXT.forEach((x,i)=>{ if(t>=x.a-0.12 && t<=x.b+0.12) ci=i });
+  if(ci!==chuI){ chuI=ci; if(ci>=0){
+    E.c1.innerHTML=TXT[ci].c1; E.c2.innerHTML=TXT[ci].c2;
+    E.khoi.classList.toggle('toi',!!TXT[ci].toi);
+    E.nen.classList.toggle('toi',!!TXT[ci].toi);
+  } }
+  if(ci<0){ setO(E.khoi,0); setO(E.nen,0) }
+  else{
+    const {a,b}=TXT[ci];
+    const v=seg(t,a,a+0.42,eOut), r=seg(t,b-0.34,b,eIn);
+    const o=v*(1-r);
+    setO(E.khoi,o); setO(E.nen,o*0.98);
+    E.gach.style.transform='scaleX('+seg(t,a,a+0.5,eOut).toFixed(3)+')';
+    E.gach.style.transformOrigin='left center';
+    E.c1.style.transform='translateY('+px((1-v)*26+r*-12)+')';
+    E.c2.style.transform='translateY('+px((1-seg(t,a+0.10,a+0.62,eOut))*20+r*-9)+')';
+  }
+
+  {
+    const i=PD.findIndex(c=>t>=c.tu-0.12 && t<=c.den+0.18);
+    if(i!==pdI){ pdI=i; if(i>=0)E.pd.firstElementChild.innerHTML=PD[i].loi }
+    setO(E.pd, i<0?0:pop(t,PD[i].tu-0.12,PD[i].den+0.18,.14,.16));
+  }
+}
+
+/* ==========================================================================
+   CHẠY / TUA
+   ========================================================================== */
+const TOC=Math.max(0.25,Math.min(4,parseFloat(new URLSearchParams(location.search).get('toc'))||1));
+let t=0,DUNG=true,last=0;
+function loop(now){
+  if(!DUNG){
+    t+=Math.min(0.30,(now-last)/1000)*TOC;
+    if(t>=DUR){t=DUR;DUNG=true;$('#btnPlay').textContent='▶ Chạy'}
+    render(t);ui();
+  }
+  last=now;requestAnimationFrame(loop);
+}
+function ui(){$('#scrub').value=t.toFixed(2);
+  $('#tnum').textContent=t.toFixed(2)+' / '+DUR.toFixed(2)+'s'}
+$('#btnPlay').addEventListener('click',()=>{
+  if(t>=DUR)t=0; DUNG=!DUNG; last=performance.now();
+  $('#btnPlay').textContent=DUNG?'▶ Chạy':'❚❚ Dừng'});
+$('#scrub').addEventListener('input',e=>{t=parseFloat(e.target.value);render(t);ui()});
+$('#scrub').max=DUR;
+SC.forEach(s=>{const b=document.createElement('button');
+  b.textContent=s.a+'s · '+s.ten; b.onclick=()=>{t=s.a;render(t);ui()};$('#chaps').appendChild(b)});
+
+function fit(){
+  if(document.body.classList.contains('exporting')){$('#stage').style.transform='none';return}
+  const k=Math.min((innerWidth-40)/ST_W,(innerHeight-160)/ST_H,1);
+  $('#stage').style.transform='scale('+k+')';
+  $('#stage').style.margin='0 0 '+((k-1)*ST_H)+'px';
+}
+addEventListener('resize',fit);
+function khoiDong(){render(0);ui()}
+
+if(/[?&]export=1/.test(location.search)){
+  document.body.classList.add('exporting');
+  window.__clip={
+    duration:DUR/TOC,
+    ready:async()=>{
+      await napPhuDe();
+      await document.fonts.ready;
+      await Promise.all([...document.images].filter(i=>i.src).map(i=>i.decode().catch(()=>{})));
+      await new Promise(r=>setTimeout(r,260));
+      fit();khoiDong();
+    },
+    play:()=>{DUNG=false;last=performance.now()},
+    at:()=>t/TOC, seek:s=>{t=cl(s*TOC,0,DUR);render(t)}, step:s=>{t=cl(s*TOC,0,DUR);render(t)},
+  };
+}
+fit();
+napPhuDe().then(()=>document.fonts.ready).then(khoiDong);
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

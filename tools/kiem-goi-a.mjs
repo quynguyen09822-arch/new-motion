@@ -62,7 +62,17 @@ await trang.waitForSelector('#app[data-trang-thai="san-sang"], #app[data-trang-t
   const coMenu = await trang.evaluate(() =>
     !document.getElementById('menu-them').classList.contains('an'));
   dat('menu thêm mở ra', coMenu);
-  await trang.click('#menu-them button:has-text("Chữ")');
+  /*
+   * Bảng chọn nay có HAI THẺ và mở sẵn ở thẻ "Bộ dựng sẵn" — thẻ đó không có
+   * món "Chữ" nào. Phải sang thẻ "Một món" trước.
+   *
+   * Và nhắm vào `.kho-mon` chứ đừng nhắm `button` trơn: hai nút chuyển thẻ cũng
+   * là `button`, `:has-text("Chữ")` vớ trúng chúng thì bài kiểm bấm nhầm.
+   */
+  await trang.evaluate(() =>
+    [...document.querySelectorAll('.kho-the-nut')].find((x) => /Một món/.test(x.textContent))?.click());
+  await cho();
+  await trang.click('#menu-them .kho-mon:has-text("Chữ")');
   await cho();
   const sauThem = await soMon();
   dat('danh sách thành phần tăng thêm 1', sauThem === truoc + 1, `${truoc} → ${sauThem}`);

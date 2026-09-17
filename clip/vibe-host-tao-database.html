@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>VH-V2 · Tạo &amp; quản lý Database</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cam:#ff671a;--cam-2:#ffa24d;--cam-mo:rgba(255,103,26,.16);
+  --nen:#07130d;--nen-2:#0d2118;--vien:rgba(255,255,255,.10);
+  --luc:#21c07a;--chu:#eaf4ee;--chu-mo:#8fae9c;
+}
+*{box-sizing:border-box;margin:0}
+body{background:#11151b;font-family:'Be Vietnam Pro',system-ui,sans-serif;color:#fff;
+  display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px 0 0}
+body.exporting{background:var(--nen);padding:0;gap:0}
+body.exporting #ui,body.exporting #chaps,body.exporting #ghichu{display:none}
+
+#stage{position:relative;width:1280px;height:720px;overflow:hidden;background:var(--nen);
+  transform-origin:top left;flex:none}
+
+/* ---------- cửa sổ chiếu bản ghi hình ---------- */
+#man{position:absolute;left:0;top:58px;width:1280px;height:600px;overflow:hidden;background:#fff}
+#zoom{position:absolute;left:0;top:0;width:1280px;height:600px;will-change:transform}
+#vid{position:absolute;left:0;top:-85.33px;width:1280px;display:block}
+
+/* che thông tin tài khoản (guide mục 2 · Privacy) */
+#che{position:absolute;backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);
+  background:rgba(240,243,248,.55);border-radius:7px;pointer-events:none;opacity:0}
+
+/* che CHUỖI KẾT NỐI — bản ghi để lộ mật khẩu thật (guide mục 17) */
+#chuoi{position:absolute;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  background:rgba(18,26,22,.86);border:1px solid rgba(255,103,26,.42);border-radius:7px;
+  pointer-events:none;opacity:0;display:flex;align-items:center;justify-content:center}
+#chuoi b{font-size:12px;font-weight:600;letter-spacing:.02em;color:#ffc79a;white-space:nowrap}
+
+.vong{position:absolute;border:2.5px solid var(--cam);border-radius:9px;
+  box-shadow:0 0 0 3px rgba(255,103,26,.18),0 8px 26px rgba(255,103,26,.26);
+  pointer-events:none;opacity:0;will-change:opacity}
+
+/* ---------- thanh trên ---------- */
+#thanh{position:absolute;left:0;top:0;width:1280px;height:58px;
+  background:linear-gradient(180deg,#0b1c13,#07130d);border-bottom:1px solid var(--vien);
+  display:flex;align-items:center;gap:14px;padding:0 22px}
+#hieu{display:flex;align-items:center;gap:9px;font-size:16px;font-weight:700;letter-spacing:-.01em}
+#hieu i{width:9px;height:9px;border-radius:99px;background:var(--cam);
+  box-shadow:0 0 0 4px var(--cam-mo);font-style:normal}
+#diachi{display:flex;align-items:center;gap:8px;padding:6px 13px;border-radius:99px;
+  background:rgba(255,255,255,.06);border:1px solid var(--vien);
+  font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12.5px;color:#b9cfc2}
+#tieude{margin-left:auto;font-size:14px;font-weight:600;color:#cfe3d6}
+#tieude b{color:var(--cam-2);font-weight:700}
+
+/* ---------- thanh dưới: 3 bước, đúng bộ bước của sản phẩm ---------- */
+#ray{position:absolute;left:0;top:658px;width:1280px;height:62px;
+  background:linear-gradient(0deg,#0b1c13,#07130d);border-top:1px solid var(--vien);
+  display:flex;align-items:center;gap:10px;padding:0 22px}
+#tien{position:absolute;left:0;top:658px;height:2px;background:var(--cam);
+  box-shadow:0 0 12px rgba(255,103,26,.7);width:0}
+.buoc{display:flex;align-items:center;gap:7px;padding:5px 13px;border-radius:99px;
+  font-size:12.5px;font-weight:600;white-space:nowrap;
+  background:rgba(255,255,255,.045);border:1px solid transparent;color:#6f8a7b}
+.buoc s{display:grid;place-items:center;width:17px;height:17px;border-radius:99px;
+  background:rgba(255,255,255,.10);color:#8fae9c;font-size:10.5px;font-weight:700;
+  text-decoration:none;flex:none}
+.buoc.xong{color:#9fc4ae}
+.buoc.xong s{background:rgba(33,192,122,.20);color:var(--luc)}
+.buoc.dang{background:var(--cam-mo);border-color:rgba(255,103,26,.45);color:#ffd8b8}
+.buoc.dang s{background:var(--cam);color:#20140a}
+.noi{width:26px;height:1.5px;background:rgba(255,255,255,.14);flex:none}
+
+/* ---------- phụ đề ---------- */
+#pd{position:absolute;left:110px;right:110px;bottom:60px;text-align:center;pointer-events:none}
+#pd span{display:inline-block;padding:9px 20px;border-radius:12px;
+  background:rgba(7,19,13,.86);border:1px solid rgba(255,255,255,.09);
+  font-size:24px;font-weight:600;line-height:1.32;color:#fff;
+  text-shadow:0 2px 10px rgba(0,0,0,.55)}
+
+/* ---------- lớp phủ ---------- */
+#phu{position:absolute;left:0;top:58px;width:1280px;height:600px;
+  background:rgba(4,12,8,.78);opacity:0;pointer-events:none}
+
+/* chữ mở đầu (S01) */
+#hook{position:absolute;left:0;top:58px;width:1280px;height:600px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  pointer-events:none;opacity:0}
+#hook b{font-size:52px;font-weight:700;letter-spacing:-.025em;color:#fff;
+  text-shadow:0 6px 34px rgba(0,0,0,.75);will-change:transform,opacity}
+#hook b em{font-style:normal;color:var(--cam-2)}
+#hook i{font-style:normal;font-size:22px;font-weight:500;color:#cfe3d6;
+  text-shadow:0 3px 18px rgba(0,0,0,.7);will-change:transform,opacity}
+
+/* thẻ chú thích nhỏ */
+.chu{position:absolute;width:300px;padding:15px 17px;border-radius:13px;
+  background:linear-gradient(180deg,#0e2419,#08170f);border:1px solid rgba(255,103,26,.32);
+  box-shadow:0 20px 46px rgba(0,0,0,.5);opacity:0;will-change:transform,opacity}
+.chu b{display:block;font-size:11px;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--cam-2)}
+.chu span{display:block;margin-top:6px;font-size:15px;line-height:1.42;color:var(--chu)}
+.chu.tip{border-color:rgba(255,180,60,.45)}
+.chu.tip b{color:#ffc061}
+
+/* dải chốt (S07) */
+#luong{position:absolute;left:0;top:290px;width:1280px;display:flex;align-items:center;
+  justify-content:center;opacity:0}
+#luong .o{display:flex;flex-direction:column;align-items:center;gap:7px;
+  padding:16px 24px;border-radius:14px;min-width:186px;
+  background:linear-gradient(180deg,#0e2419,#08170f);border:1px solid rgba(255,103,26,.32);
+  box-shadow:0 16px 40px rgba(0,0,0,.45);opacity:0;will-change:transform,opacity}
+#luong .o u{text-decoration:none;font-size:11px;font-weight:700;letter-spacing:.10em;
+  color:var(--cam-2)}
+#luong .o s{text-decoration:none;font-size:18px;font-weight:700;color:#fff}
+#luong .mui{width:30px;height:2px;background:rgba(255,103,26,.55);position:relative;
+  opacity:0;flex:none}
+#luong .mui::after{content:'';position:absolute;right:0;top:-3px;
+  border-left:7px solid rgba(255,103,26,.8);border-top:4px solid transparent;
+  border-bottom:4px solid transparent}
+
+/* thẻ kết */
+#ket{position:absolute;inset:0;background:var(--nen);opacity:0;pointer-events:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+#ket b{font-size:44px;font-weight:700;letter-spacing:-.02em;color:#fff}
+#ket b em{font-style:normal;color:var(--cam-2)}
+#ket i{font-style:normal;font-size:20px;font-weight:500;color:#a9c9b6}
+#ket u{text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:15px;color:#7fd8ab;
+  padding:7px 16px;border-radius:99px;border:1px solid rgba(127,216,171,.30);
+  background:rgba(33,192,122,.08)}
+
+#ui{display:flex;gap:12px;align-items:center;font-size:13px}
+#ui button{background:#20293a;color:#fff;border:0;border-radius:8px;padding:7px 14px;cursor:pointer}
+#scrub{width:620px}
+#chaps{display:flex;flex-wrap:wrap;gap:6px;max-width:1280px;justify-content:center}
+#chaps button{background:#1b2331;color:#c9d3e2;border:0;border-radius:7px;padding:5px 10px;
+  font-size:12px;cursor:pointer}
+#ghichu{max-width:900px;font-size:12.5px;line-height:1.6;color:#8fa3bb;text-align:center;padding-bottom:24px}
+#ghichu code{background:#1b2331;padding:2px 6px;border-radius:5px;color:#cfe3d6}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="man">
+    <div id="zoom">
+      <video id="vid" muted playsinline preload="auto" src="public/video/tao_database.webm"></video>
+      <div id="che"></div>
+      <div id="chuoi"><b>Chuỗi kết nối · đã ẩn vì chứa mật khẩu</b></div>
+    </div>
+  </div>
+  <div id="phu"></div>
+
+  <div id="hook">
+    <b>Tạo <em>cơ sở dữ liệu</em> trong ba bước</b>
+    <i>Chọn loại · cấu hình · nhận thông tin kết nối</i>
+  </div>
+
+  <div id="luong"></div>
+
+  <div id="ket">
+    <b>Chọn loại · cấu hình · <em>khởi tạo</em></b>
+    <i>Website và cơ sở dữ liệu trong cùng một giao diện.</i>
+    <u>vibehost.matbao.ai</u>
+  </div>
+
+  <div id="thanh">
+    <div id="hieu"><i></i>Vibe Host</div>
+    <div id="diachi">vibehost.matbao.ai</div>
+    <div id="tieude">Hướng dẫn · <b>Tạo &amp; quản lý Database</b></div>
+  </div>
+  <div id="tien"></div>
+  <div id="ray"></div>
+
+  <div id="pd"><span></span></div>
+</div>
+
+<div id="ui">
+  <button id="btnPlay">▶ Chạy</button>
+  <input id="scrub" type="range" min="0" max="74" step="0.01" value="0">
+  <span id="tnum">0.00 / 74.00s</span>
+</div>
+<div id="chaps"></div>
+<div id="ghichu">
+  Lời đọc ở <code>VO[]</code>, hai câu đè intro/outro ở <code>VO_BIA[]</code>,
+  chữ máy đọc sai thì nắn ở <code>PHIEN_AM[]</code> — tất cả nằm trong file này.
+  Xuất hình bằng <code>node xuat-khung.mjs</code> (từng khung, khớp tuyệt đối).
+</div>
+
+<script>
+(()=>{
+/* ==========================================================================
+   VH-V2 · TẠO & QUẢN LÝ DATABASE — bản ngang 16:9
+   Dựng theo public/kich-ban/VHSP_V2_Database_Tutorial_VO_Script.md
+   và public/kich-ban/Dinh-huong-motion/VHSP_V2_Database_Tutorial_Motion_Guide.md
+   Hình nền là bản ghi thao tác thật public/video/tao_database.webm (24,43 giây).
+
+   Guide đề xuất 9:16 nhưng bản này làm 16:9 theo yêu cầu người đặt — cùng lối
+   dựng với bản "Triển khai từ mẫu": máy quay chỉ CROP vào vùng thao tác rồi
+   cắt ra dứt khoát, trong lúc giữ thì đẩy nhẹ 3,5%. Không zoom giật.
+
+   BẢN GHI CÒN VIỀN CỬA SỔ Ở CẢ HAI ĐẦU: đo trên nhiều khung thì phần giao
+   diện thật chỉ nằm từ y=128 tới y=1027 của ảnh 1920×1040, trên và dưới đều
+   còn một dải tối ~12px của khung trình duyệt. Cắt thiếu là lộ dải tối đó chạy
+   suốt phim, nên CAT=128 (đỉnh) và DAY=12 (đáy) → vùng dùng được cao 900px.
+
+   HAI CHỖ PHẢI CHE (bắt buộc trước khi phát hành):
+     #che    tên + email tài khoản ở góc phải trên — suốt phim.
+     #chuoi  ô CHUỖI KẾT NỐI: bản ghi để lộ MẬT KHẨU THẬT của instance demo
+             (guide mục 17). Ô này trôi theo trang lúc trang cuộn ở giây ghi
+             18,0→18,6 nên vị trí che tính theo GIỜ BẢN GHI, không theo giờ trang.
+   ========================================================================== */
+const DUR=74.0;
+
+const S=1280/1920, CAT=128, DAY=12;
+const MAN_T=58, MAN_H=(1040-CAT-DAY)*S;
+const sx=x=>x*S;
+const sy=y=>(y-CAT)*S;
+
+/* ---------- LỜI ĐỌC ---------- */
+const VO=[
+  [ 0.90,'Vibe Host cho phép bạn tạo và quản lý cơ sở dữ liệu chỉ với ba bước.'],
+  [ 6.30,'Đầu tiên, chọn loại cơ sở dữ liệu phù hợp với ứng dụng.'],
+  [10.60,'Vibe Host hỗ trợ PostgreSQL, MySQL, MongoDB và Redis.'],
+  [16.20,'Trong video này, mình chọn PostgreSQL.'],
+  [19.40,'Tiếp theo, đặt tên hiển thị và chọn phiên bản phần mềm.'],
+  [23.80,'Sau đó cấu hình CPU và RAM theo nhu cầu của ứng dụng.'],
+  [28.60,'Xem lại phần tóm tắt, rồi bấm Tạo database.'],
+  [32.60,'Hệ thống cấp phát tài nguyên, khởi tạo instance, rồi cấu hình mạng.'],
+  [37.90,'Bạn chỉ cần đợi hệ thống làm xong.'],
+  [41.40,'Khi tạo xong, hệ thống hiển thị đầy đủ thông tin kết nối.'],
+  [45.80,'Bạn lấy Host, Port, tên đăng nhập, mật khẩu và chuỗi kết nối để dùng cho ứng dụng của mình.'],
+  [53.00,'Lưu ý quan trọng: mật khẩu chỉ hiển thị duy nhất một lần khi vừa khởi tạo.'],
+  [58.40,'Hãy sao chép và lưu lại ở nơi an toàn trước khi tiếp tục.'],
+  [63.90,'Sau đó, mở trang Quản lý Database để xem trạng thái và thông tin kết nối.'],
+  [69.40,'Chọn loại, cấu hình tài nguyên, sau cùng là khởi tạo.'],
+];
+
+/* ---------- LỜI ĐỌC PHẦN BÌA (giờ tính theo BẢN CUỐI) ---------- */
+const VO_BIA=[
+  ['dan-vao', 1.90,'Cơ sở dữ liệu cho ứng dụng của bạn, tạo ngay trong ba bước.'],
+  ['ket',    80.40,'Vibe Host, website và cơ sở dữ liệu trong cùng một giao diện.'],
+];
+
+/* ---------- NẮN CHỮ CHO MÁY ĐỌC ----------
+   Đã nghe mù 3 vòng bằng thu-cach-doc.mjs trước khi chốt lời.
+
+   'Vibe Host' KHOÁ Ở DẠNG MỘC — đây là kết quả quan trọng nhất của vòng thử.
+   Bản "Triển khai từ mẫu" phiên âm 'Vai-bơ Host'; chép lại thì lượt nào cũng ra
+   sai TÊN SẢN PHẨM: "ViperHost", "Fiberhost", "Fiber host", "Viber host".
+   Để mộc thì 6/6 lượt đọc ra đúng "Vibe Host" — nhưng CHỈ khi tên đứng ĐẦU CÂU.
+   Đặt cuối câu thì mộc lẫn mọi cách phiên âm đều hỏng ("VIP Host", "Vimehost",
+   "VHost"), nên trong VO[] tên luôn nằm đầu câu, không bao giờ đứng cuối.
+
+   Bốn tên hệ database để MỘC là đọc đúng cả bốn — không phiên âm.
+   'CPU', 'RAM' để mộc cũng đúng (đã kiểm ở các bản trước). */
+const PHIEN_AM=[
+  ['Vibe Host','Vibe Host'],   /* trùng chữ = KHOÁ, cấm bảng chung đụng vào */
+];
+
+/* ---------- NẮN NHỊP BẢN GHI HÌNH ----------
+   [ghi từ, ghi tới, phim từ, phim tới]; `ghi từ === ghi tới` là DỪNG HẲN.
+   Bản ghi dài 24,43s. Quãng ghi 9,2→15,9 là thanh tiến trình ĐỨNG YÊN Ở 0%
+   gần 7 giây, chỉ đồng hồ "Đã chạy" nhích — guide (mục 8) cấm bắt người xem
+   chờ thật. Nên CẮT thẳng từ giây 9,2 sang giây 15,9, và cắt đúng lúc ĐỔI
+   KHUNG NGẮM để cú nhảy đọc ra là một match-cut cố ý, không phải lỗi ghép. */
+const NHIP=[
+  [ 0.00, 1.20,  0.00,  1.60],   /* trang chủ, con trỏ trôi sang menu trái  */
+  [ 1.20, 1.20,  1.60,  4.80],   /* DỪNG: chữ mở đầu + vòng sáng menu       */
+  [ 1.20, 1.53,  4.80,  5.60],   /* bấm "Tạo database"                      */
+  [ 1.53, 2.20,  5.60,  7.60],   /* bước 1 hiện ra, 4 thẻ loại DB           */
+  [ 2.20, 2.20,  7.60, 13.60],   /* DỪNG: vòng sáng quét lần lượt 4 thẻ     */
+  [ 2.20, 2.60, 13.60, 15.60],   /* về lại thẻ PostgreSQL                   */
+  [ 2.60, 2.60, 15.60, 17.60],   /* DỪNG: thẻ đã chọn + bảng tóm tắt phải   */
+  [ 2.60, 3.40, 17.60, 19.00],   /* con trỏ → Tiếp tục, bấm, sang bước 2    */
+  [ 3.40, 4.20, 19.00, 21.00],   /* trang cấu hình ổn định                  */
+  [ 4.20, 4.20, 21.00, 25.00],   /* DỪNG: Tên hiển thị + Phiên bản          */
+  [ 4.20, 4.80, 25.00, 26.50],   /* trượt xuống khối Tài nguyên             */
+  [ 4.80, 4.80, 26.50, 30.00],   /* DỪNG: CPU + RAM                         */
+  [ 4.80, 6.60, 30.00, 32.00],   /* con trỏ → nút Tạo database              */
+  [ 6.60, 7.40, 32.00, 33.40],   /* bấm, sang bước 3 Khởi tạo               */
+  [ 7.40, 8.20, 33.40, 35.20],   /* bảng tiến trình hiện ra                 */
+  [ 8.20, 8.20, 35.20, 38.40],   /* DỪNG: ba chặng hệ thống tự chạy         */
+  [ 8.20, 9.20, 38.40, 39.90],   /* còn đang chạy…                          */
+  [15.90,16.30, 39.90, 41.20],   /* CẮT bỏ quãng chờ → Database đã sẵn sàng */
+  [16.30,16.30, 41.20, 43.60],   /* DỪNG: banner thành công                 */
+  [16.30,17.00, 43.60, 45.20],   /* xuống khối THÔNG TIN KẾT NỐI            */
+  [17.00,17.00, 45.20, 48.60],   /* DỪNG: Host/Port/Database/Username       */
+  [17.00,18.00, 48.60, 50.00],   /* tới ô Password                          */
+  [18.00,18.70, 50.00, 51.20],   /* TRANG CUỘN (ô chuỗi kết nối trôi lên)   */
+  [18.70,18.70, 51.20, 52.60],   /* DỪNG: CHUỖI KẾT NỐI (đã che)            */
+  [18.70,18.70, 52.60, 57.60],   /* DỪNG: nhịp chậm — cảnh báo mật khẩu     */
+  [18.70,20.30, 57.60, 59.60],   /* con trỏ xuống ô xác nhận                */
+  [20.30,20.60, 59.60, 60.80],   /* tích "Tôi đã lưu mật khẩu…"             */
+  [20.60,21.00, 60.80, 62.60],   /* nút Quản lý Database sáng lên           */
+  [21.00,21.87, 62.60, 64.00],   /* bấm Quản lý Database                    */
+  [21.87,22.60, 64.00, 64.80],   /* khung chờ — cố tình để RẤT ngắn         */
+  [22.60,23.40, 64.80, 66.20],   /* trang chi tiết hiện ra                  */
+  [23.40,23.40, 66.20, 69.40],   /* DỪNG: PostgreSQL 16 · Trực tuyến        */
+  [23.40,24.43, 69.40, 70.60],   /* quét nốt thông tin + tài nguyên         */
+  [24.43,24.43, 70.60, 74.00],   /* DỪNG: dải chốt + thẻ kết                */
+];
+
+/* ---------- 3 bước, đúng bộ bước hiện trên sản phẩm ---------- */
+const BUOC=[
+  ['Loại DB',   0.0, 19.0],
+  ['Cấu hình', 19.0, 32.0],
+  ['Khởi tạo', 32.0, 74.0],
+];
+
+/* ---------- KHUNG NGẮM: crop cố định, cắt vào cắt ra ----------
+   [từ, tới, hệ số, tâm x, tâm y] — toạ độ đo trên ảnh gốc 1920×1040.
+   Trong lúc giữ thì đẩy thêm 3,5% (push-in) đúng như guide cho phép. */
+const KHUNG=[
+  [ 3.60,  5.60, 1.42,  430,  400],   /* menu trái · "Tạo database"        */
+  [ 8.20, 13.40, 1.62,  890,  500],   /* lưới 4 thẻ loại cơ sở dữ liệu     */
+  [13.80, 17.40, 1.28,  760,  470],   /* thẻ PostgreSQL + bảng tóm tắt     */
+  [21.20, 25.00, 1.52,  883,  440],   /* Tên hiển thị + Phiên bản          */
+  [26.60, 30.00, 1.42,  883,  720],   /* CPU + RAM                         */
+  [35.20, 39.90, 1.38, 1090,  545],   /* ba chặng khởi tạo                 */
+  [41.20, 43.60, 1.34, 1088,  430],   /* banner "Database đã sẵn sàng"     */
+  [45.20, 50.00, 1.26, 1088,  640],   /* Host/Port/Database/Username/Pass  */
+  [51.20, 52.60, 1.44, 1088,  786],   /* ô CHUỖI KẾT NỐI (đã che)          */
+  [52.60, 60.80, 1.30, 1088,  700],   /* ô Mật khẩu + ô xác nhận           */
+  [62.60, 64.00, 1.38, 1020,  900],   /* nút Quản lý Database              */
+  [66.20, 70.60, 1.24, 1075,  430],   /* trang chi tiết: header + thông tin*/
+];
+
+/* ---------- vòng sáng (toạ độ ảnh gốc 1920×1040) ---------- */
+const VONG=[
+  [ 3.60,  4.90,   12,  348,  240,   36],   /* menu "Tạo database"          */
+  [ 8.60, 10.20,  337,  352,  542,  164],   /* thẻ PostgreSQL               */
+  [10.20, 11.40,  897,  352,  542,  164],   /* thẻ MySQL                    */
+  [11.40, 12.40,  337,  532,  542,  144],   /* thẻ Redis                    */
+  [12.40, 13.40,  897,  532,  542,  144],   /* thẻ MongoDB                  */
+  [14.80, 17.30,  337,  352,  542,  164],   /* quay lại PostgreSQL (đã chọn)*/
+  [15.80, 17.30, 1487,  296,  379,  410],   /* bảng "Tóm tắt lựa chọn"      */
+  [17.80, 18.90, 1327,  710,  112,   38],   /* nút "Tiếp tục"               */
+  [21.40, 24.10,  332,  375, 1102,   40],   /* ô "Tên hiển thị"             */
+  [22.80, 25.00,  332,  451, 1102,   40],   /* ô "Phiên bản"                */
+  [26.80, 28.60,  332,  645, 1102,   85],   /* CPU                          */
+  [28.30, 30.00,  332,  770,  408,   35],   /* RAM · 256 MB                 */
+  [30.60, 31.90, 1285,  980,  152,   37],   /* nút "Tạo database"           */
+  [35.60, 38.40,  725,  460,  735,  170],   /* ba chặng khởi tạo            */
+  [41.60, 43.50,  725,  390,  727,   80],   /* banner "Database đã sẵn sàng"*/
+  [45.60, 46.90,  725,  520,  727,   63],   /* Host + Port (nội bộ)         */
+  [46.90, 48.10,  725,  650,  727,   62],   /* Database + Username          */
+  [48.10, 49.80,  725,  714,  727,   63],   /* Password (bố cục trước cuộn) */
+  [51.40, 52.60,  726,  765,  723,   43],   /* CHUỖI KẾT NỐI (sau cuộn)     */
+  [53.60, 57.40,  725,  608,  727,   63],   /* ô Mật khẩu (sau cuộn)        */
+  [58.60, 60.60,  726,  895,  300,   35],   /* ô "Tôi đã lưu mật khẩu…"     */
+  [62.80, 63.90,  725,  946,  590,   38],   /* nút "Quản lý Database"       */
+  [66.60, 68.20,  349,  185,  296,   58],   /* "PostgreSQL 16 · Trực tuyến" */
+  [68.20, 70.40,  332,  355, 1040,   42],   /* Host nội bộ + Port nội bộ    */
+];
+
+/* ---------- thẻ chú thích ---------- */
+const CHU=[
+  [ 9.20, 13.30, 'Bốn loại cơ sở dữ liệu',
+    'PostgreSQL, MySQL, MongoDB và Redis — chọn loại hợp với ứng dụng của bạn.', 946, 108],
+  [35.80, 39.60, 'Hệ thống tự chạy',
+    'Cấp phát tài nguyên · Khởi tạo instance · Cấu hình mạng và sẵn sàng.', 966, 200],
+  [53.30, 57.40, 'Quan trọng',
+    'Mật khẩu chỉ hiển thị một lần khi vừa khởi tạo. Sao chép và lưu lại ngay.', 966, 240, 1],
+];
+
+/* ==========================================================================
+   TIỆN
+   ========================================================================== */
+const $=s=>document.querySelector(s);
+const cl=(v,a,b)=>v<a?a:v>b?b:v;
+const eOut=x=>1-Math.pow(1-x,3);
+const eIO=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+const seg=(t,a,b,e)=>{const x=cl((t-a)/Math.max(1e-6,b-a),0,1);return e?e(x):x};
+const pop=(t,a,b,v,r)=>Math.min(seg(t,a,a+v,eOut),1-seg(t,b-r,b,eIO));
+const px=v=>v.toFixed(2)+'px';
+const setO=(el,v)=>{el.style.opacity=v.toFixed(3)};
+
+const E={vid:$('#vid'),zoom:$('#zoom'),che:$('#che'),chuoi:$('#chuoi'),phu:$('#phu'),
+  hook:$('#hook'),luong:$('#luong'),ket:$('#ket'),pd:$('#pd'),tien:$('#tien'),ray:$('#ray')};
+
+/* che tên + email tài khoản ở góc phải trên — bật suốt phim */
+E.che.style.left=px(sx(1735));E.che.style.top=px(sy(133));
+E.che.style.width=px(sx(148));E.che.style.height=px(sy(173)-sy(133));
+
+/* che ô CHUỖI KẾT NỐI — bề ngang cố định, chiều dọc + chiều cao tính trong render() */
+E.chuoi.style.left=px(sx(724));E.chuoi.style.width=px(sx(728));
+
+const elVong=VONG.map(([,,x,y,w,h])=>{
+  const d=document.createElement('div');d.className='vong';
+  d.style.left=px(sx(x));d.style.top=px(sy(y));
+  d.style.width=px(sx(w));d.style.height=px(sy(y+h)-sy(y));
+  E.zoom.appendChild(d);return d;
+});
+
+const elChu=CHU.map(([,,tit,noi,x,y,tip])=>{
+  const d=document.createElement('div');d.className='chu'+(tip?' tip':'');
+  d.innerHTML='<b>'+tit+'</b><span>'+noi+'</span>';
+  d.style.left=px(x);d.style.top=px(y);
+  $('#stage').insertBefore(d,$('#luong'));return d;
+});
+
+const elBuoc=BUOC.map(([ten],i)=>{
+  if(i){const m=document.createElement('div');m.className='noi';E.ray.appendChild(m)}
+  const d=document.createElement('div');d.className='buoc';
+  d.innerHTML='<s>'+(i+1)+'</s>'+ten;E.ray.appendChild(d);return d;
+});
+
+const LUONG=[['Bước 1','Chọn loại'],['Bước 2','Cấu hình'],['Bước 3','Khởi tạo']];
+const elLuong=[];
+LUONG.forEach(([so,ten],i)=>{
+  if(i){const m=document.createElement('div');m.className='mui';E.luong.appendChild(m);elLuong.push(m)}
+  const d=document.createElement('div');d.className='o';
+  d.innerHTML='<u>'+so+'</u><s>'+ten+'</s>';E.luong.appendChild(d);elLuong.push(d);
+});
+
+/* ---------- phụ đề ---------- */
+let PD=VO.map((v,i)=>({tu:v[0],den:(VO[i+1]?VO[i+1][0]:DUR)-0.30,loi:v[1]}));
+async function napPhuDe(){
+  try{
+    const r=await fetch('out/voiceover/phu-de-vibe-host-tao-database.json',{cache:'no-store'});
+    if(r.ok){const j=await r.json();if(Array.isArray(j)&&j.length)PD=j}
+  }catch(e){}
+}
+let pdI=-1;
+
+/* ---------- điều khiển bản ghi hình ---------- */
+function nhipTai(t){
+  for(const [a,b,ta,tb] of NHIP){
+    if(t<tb||tb>=DUR){
+      if(t<ta)return{src:a,rate:0,dung:true};
+      const k=cl((t-ta)/Math.max(1e-6,tb-ta),0,1);
+      return{src:a+(b-a)*k,rate:(b-a)/(tb-ta),dung:b===a};
+    }
+  }
+  const L=NHIP[NHIP.length-1];return{src:L[1],rate:0,dung:true};
+}
+function dieuKhienVideo(t,dangChay){
+  const v=E.vid;if(!v.duration)return;
+  const n=nhipTai(t);
+  if(n.dung||!dangChay){
+    if(!v.paused)v.pause();
+    /* ngưỡng phải nhỏ hơn nhiều một khung bản ghi (1/30 = 0,033s) */
+    if(Math.abs(v.currentTime-n.src)>0.004)v.currentTime=n.src;
+    return;
+  }
+  const lech=v.currentTime-n.src;
+  if(Math.abs(lech)>0.30){v.currentTime=n.src}
+  else{
+    const r=cl(n.rate*(1-lech*0.9),0.0625,4);
+    if(Math.abs(v.playbackRate-r)>0.008)v.playbackRate=r;
+  }
+  if(v.paused)v.play().catch(()=>{});
+}
+
+/* ==========================================================================
+   VẼ MỘT KHUNG
+   ========================================================================== */
+function render(t){
+  /* ---- khuôn hình: CẮT vào, giữ, CẮT ra; trong lúc giữ đẩy nhẹ 3,5% ----
+     KHÔNG dùng transform-origin để ngắm: nó chỉ GIỮ NGUYÊN chỗ điểm ngắm đang
+     đứng, nên điểm nằm ở một phần ba trên thì phóng xong vẫn nằm ở một phần ba
+     trên. Phải DỜI điểm ngắm về giữa rồi mới phóng, kèm chặn mép (dời quá tay
+     là hở nền trắng ở rìa). */
+  {
+    let k=1,fx=960,fy=(CAT+1040)/2;
+    for(const [a,b,kk,cx,cy] of KHUNG){
+      if(t>=a&&t<b){
+        k=kk*(1+0.035*seg(t,a,b));      /* push-in chậm suốt khuôn hình */
+        fx=cx;fy=cy;
+      }
+    }
+    const W=1280,H=MAN_H;
+    let tx=W/2-k*sx(fx), ty=H/2-k*sy(fy);
+    tx=Math.min(0,Math.max(tx,W-W*k));
+    ty=Math.min(0,Math.max(ty,H-H*k));
+    E.zoom.style.transformOrigin='0 0';
+    E.zoom.style.transform='translate('+px(tx)+','+px(ty)+') scale('+k.toFixed(4)+')';
+  }
+
+  /* ---- hai lớp che ---- */
+  const rec=nhipTai(t).src;
+  /* Ô che tài khoản bật suốt phim, TRỪ quãng ghi 16,15→19,60: lúc đó thông báo
+     "Database … đã khởi tạo thành công!" trượt ra đúng chỗ đó và che kín tên +
+     email (đã soi từng khung để chắc). Che tiếp là che luôn thông báo. */
+  setO(E.che, (rec>16.15 && rec<19.60) ? 0 : 1);
+  {
+    /* Ô chuỗi kết nối trôi lên 106px khi trang cuộn. Bám theo GIỜ BẢN GHI nên
+       sửa nhịp NHIP[] thì che vẫn dính đúng ô.
+
+       ⚠️ ĐO TỪNG KHUNG MỚI RA: trang KHÔNG trượt đều — nó đứng yên tới giây ghi
+       18,2 rồi NHẢY qua một khung trung gian ở 18,3 và ổn định từ 18,4. Bản
+       trước cho ô che nội suy đều 18,0→18,6 nên ở khoảng 18,1–18,3 ô che đã
+       chạy lên trong khi chuỗi thật còn ở dưới → LỘ MẬT KHẨU một nhịp.
+       Cách chữa: trong lúc cuộn thì PHỦ CẢ HAI vị trí, không đuổi theo. */
+    const hien = rec>=15.85 && rec<=21.80;
+    const yA=869, yB=763, hThuong=sy(916)-sy(869);
+    let y,h;
+    if(rec<=18.05){ y=yA; h=hThuong }
+    else if(rec>=18.55){ y=yB; h=hThuong }
+    else { y=yB; h=sy(916)-sy(yB) }        /* phủ trọn dải 763→916 */
+    E.chuoi.style.top=px(sy(y));
+    E.chuoi.style.height=px(h);
+    setO(E.chuoi, hien?1:0);
+  }
+
+  VONG.forEach(([a,b],i)=>setO(elVong[i],pop(t,a,b,.24,.14)));
+
+  E.tien.style.width=px(1280*cl(t/DUR,0,1));
+  BUOC.forEach(([,a,b],i)=>{
+    const el=elBuoc[i];const dang=t>=a&&t<b;
+    el.className='buoc'+(dang?' dang':(t>=b?' xong':''));
+    el.firstElementChild.textContent=t>=b?'✓':(i+1);
+  });
+
+  /* ---- chữ mở đầu ---- */
+  {
+    const o=pop(t,1.70,4.70,.55,.55);
+    setO(E.hook,o);
+    if(o>0.001){
+      setO(E.phu,o*0.58);
+      const v=seg(t,1.90,3.10,eOut);
+      E.hook.children[0].style.transform='translateY('+px((1-v)*20)+')';
+      E.hook.children[1].style.transform='translateY('+px((1-seg(t,2.20,3.40,eOut))*16)+')';
+    } else setO(E.phu,0);
+  }
+
+  /* ---- thẻ chú thích ---- */
+  CHU.forEach(([a,b],i)=>{
+    const o=pop(t,a,b,.32,.30);
+    setO(elChu[i],o);
+    elChu[i].style.transform='translateY('+px((1-o)*14)+')';
+  });
+
+  /* ---- nhịp chậm riêng của cảnh cảnh báo mật khẩu (guide mục 10) ----
+     Làm tối toàn giao diện, chừa đúng vùng mật khẩu sáng 100%. */
+  {
+    const o=pop(t,53.10,57.50,.45,.45);
+    if(o>0.001) setO(E.phu,Math.max(+E.phu.style.opacity||0,o*0.42));
+  }
+
+  /* ---- dải chốt ---- */
+  {
+    const o=pop(t,70.60,72.70,.40,.42);
+    setO(E.luong,o?1:0);
+    elLuong.forEach((el,i)=>{
+      const a=70.70+i*0.26;
+      setO(el,o*pop(t,a,72.70,.30,.42));
+      if(el.className.indexOf('mui')<0)
+        el.style.transform='translateY('+px((1-seg(t,a,a+0.36,eOut))*16)+')';
+    });
+    if(o>0.01)setO(E.phu,Math.max(+E.phu.style.opacity||0,o*0.84));
+  }
+
+  /* ---- thẻ kết ---- */
+  {
+    const o=seg(t,72.70,73.40,eIO);
+    setO(E.ket,o);
+  }
+
+  /* ---- phụ đề ---- */
+  {
+    const i=PD.findIndex(c=>t>=c.tu-0.12&&t<=c.den+0.18);
+    if(i!==pdI){pdI=i;if(i>=0)E.pd.firstElementChild.textContent=PD[i].loi}
+    setO(E.pd,i<0?0:pop(t,PD[i].tu-0.12,PD[i].den+0.18,.14,.16));
+  }
+}
+
+/* ==========================================================================
+   CHẠY / TUA
+   ========================================================================== */
+const TOC=Math.max(0.25,Math.min(4,parseFloat(new URLSearchParams(location.search).get('toc'))||1));
+let t=0,DUNG=true,last=0;
+function loop(now){
+  if(!DUNG){
+    t+=Math.min(0.30,(now-last)/1000)*TOC;
+    if(t>=DUR){t=DUR;DUNG=true;$('#btnPlay').textContent='▶ Chạy'}
+    render(t);ui();
+  }
+  dieuKhienVideo(t,!DUNG);
+  last=now;requestAnimationFrame(loop);
+}
+function ui(){$('#scrub').value=t.toFixed(2);
+  $('#tnum').textContent=t.toFixed(2)+' / '+DUR.toFixed(2)+'s'}
+$('#btnPlay').addEventListener('click',()=>{
+  if(t>=DUR)t=0;DUNG=!DUNG;last=performance.now();
+  $('#btnPlay').textContent=DUNG?'▶ Chạy':'❚❚ Dừng'});
+$('#scrub').addEventListener('input',e=>{t=parseFloat(e.target.value);render(t);dieuKhienVideo(t,false);ui()});
+[[0,'S01 Hook'],[7.6,'S02 Chọn loại'],[19,'S03 Cấu hình'],[32,'S04 Khởi tạo'],
+ [41.2,'S05 Kết nối'],[52.6,'S06 Mật khẩu'],[62.6,'S07 Quản lý'],[70.6,'Chốt']]
+.forEach(([s,n])=>{const b=document.createElement('button');
+  b.textContent=s+'s · '+n;
+  b.onclick=()=>{t=s;render(t);dieuKhienVideo(t,false);ui()};$('#chaps').appendChild(b)});
+
+function fit(){
+  if(document.body.classList.contains('exporting')){$('#stage').style.transform='none';return}
+  const k=Math.min((innerWidth-40)/1280,(innerHeight-230)/720,1);
+  $('#stage').style.transform='scale('+k+')';
+  $('#stage').style.margin='0 0 '+((k-1)*720)+'px';
+}
+addEventListener('resize',fit);
+function khoiDong(){render(0);ui()}
+
+function choKhung(){
+  const v=E.vid;
+  if(!v.seeking) return Promise.resolve();
+  return new Promise(r=>v.addEventListener('seeked',r,{once:true}));
+}
+const choVe=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+function choVideo(){
+  const v=E.vid;
+  if(v.readyState>=3)return Promise.resolve();
+  return new Promise(r=>{
+    const xong=()=>r();
+    v.addEventListener('canplaythrough',xong,{once:true});
+    setTimeout(xong,20000);
+  });
+}
+
+if(/[?&]export=1/.test(location.search)){
+  document.body.classList.add('exporting');
+  window.__clip={
+    duration:DUR/TOC,
+    ready:async()=>{
+      await napPhuDe();
+      await document.fonts.ready;
+      await choVideo();
+      E.vid.currentTime=0;
+      await new Promise(r=>setTimeout(r,300));
+      fit();khoiDong();dieuKhienVideo(0,false);
+    },
+    play:()=>{DUNG=false;last=performance.now()},
+    at:()=>t/TOC,
+    seek:s=>{t=cl(s*TOC,0,DUR);render(t);dieuKhienVideo(t,false)},
+    step:async s=>{t=cl(s*TOC,0,DUR);render(t);dieuKhienVideo(t,false);
+      await choKhung();await choVe()},
+  };
+}
+fit();
+napPhuDe().then(()=>document.fonts.ready).then(choVideo).then(khoiDong);
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

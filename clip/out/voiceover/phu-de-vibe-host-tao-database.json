@@ -1,0 +1,77 @@
+[
+ {
+  "tu": 0.9,
+  "den": 5.124,
+  "loi": "Vibe Host cho phép bạn tạo và quản lý cơ sở dữ liệu chỉ với ba bước."
+ },
+ {
+  "tu": 6.3,
+  "den": 10.5,
+  "loi": "Đầu tiên, chọn loại cơ sở dữ liệu phù hợp với ứng dụng."
+ },
+ {
+  "tu": 10.62,
+  "den": 15.228,
+  "loi": "Vibe Host hỗ trợ PostgreSQL, MySQL, MongoDB và Redis."
+ },
+ {
+  "tu": 16.2,
+  "den": 18.912,
+  "loi": "Trong video này, mình chọn PostgreSQL."
+ },
+ {
+  "tu": 19.4,
+  "den": 22.52,
+  "loi": "Tiếp theo, đặt tên hiển thị và chọn phiên bản phần mềm."
+ },
+ {
+  "tu": 23.8,
+  "den": 27.424,
+  "loi": "Sau đó cấu hình CPU và RAM theo nhu cầu của ứng dụng."
+ },
+ {
+  "tu": 28.6,
+  "den": 31.504,
+  "loi": "Xem lại phần tóm tắt, rồi bấm Tạo database."
+ },
+ {
+  "tu": 32.6,
+  "den": 37.448,
+  "loi": "Hệ thống cấp phát tài nguyên, khởi tạo instance, rồi cấu hình mạng."
+ },
+ {
+  "tu": 37.9,
+  "den": 40.06,
+  "loi": "Bạn chỉ cần đợi hệ thống làm xong."
+ },
+ {
+  "tu": 41.4,
+  "den": 45.024,
+  "loi": "Khi tạo xong, hệ thống hiển thị đầy đủ thông tin kết nối."
+ },
+ {
+  "tu": 45.8,
+  "den": 51.536,
+  "loi": "Bạn lấy Host, Port, tên đăng nhập, mật khẩu và chuỗi kết nối để dùng cho ứng dụng của mình."
+ },
+ {
+  "tu": 53,
+  "den": 57.896,
+  "loi": "Lưu ý quan trọng: mật khẩu chỉ hiển thị duy nhất một lần khi vừa khởi tạo."
+ },
+ {
+  "tu": 58.4,
+  "den": 62.264,
+  "loi": "Hãy sao chép và lưu lại ở nơi an toàn trước khi tiếp tục."
+ },
+ {
+  "tu": 63.9,
+  "den": 68.508,
+  "loi": "Sau đó, mở trang Quản lý Database để xem trạng thái và thông tin kết nối."
+ },
+ {
+  "tu": 69.4,
+  "den": 72.064,
+  "loi": "Chọn loại, cấu hình tài nguyên, sau cùng là khởi tạo."
+ }
+]

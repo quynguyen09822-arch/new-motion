@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>VH-02 · Dân văn phòng — một đường link thay cho file gửi qua chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--cam:#f25c05;--cam-2:#ff8a3d;--muc:#0f1722;--xam:#5b6676}
+*{box-sizing:border-box;margin:0}
+body{background:#11151b;font-family:'Be Vietnam Pro',system-ui,sans-serif;color:#fff;
+  display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px 0 0}
+body.exporting{background:#fff;padding:0;gap:0}
+body.exporting #ui,body.exporting #chaps{display:none}
+
+/* sân khấu 16:9 */
+#stage{position:relative;overflow:hidden;background:#fff;
+  transform-origin:top left;flex:none}
+.sc{position:absolute;inset:0;will-change:opacity}
+.kb{position:absolute;inset:0;transform-origin:0 0;will-change:transform}
+.kb>img{position:absolute;left:0;top:0;/* cỡ đặt bằng JS theo bộ ảnh */
+  image-rendering:-webkit-optimize-contrast}
+.xoa{position:absolute;pointer-events:none}
+.vong{position:absolute;border:3px solid var(--cam);border-radius:12px;
+  box-shadow:0 0 0 4px rgba(242,92,5,.16),0 10px 34px rgba(242,92,5,.22);
+  pointer-events:none;will-change:opacity,transform}
+.che{position:absolute;will-change:transform}
+.tep{position:absolute;display:flex;align-items:center;gap:9px;padding:10px 14px;border-radius:11px;
+  background:#fff;border:1px solid #e2e6ee;box-shadow:0 14px 34px rgba(15,23,34,.22);
+  font-size:15px;font-weight:600;color:var(--muc);white-space:nowrap;will-change:transform,opacity}
+.tep b{font-weight:600}
+.tep i{width:15px;height:19px;border-radius:2px;background:#eef1f6;border:1px solid #cfd6e2;
+  flex:none;order:-1}
+
+/* chữ tiêu đề — dải dưới, nền trắng nên chữ tối */
+#khoi{position:absolute;left:0;right:0;bottom:0;padding:0 72px 150px;pointer-events:none}
+#nen{position:absolute;left:0;right:0;bottom:0;height:330px;pointer-events:none;
+  background:linear-gradient(to top,rgba(255,255,255,.97) 24%,rgba(255,255,255,.86) 56%,transparent 100%)}
+#gach{width:56px;height:5px;border-radius:99px;background:linear-gradient(90deg,var(--cam-2),var(--cam));
+  margin-bottom:14px;will-change:transform,opacity}
+#c1{font-size:44px;font-weight:700;line-height:1.14;letter-spacing:-.02em;color:var(--muc);
+  will-change:transform,opacity}
+#c1 em{font-style:normal;color:var(--cam)}
+#c2{margin-top:9px;font-size:23px;font-weight:500;line-height:1.3;color:var(--xam);
+  will-change:transform,opacity}
+
+/* phụ đề */
+#pd{position:absolute;left:80px;right:80px;bottom:38px;text-align:center;pointer-events:none}
+#pd span{display:inline-block;padding:8px 18px;border-radius:12px;
+  background:rgba(14,20,28,.82);font-size:25px;font-weight:600;line-height:1.3;color:#fff;
+  text-shadow:0 2px 10px rgba(0,0,0,.5)}
+
+/* thẻ kết */
+/* Khung NGANG: thẻ kết là ảnh dọc nên không phủ kín được mà không mất logo —
+   xếp thẻ sang trái, chữ sang phải, nền xanh đậm lấp phần còn lại.
+   Khung DỌC: thẻ phủ kín, chữ nằm đè phía dưới. */
+#ket{position:absolute;inset:0;background:#07130d;overflow:hidden;
+  display:flex;align-items:center;justify-content:flex-start;padding-left:52px}
+body.doc #ket{display:block;padding:0}
+/* Thẻ kết là ảnh DỌC 9:16.
+   · Khung dọc: phủ kín, vừa in.
+   · Khung ngang: cũng phủ kín nhưng NEO LÊN TRÊN (object-position 50% 34%) để
+     dải logo nằm giữa khung; để `contain` thì thẻ co thành dải hẹp giữa màn, chữ
+     đè lên logo, còn để cover neo giữa thì cắt mất chữ MATBAO. */
+#ket img{position:relative;height:100%;width:auto;object-fit:contain;display:block;flex:none}
+body.doc #ket img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover}
+#ketChu{position:relative;flex:1;padding:0 60px 0 56px;text-align:left;pointer-events:none}
+body.doc #ketChu{position:absolute;left:0;right:0;bottom:0;flex:none;
+  padding:0 40px 210px;text-align:center}
+#ketChu b{display:block;font-size:40px;font-weight:700;line-height:1.18;letter-spacing:-.02em;
+  color:#fff;text-shadow:0 4px 26px rgba(0,0,0,.6)}
+#ketChu b em{font-style:normal;color:var(--cam-2)}
+#ketChu i{display:block;margin-top:14px;font-size:21px;font-style:normal;font-weight:500;
+  color:#cfe3d6;text-shadow:0 3px 16px rgba(0,0,0,.6)}
+#ketChu u{display:block;margin-top:10px;font-size:14px;text-decoration:none;font-weight:400;
+  color:#8fae9c}
+
+#ui{display:flex;gap:12px;align-items:center;font-size:13px}
+#ui button{background:#20293a;color:#fff;border:0;border-radius:8px;padding:7px 14px;cursor:pointer}
+#scrub{width:520px}
+#chaps{display:flex;flex-wrap:wrap;gap:6px;max-width:1280px;justify-content:center}
+#chaps button{background:#1b2331;color:#c9d3e2;border:0;border-radius:7px;padding:5px 10px;
+  font-size:12px;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="conf"></div>
+  <div id="nen"></div>
+  <div id="khoi"><div id="gach"></div><div id="c1"></div><div id="c2"></div></div>
+  <div id="pd"><span></span></div>
+</div>
+<div id="ui">
+  <button id="btnPlay">▶ Chạy</button>
+  <input id="scrub" type="range" min="0" max="50" step="0.01" value="0">
+  <span id="tnum">0.00 / 50.00s</span>
+</div>
+<div id="chaps"></div>
+
+<script>
+(()=>{
+/* ==========================================================================
+   VH-02 · DÂN VĂN PHÒNG
+   Dựng theo public/kich-ban/VH-02-Van-phong-Form-noi-bo.md, hình lấy từ
+   public/image/hinh-kich-ban-02 (6 tấm storyboard, mỗi tấm một cảnh).
+
+   Mọi thứ tính từ MỘT biến thời gian `t` — không dùng CSS transition hay
+   @keyframes — để tua tới đâu vẽ đúng tới đó, và bộ xuất hình lấy được khung
+   nào cũng khớp.
+   ========================================================================== */
+const DUR=50.0;
+/* `?vertical=1` đổi sang khung dọc 9:16. Ảnh vẫn được vẽ ở cỡ nền 1280×720 cố
+   định — chỉ SÂN KHẤU đổi kích thước, còn hàm ngam() lo phần phóng cho vừa. Nhờ
+   vậy mọi toạ độ đo trên ảnh gốc dùng chung cho cả hai bản, không phải đo lại. */
+const V=/[?&]vertical=1/.test(location.search);
+const NEN_W=V?720:1280, NEN_H=V?1280:720;   /* cỡ nền ảnh, theo bộ đang dùng */
+const ST_W=V?720:1280, ST_H=V?1280:720; /* xuất 1920×1080 hoặc 1080×1920 là ×1.5 */
+/* Bộ dọc là storyboard dựng riêng cho 9:16 (941×1672), không phải cắt từ bộ
+   ngang — nên cỡ ảnh, cỡ nền và mọi toạ độ đều khác. */
+const IMG_W=V?941:1672, IMG_H=V?1672:941;
+const KX=NEN_W/IMG_W, KY=NEN_H/IMG_H;
+const MK_N='public/image/hinh-kich-ban-02/';       /* bộ ngang 1672×941 */
+/* Bộ dọc đã phóng sẵn lên 1412px bằng Lanczos (xem tools, thư mục -2x). Ảnh gốc
+   chỉ rộng 941px mà khung xuất rộng 1080px, để trình duyệt tự phóng thì chữ mềm;
+   đưa sẵn ảnh lớn hơn khung thì nó chỉ việc thu nhỏ, mép chữ gọn hơn.
+   Mọi toạ độ trong trang vẫn tính theo ảnh GỐC 941×1672, không đổi. */
+const MK_D='public/image/hinh-kich-ban-02-doc-2x/';
+const MK=V?MK_D:MK_N;
+const ANH_D=['ChatGPT Image Aug 28, 2026, 01_20_26 PM (1).png',
+             'ChatGPT Image Aug 28, 2026, 01_20_26 PM (2).png',
+             'ChatGPT Image Aug 28, 2026, 01_20_27 PM (3).png',
+             'ChatGPT Image Aug 28, 2026, 01_20_27 PM (4).png',
+             'ChatGPT Image Aug 28, 2026, 01_20_27 PM (5).png',
+             'ChatGPT Image Aug 28, 2026, 01_20_28 PM (6).png'];
+const ANH_N=['ChatGPT Image 10_46_31 28 thg 8, 2026 (1).png',
+           'ChatGPT Image 10_46_32 28 thg 8, 2026 (2).png',
+           'ChatGPT Image 10_46_32 28 thg 8, 2026 (3).png',
+           'ChatGPT Image 10_46_33 28 thg 8, 2026 (4).png',
+           'ChatGPT Image 10_46_33 28 thg 8, 2026 (5).png',
+           'ChatGPT Image 10_46_34 28 thg 8, 2026 (6).png'];
+const ANH=V?ANH_D:ANH_N;
+
+const $=s=>document.querySelector(s);
+const el=(t,c,html)=>{const e=document.createElement(t);if(c)e.className=c;
+  if(html!=null)e.innerHTML=html;return e};
+const cl=(v,a,b)=>v<a?a:v>b?b:v;
+const tt=(t,a,b)=>b<=a?(t>=b?1:0):cl((t-a)/(b-a),0,1);
+const eOut=x=>1-Math.pow(1-x,3);
+const eIn=x=>x*x*x;
+const eIO=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+const lerp=(a,b,k)=>a+(b-a)*k;
+const seg=(t,a,b,e=eIO)=>e(tt(t,a,b));
+const pop=(t,a,b,v=.28,r=.32)=>Math.min(seg(t,a,a+v,eOut),1-seg(t,b-r,b,eIn));
+const px=v=>v.toFixed(2)+'px';
+const setO=(e,o)=>{e.style.opacity=o.toFixed(3);e.style.visibility=o<0.002?'hidden':'visible'};
+
+/* ==========================================================================
+   BẢNG CẢNH
+   [ảnh, từ, đến, khung ngắm đầu, khung ngắm cuối, chữ]
+   Khung ngắm ghi theo TOẠ ĐỘ ẢNH GỐC 1672×941: [x0,y0,x1,y1] — vùng muốn thấy
+   đầy khung. Máy quay tự tính phóng và dời cho vừa, nên sửa cảnh chỉ việc sửa
+   bốn con số, không phải mò hệ số phóng.
+   ========================================================================== */
+/* Khung ngắm cho bản DỌC 9:16 (`?vertical=1`). Ảnh gốc là 16:9 nên bản dọc buộc
+   phải cắt lấy một dải hẹp — mỗi cảnh chọn dải nào là theo ghi chú "Reframe 9:16"
+   trong kịch bản. Hộp khai đúng tỉ lệ 9:16 để không lòi nền trắng hai bên. */
+const SC=[
+ {a:0.0 ,b:5.0 , src:0,
+  v0:[ 180, 150,1600, 810], v1:[ 660, 250,1440, 700],
+  d0:[  -8, -40, 949,1662], d1:[  10,   4, 947,1670],
+  c1:'', c2:''},
+ {a:5.0 ,b:11.0, src:1,
+  v0:[  32, 146,1638, 800], v1:[ 560, 200,1560, 700],
+  d0:[  -8, -40, 949,1662], d1:[   6,  30, 941,1694],
+  c1:'Một đường link · <em>cả phòng nhìn cùng một bản</em>', c2:''},
+ {a:11.0,b:17.0, src:2,
+  v0:[  56, 154, 520, 670], v1:[  72, 250, 512, 560],
+  d0:[  -8,-520, 949,1182], d1:[   6,-470, 941,1216],
+  c1:'Kể cho <em>AI</em> nghe', c2:'Mở công cụ AI quen thuộc, nói bạn cần gì'},
+ {a:17.0,b:24.0, src:2,
+  v0:[ 612, 154,1594, 830], v1:[ 640, 300,1594, 836],
+  d0:[  -8, -40, 949,1662], d1:[   6,  40, 941,1704],
+  c1:'<em>Xong rồi</em>', c2:'AI dựng ra trang đăng ký, tải về một gói'},
+ {a:24.0,b:31.0, src:3,
+  v0:[  48,  74,1622, 848], v1:[ 700, 300,1620, 800],
+  d0:[  -8, -40, 949,1662], d1:[   6, -20, 941,1644],
+  c1:'<em>● Trực tuyến</em>', c2:'Vài phút là có địa chỉ dùng được, kèm khoá bảo mật'},
+ {a:31.0,b:40.0, src:4,
+  v0:[  26, 104,1644, 794], v1:[ 120, 160,1560, 780],
+  d0:[  -8, -40, 949,1662], d1:[   6,  30, 941,1694],
+  c1:'Hệ thống <em>tự nối</em> · bạn không phải làm gì', c2:''},
+ {a:40.0,b:46.0, src:5,
+  v0:[ 512,  24,1640, 710], v1:[ 600,  22,1240, 380],
+  /* Chặn đáy ở 1400: tấm 6 không có miếng che chân (chân là THẺ KẾT thật), lấn
+     xuống là lộ chữ "Thôi gửi file…" mờ mờ ngay giữa cảnh S07. */
+  d0:[ 108,  86, 873,1446], d1:[ 138, 140, 848,1400],
+  c1:'Link <em>không đổi</em> · dữ liệu còn nguyên', c2:''},
+ {a:46.0,b:50.0, src:'ket',
+  v0:[0,0,0,0], v1:[0,0,0,0],
+  d0:[  -8,  40, 949,1742], d1:[  -8,  40, 949,1742],
+  c1:'', c2:''},
+];
+
+/* Cửa sổ hiện chữ tiêu đề của từng cảnh (giây) */
+const CHU=[[0,0],[6.30,10.60],[12.20,16.60],[18.40,23.60],[26.40,30.60],
+           [33.40,39.60],[41.40,45.60],[0,0]];
+
+/* ==========================================================================
+   XOÁ NHÃN SẢN XUẤT IN TRONG ẢNH STORYBOARD
+   Mỗi tấm có nhãn cảnh ở góc trên ("S01 · Hook") và chú thích dưới chân — đó là
+   ghi chú cho người dựng, không được lên phim. Che bằng mảng trắng đúng màu nền
+   tấm; ảnh gốc giữ nguyên.
+   [tấm, x0,y0,x1,y1]
+   ========================================================================== */
+/* Bộ dọc: nhãn "S0x · …" ở đỉnh và chú thích dưới chân đều là ghi chú dựng, xoá
+   hết. Riêng tấm 6 chân là THẺ KẾT thật, phải giữ. */
+/* Cột cuối = MÀU miếng che. Nền mỗi tấm một sắc trắng-xám khác nhau (đo được
+   #f7f8fc → #f9fafd); tô trắng tinh là hiện rõ một đường mép, nhìn ra ngay là
+   dán đè. Cột áp chót (nếu có) = chỉ dán cho cảnh đó. */
+const XOA_D=[
+ [0,   0,   0, 941, 122, null,'#f8f9fd'], [0,   0,1490, 941,1672, null,'#f8f9fd'],
+ [1,   0,   0, 941, 122, null,'#f9fafd'], [1,   0,1548, 941,1672, null,'#f9fafd'],
+ [2,   0,   0, 941, 122, null,'#f7f8fc'], [2,   0,1568, 941,1672, null,'#f7f8fc'],
+ [2,   0, 420, 941,1672,    2,'#f7f8fc'],   /* S03: chỉ chừa thẻ công cụ AI (thẻ +
+                                               bóng đổ hết ở y=417, cắt trên đó là
+                                               xén mất bóng, thành ra "cắt dán") */
+ [3,   0,   0, 941, 122, null,'#f7f8fc'], [3,   0,1518, 941,1672, null,'#f7f8fc'],
+ [4,   0,   0, 941, 122, null,'#f7f9fc'], [4,   0,1540, 941,1672, null,'#f7f9fc'],
+ [5,   0,   0, 941, 132, null,'#f8f9fc'],
+];
+const XOA_N=[
+ [0,  20,  16,1660,  74], [0,  20, 846,1660, 936],
+ [1,  20,  16,1660, 144], [1,  20, 806,1660, 936],
+ [2,  20,  16,1660,  76], [2,  20, 730,1660, 936],
+ [3,  20,  16,1660,  70], [3,  20, 852,1660, 936],
+ [4,  20,  16,1660,  74], [4,  20, 800,1660, 936],
+ /* tấm 6: chỉ che nhãn bên TRÁI. Che cả dải ngang là xoá luôn thanh địa chỉ —
+    mà thanh địa chỉ chính là thứ cảnh S07 phải khoe (link không đổi). */
+ [5,  20,  16, 500,  84], [5,  20, 714,1660, 726],
+];
+const XOA=V?XOA_D:XOA_N;
+
+/* ==========================================================================
+   VÒNG SÁNG CHỈ VÀO THÀNH PHẦN
+   [cảnh, x0,y0,x1,y1 (toạ độ ảnh), từ, đến]
+   ========================================================================== */
+/* Vòng sáng bản dọc — toạ độ trên ảnh 941×1672, đo riêng vì bố cục khác hẳn. */
+const LOP_D=[
+ {sc:0, box:[ 488, 842, 584,1018], a:1.60, b:3.60},   /* ô 'Đã khóa': x494-578, y848-1012 */
+ {sc:1, box:[ 344,1110, 736,1194], a:7.40, b:10.40},   /* thẻ link trong chat */
+ {sc:2, box:[  64, 212, 540, 316], a:13.60,b:16.40},   /* khung chữ prompt */
+ {sc:2, k:'che', box:[  70, 218, 532, 312], mau:'#fbfbfd', a:11.60,b:13.40},  /* gõ chữ */
+ {sc:4, k:'tep', box:[ 300, 940, 300, 940], ten:'website-dangky.zip',
+   tu:[300,-180], den:[ 60,  15], a:24.80,b:26.20},   /* gói tin kéo vào ô thả */
+ {sc:4, k:'che', box:[ 256, 898, 624,1038], mau:'#ffffff', tat:true, a:26.10,b:26.45},  /* ô thả trống tới lúc thả */
+ {sc:4, box:[ 636, 900, 932,1092], a:27.60,b:30.60},   /* thẻ 'Vibe Host tự động hỗ trợ' */
+ {sc:5, box:[  24, 934, 906,1518], a:35.60,b:39.60},   /* thẻ 'Trang của bạn' */
+ {sc:6, box:[ 346,1196, 888,1254], a:41.60,b:45.60},   /* dòng địa chỉ không đổi */
+];
+const LOP_N=[
+ {sc:0, box:[1130, 385,1265, 470], a:1.60, b:3.60},   /* ô vừa khoá */
+ {sc:1, box:[1152, 340,1568, 422], a:7.40, b:10.40},  /* thẻ link thay chỗ file */
+ {sc:2, box:[  62, 250, 522, 400], a:13.00,b:16.40},  /* khung gõ yêu cầu */
+ {sc:3, box:[ 592, 724,1640, 824], a:20.80,b:23.60},  /* gói dangky.zip vừa tải */
+ {sc:4, box:[1060, 415,1624, 702], a:27.60,b:30.60},  /* ba dòng kiểm đã xong */
+ {sc:5, box:[ 900, 300,1560, 640], a:35.60,b:39.60},  /* trang của bạn tự nhận */
+ {sc:6, box:[ 652,  26,1170,  78], a:41.60,b:45.60},  /* thanh địa chỉ */
+];
+const LOP=V?LOP_D:LOP_N;
+
+/* ==========================================================================
+   LỜI ĐỌC — lấy nguyên văn phần "Lời đọc" trong kịch bản, chỉ tách câu dài
+   thành hai khe cho vừa nhịp hình và cho phụ đề dễ đọc.
+   ========================================================================== */
+const VO=[
+  [ 0.30,'Làm hành chính, chắc bạn quen với cảnh gửi file cho cả phòng rồi phải không?'],
+  [ 4.75,'Có cách gọn hơn nhiều đấy.'],
+  [ 6.97,'Bạn muốn cả phòng đăng ký vào cùng một chỗ, ai vào cũng thấy đúng bản mới nhất?'],
+  [11.18,'Được luôn.'],
+  [12.50,'Cứ mở công cụ AI quen thuộc, kể cho nó nghe bạn cần gì thôi.'],
+  [18.40,'Vậy là AI dựng xong cho bạn một trang đăng ký, xem thử nè.'],
+  [24.40,'Giờ kéo nó lên Vibe Host.'],
+  [26.70,'Vài phút là có địa chỉ dùng được ngay, kèm khoá bảo mật.'],
+  [31.40,'Đăng ký của mọi người cần một chỗ lưu?'],
+  [33.85,'Bạn tạo Database ngay trong Vibe Host.'],
+  [36.50,'Còn nối vào trang thì hệ thống tự làm, bạn không phải sửa gì cả.'],
+  [40.20,'Cần sửa thì sửa rồi đẩy lại thôi, không phải gửi lại cho ai.'],
+  [44.00,'Đường link vẫn thế, dữ liệu vẫn còn.'],
+  [46.90,'Việc nào của phòng cũng lên mạng được trong vài phút.'],
+];
+
+/* ==========================================================================
+   DỰNG CẢNH
+   ========================================================================== */
+/* Nền mỗi tấm một sắc trắng-xám riêng. Khung ngắm cố ý rộng hơn ảnh để có lề,
+   nên phần ngoài ảnh phải tô ĐÚNG màu nền tấm đó — để trắng tinh là khung hình
+   chia làm hai mảng màu khác nhau, nhìn ra ngay. */
+const NEN_TAM=V?['#f8f9fd','#f9fafd','#f7f8fc','#f7f8fc','#f7f9fc','#f8f9fc']
+              :['#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff'];
+const stage=$('#stage');
+stage.style.width=ST_W+'px'; stage.style.height=ST_H+'px';
+if(V){
+  document.body.classList.add('doc');
+  /* Bản dọc: chữ nhỏ lại cho vừa bề ngang, phụ đề nâng cao khỏi vùng nút bấm của
+     TikTok/Reels (khoảng 200px dưới cùng của khung 1920). */
+  const st=document.createElement('style');
+  st.textContent=`#khoi{padding:0 40px 250px}#c1{font-size:38px}#c2{font-size:20px}
+    #nen{height:430px}#pd{left:26px;right:26px;bottom:132px}#pd span{font-size:23px;padding:7px 15px}
+    #ketChu b{font-size:34px}#ketChu i{font-size:18px}`;
+  document.head.appendChild(st);
+}
+const truoc=$('#nen');
+SC.forEach((s,i)=>{
+  const sc=el('div','sc'), kb=el('div','kb');
+  if(s.src==='ket'){
+    const k=el('div',null,'<img alt="">'
+      +'<div id="ketChu"><b>Thôi gửi file. <em>Gửi một đường link.</em></b>'
+      +'<i>Dùng thử miễn phí 7 ngày · từ 79.000đ/tháng</i>'
+      +'<u>Giá chưa gồm VAT · áp dụng khi mua tối thiểu 3 tháng</u></div>');
+    k.id='ket'; sc.appendChild(k); s.ket=k.querySelector('img');
+    s.ket.src=MK_D+'ket.png';
+  }else{
+    const im=el('img'); im.src=MK+ANH[s.src]; im.alt='';
+    im.style.width=NEN_W+'px'; im.style.height=NEN_H+'px';
+    kb.appendChild(im);
+    sc.appendChild(kb);
+  }
+  if(typeof s.src==='number' && NEN_TAM[s.src]) sc.style.background=NEN_TAM[s.src];
+  stage.insertBefore(sc,truoc);
+  s.el=sc; s.kb=kb;
+});
+XOA.forEach(([i,x0,y0,x1,y1,chiCanh,mau])=>{
+  const s=SC.find((c,k)=>c.src===i && c.kb);
+  SC.forEach(c=>{
+    if(c.src!==i||!c.kb)return;
+    if(chiCanh!=null && SC.indexOf(c)!==chiCanh)return;
+    const e=el('div','xoa');
+    e.style.left=px(x0*KX); e.style.top=px(y0*KY);
+    e.style.width=px((x1-x0)*KX); e.style.height=px((y1-y0)*KY);
+    e.style.background=mau||'#fff';
+    c.kb.appendChild(e);
+  });
+});
+
+LOP.forEach(L=>{
+  const e=el('div', L.k==='che'?'che':L.k==='tep'?'tep':'vong');
+  const [x0,y0,x1,y1]=L.box;
+  e.style.left=px(x0*KX); e.style.top=px(y0*KY);
+  e.style.width=px((x1-x0)*KX); e.style.height=px((y1-y0)*KY);
+  if(L.k==='che'){ e.style.background=L.mau||'#fbfbfd'; e.style.transformOrigin='right center' }
+  if(L.k==='tep'){ e.innerHTML='<b>'+(L.ten||'website-dangky.zip')+'</b><i></i>' }
+  const c=SC[L.sc]; if(c.kb)c.kb.appendChild(e);
+  L.el=e;
+});
+
+/* ==========================================================================
+   MÁY QUAY — nhận khung ngắm theo toạ độ ảnh, tự tính phóng và dời
+   ========================================================================== */
+function ngam(v){
+  const [x0,y0,x1,y1]=v;
+  const w=(x1-x0)*KX, h=(y1-y0)*KY;
+  const s=Math.min(ST_W/w, ST_H/h);          /* vừa khít, không cắt mất mép */
+  const cx=(x0+x1)/2*KX, cy=(y0+y1)/2*KY;
+  return {s, tx:ST_W/2-s*cx, ty:ST_H/2-s*cy};
+}
+function trung(a,b,k){
+  return [lerp(a[0],b[0],k),lerp(a[1],b[1],k),lerp(a[2],b[2],k),lerp(a[3],b[3],k)];
+}
+
+/* ==========================================================================
+   PHỤ ĐỀ — mốc lấy từ vị trí thật của tiếng, do bộ lồng tiếng ghi ra
+   ========================================================================== */
+let PD=VO.map((v,i,a)=>({tu:v[0], den:(a[i+1]?a[i+1][0]:DUR)-0.05, loi:v[1]}));
+async function napPhuDe(){
+  try{
+    const r=await fetch('out/voiceover/phu-de-vibe-host-vanphong.json',{cache:'no-store'});
+    if(r.ok){const j=await r.json(); if(Array.isArray(j)&&j.length)PD=j}
+  }catch(e){}
+}
+let pdI=-1;
+
+const E={nen:$('#nen'),khoi:$('#khoi'),gach:$('#gach'),c1:$('#c1'),c2:$('#c2'),pd:$('#pd')};
+let chuI=-1;
+const HOA=0.42;                              /* thời gian chuyển cảnh */
+
+function render(t){
+  SC.forEach((s,i)=>{
+    const vao=seg(t,s.a-(i?HOA:0),s.a-(i?HOA:0)+HOA,eIO);
+    const ra=i===SC.length-1?0:seg(t,s.b-HOA,s.b,eIO);
+    const o=i===0?1-ra:vao*(1-ra);
+    setO(s.el,o);
+    if(o<0.002||!s.kb)return;
+    const k=eIO(tt(t,s.a-HOA,s.b));
+    const c=ngam(trung(V?s.d0:s.v0, V?s.d1:s.v1, k));
+    s.kb.style.transform='translate('+px(c.tx)+','+px(c.ty)+') scale('+c.s.toFixed(4)+')';
+  });
+
+  /* lớp vẽ đè */
+  LOP.forEach(L=>{
+    if(L.k==='che'){
+      /* Hé nội dung từ trái sang phải: miếng che co dần về mép phải, để lộ đúng
+         những điểm ảnh có sẵn của ảnh gốc — khớp phông chữ tuyệt đối, hơn hẳn gõ
+         lại bằng chữ của trang. Đặt `tat:true` thì không co mà tắt hẳn một nhịp
+         (dùng cho ô thả: trống trước, có tệp sau). */
+      if(L.tat){ setO(L.el, t<L.a?1:(t>L.b?0:1-tt(t,L.a,L.b))); return }
+      const q=1-tt(t,L.a,L.b);
+      L.el.style.transform='scaleX('+q.toFixed(4)+')';
+      setO(L.el, t>L.b+0.25?0:1);
+      return;
+    }
+    if(L.k==='tep'){
+      /* Gói tin bay vào ô thả. Ngang và dọc dùng hai nhịp KHÁC nhau để đường đi
+         cong như tay người kéo — đi thẳng một đường là thấy ngay máy chạy. Kèm
+         nghiêng nhẹ rồi thẳng lại, bóng đổ khép dần, và lún một nhịp lúc chạm. */
+      const k=tt(t,L.a,L.b);
+      const kx=eOut(k), ky=eIn(k*0.86)+k*0.14;
+      const dx=lerp(L.tu[0],L.den[0],kx)*KX, dy=lerp(L.tu[1],L.den[1],ky)*KY;
+      const lun=k>0.88?Math.sin((k-0.88)/0.12*Math.PI)*0.06:0;
+      const nghieng=(1-eOut(k))*-5;
+      L.el.style.transform='translate('+px(dx)+','+px(dy)+') rotate('+nghieng.toFixed(2)
+        +'deg) scale('+(1-0.10*kx-lun).toFixed(3)+')';
+      L.el.style.boxShadow='0 '+(26-18*k).toFixed(0)+'px '+(48-30*k).toFixed(0)
+        +'px rgba(15,23,34,'+(0.26-0.14*k).toFixed(3)+')';
+      setO(L.el, Math.min(seg(t,L.a-0.30,L.a-0.02,eOut), 1-seg(t,L.b-0.06,L.b+0.10,eIn)));
+      return;
+    }
+    setO(L.el, pop(t,L.a,L.b,.24,.28));
+  });
+
+  /* chữ tiêu đề */
+  let ci=-1;
+  CHU.forEach(([a,b],i)=>{ if(b>a && t>=a-0.12 && t<=b+0.12) ci=i });
+  if(ci!==chuI){
+    chuI=ci;
+    if(ci>=0){ E.c1.innerHTML=SC[ci].c1; E.c2.innerHTML=SC[ci].c2 }
+  }
+  if(ci<0){ setO(E.khoi,0); setO(E.nen,0) }
+  else{
+    const [a,b]=CHU[ci];
+    const v=seg(t,a,a+0.42,eOut), r=seg(t,b-0.34,b,eIn);
+    const o=v*(1-r);
+    setO(E.khoi,o); setO(E.nen,o*0.98);
+    E.gach.style.transform='scaleX('+seg(t,a,a+0.5,eOut).toFixed(3)+')';
+    E.gach.style.transformOrigin='left center';
+    E.c1.style.transform='translateY('+px((1-v)*26+r*-12)+')';
+    E.c2.style.transform='translateY('+px((1-seg(t,a+0.10,a+0.62,eOut))*20+r*-9)+')';
+  }
+
+  /* phụ đề */
+  {
+    const i=PD.findIndex(c=>t>=c.tu-0.12 && t<=c.den+0.18);
+    if(i!==pdI){ pdI=i; if(i>=0)E.pd.firstElementChild.innerHTML=PD[i].loi }
+    setO(E.pd, i<0?0:pop(t,PD[i].tu-0.12,PD[i].den+0.18,.14,.16));
+  }
+}
+
+/* ==========================================================================
+   CHẠY / TUA
+   ========================================================================== */
+const TOC=Math.max(0.25,Math.min(4,parseFloat(new URLSearchParams(location.search).get('toc'))||1));
+let t=0,DUNG=true,last=0;
+function loop(now){
+  if(!DUNG){
+    t+=Math.min(0.30,(now-last)/1000)*TOC;
+    if(t>=DUR){t=DUR;DUNG=true;$('#btnPlay').textContent='▶ Chạy'}
+    render(t);ui();
+  }
+  last=now;requestAnimationFrame(loop);
+}
+function ui(){$('#scrub').value=t.toFixed(2);
+  $('#tnum').textContent=t.toFixed(2)+' / '+DUR.toFixed(2)+'s'}
+$('#btnPlay').addEventListener('click',()=>{
+  if(t>=DUR)t=0; DUNG=!DUNG; last=performance.now();
+  $('#btnPlay').textContent=DUNG?'▶ Chạy':'❚❚ Dừng'});
+$('#scrub').addEventListener('input',e=>{t=parseFloat(e.target.value);render(t);ui()});
+[[0,'S01 Hook'],[5,'S02 Một link'],[11,'S03 Kể AI'],[17,'S04 Xong'],[24,'S05 Lên mạng'],
+ [31,'S06 Database'],[40,'S07 Link không đổi'],[46,'S08 Kết']]
+.forEach(([s,n])=>{const b=document.createElement('button');
+  b.textContent=s+'s · '+n; b.onclick=()=>{t=s;render(t);ui()};$('#chaps').appendChild(b)});
+
+function fit(){
+  if(document.body.classList.contains('exporting')){$('#stage').style.transform='none';return}
+  const k=Math.min((innerWidth-40)/ST_W,(innerHeight-160)/ST_H,1);
+  $('#stage').style.transform='scale('+k+')';
+  $('#stage').style.margin='0 0 '+((k-1)*ST_H)+'px';
+}
+addEventListener('resize',fit);
+function khoiDong(){render(0);ui()}
+
+if(/[?&]export=1/.test(location.search)){
+  document.body.classList.add('exporting');
+  window.__clip={
+    duration:DUR/TOC,
+    ready:async()=>{
+      await napPhuDe();
+      await document.fonts.ready;
+      await Promise.all([...document.images].filter(i=>i.src).map(i=>i.decode().catch(()=>{})));
+      await new Promise(r=>setTimeout(r,260));   /* chờ canvas cắt thẻ kết xong */
+      fit();khoiDong();
+    },
+    play:()=>{DUNG=false;last=performance.now()},
+    at:()=>t/TOC, seek:s=>{t=cl(s*TOC,0,DUR);render(t)}, step:s=>{t=cl(s*TOC,0,DUR);render(t)},
+  };
+}
+fit();
+napPhuDe().then(()=>document.fonts.ready).then(khoiDong);
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

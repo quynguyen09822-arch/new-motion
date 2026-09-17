@@ -1,0 +1,87 @@
+[
+ {
+  "tu": 0.55,
+  "den": 3.622,
+  "loi": "Một vòng quay may mắn. Hơn nghìn người chơi cùng lúc."
+ },
+ {
+  "tu": 3.95,
+  "den": 6.302,
+  "loi": "Không cần code, không cần thiết kế."
+ },
+ {
+  "tu": 6.422,
+  "den": 9.23,
+  "loi": "Khách trúng phần thưởng, để lại thông tin ngay."
+ },
+ {
+  "tu": 9.35,
+  "den": 11.222,
+  "loi": "Toàn bộ chảy thẳng về hệ thống của bạn."
+ },
+ {
+  "tu": 11.45,
+  "den": 14.21,
+  "loi": "Ý tưởng chỉ cần kể cho AI bằng một câu."
+ },
+ {
+  "tu": 14.7,
+  "den": 17.196,
+  "loi": "Mô tả xong, AI bắt tay vào dựng."
+ },
+ {
+  "tu": 17.316,
+  "den": 20.076,
+  "loi": "Giao diện, API, cơ sở dữ liệu."
+ },
+ {
+  "tu": 20.196,
+  "den": 22.404,
+  "loi": "Vài phút sau là có sản phẩm hoàn chỉnh."
+ },
+ {
+  "tu": 22.85,
+  "den": 24.77,
+  "loi": "Giờ đưa lên mạng bằng Vibe Host."
+ },
+ {
+  "tu": 25.3,
+  "den": 27.46,
+  "loi": "Chọn tải file, kéo gói mã nguồn vào."
+ },
+ {
+  "tu": 27.95,
+  "den": 31.55,
+  "loi": "Bấm nút Triển khai. Không Dockerfile, không cài đặt gì."
+ },
+ {
+  "tu": 31.7,
+  "den": 35.204,
+  "loi": "Hệ thống tự tải lên, tự cấp SSL."
+ },
+ {
+  "tu": 35.324,
+  "den": 38.132,
+  "loi": "Hơn một phút sau, website chạy thật trên mạng."
+ },
+ {
+  "tu": 38.6,
+  "den": 41.288,
+  "loi": "Dữ liệu người chơi về đủ, xem được ngay."
+ },
+ {
+  "tu": 41.408,
+  "den": 45.032,
+  "loi": "SSL sẵn sàng. Dữ liệu đặt tại Việt Nam. Sao lưu hằng ngày."
+ },
+ {
+  "tu": 46.2,
+  "den": 48.072,
+  "loi": "Ý tưởng nào cũng lên được mạng."
+ },
+ {
+  "tu": 48.2,
+  "den": 50.024,
+  "loi": "Vibe Host. Của Mắt Bão."
+ }
+]

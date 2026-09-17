@@ -1,0 +1,460 @@
+{
+  "version": 1,
+  "meta": {
+    "name": "Wireframe → Mockup (thử nghiệm)",
+    "width": 1280,
+    "height": 720,
+    "density": 1,
+    "bg": "#f1f2f4",
+    "ink": "#39404d",
+    "accent": "#7b8492",
+    "accent2": "#a7aeba",
+    "hot": "#5f6873",
+    "hot2": "#8d95a1"
+  },
+  "scenes": [
+    {
+      "id": "c1-khung-trong",
+      "duration": 4,
+      "stagger": 0.12,
+      "elements": [
+        {
+          "kind": "nen",
+          "id": "luoi-1",
+          "x": 0,
+          "y": 0,
+          "place": "day",
+          "parts": [
+            "cham"
+          ],
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.5
+          }
+        },
+        {
+          "kind": "group",
+          "id": "nhom-1",
+          "x": 0,
+          "y": 0,
+          "place": "giua",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "kind": "text",
+              "id": "chu-1",
+              "x": 0,
+              "y": 0,
+              "w": 560,
+              "text": "Bắt đầu từ *khung xám*",
+              "size": 72,
+              "align": "left",
+              "gap": 3,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.55
+              }
+            },
+            {
+              "kind": "browser",
+              "id": "tr-1",
+              "w": 560,
+              "h": 340,
+              "url": "chua-dat-ten.vn",
+              "x": 0,
+              "y": 0,
+              "at": 0,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.6
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "c2-dat-khoi",
+      "duration": 4,
+      "stagger": 0.12,
+      "elements": [
+        {
+          "kind": "nen",
+          "id": "luoi-2",
+          "x": 0,
+          "y": 0,
+          "place": "day",
+          "parts": [
+            "cham"
+          ],
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.5
+          }
+        },
+        {
+          "kind": "group",
+          "id": "nhom-2",
+          "x": 0,
+          "y": 0,
+          "place": "giua",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "kind": "text",
+              "id": "chu-2",
+              "x": 0,
+              "y": 0,
+              "w": 560,
+              "text": "Đặt khối trước, *chữ sau*",
+              "size": 64,
+              "align": "left",
+              "gap": 3,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.55
+              }
+            },
+            {
+              "kind": "card",
+              "id": "the-2",
+              "w": 520,
+              "title": "Tiêu đề chưa viết",
+              "rows": 3,
+              "button": "Nút chưa đặt tên",
+              "x": 0,
+              "y": 0,
+              "at": 0,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.6
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "c3-dien-noi-dung",
+      "duration": 4.4,
+      "stagger": 0.12,
+      "elements": [
+        {
+          "kind": "nen",
+          "id": "luoi-3",
+          "x": 0,
+          "y": 0,
+          "place": "day",
+          "parts": [
+            "cham"
+          ],
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.5
+          }
+        },
+        {
+          "kind": "group",
+          "id": "nhom-3",
+          "x": 0,
+          "y": 0,
+          "place": "giua",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "kind": "text",
+              "id": "chu-3",
+              "x": 0,
+              "y": 0,
+              "w": 560,
+              "text": "Điền nội dung *thật vào*",
+              "size": 64,
+              "align": "left",
+              "gap": 3,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.55
+              }
+            },
+            {
+              "kind": "form",
+              "id": "bieu-3",
+              "w": 480,
+              "title": "Tạo dự án",
+              "fields": [
+                {
+                  "label": "Tên dự án",
+                  "value": "wireframe-thu"
+                },
+                {
+                  "label": "Khổ hình",
+                  "value": "1280 × 720"
+                },
+                {
+                  "label": "Số cảnh",
+                  "value": "6"
+                }
+              ],
+              "x": 0,
+              "y": 0,
+              "at": 0,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.6
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "c4-doi-khung",
+      "duration": 4,
+      "stagger": 0.12,
+      "elements": [
+        {
+          "kind": "nen",
+          "id": "luoi-4",
+          "x": 0,
+          "y": 0,
+          "place": "day",
+          "parts": [
+            "cham"
+          ],
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.5
+          }
+        },
+        {
+          "kind": "group",
+          "id": "nhom-4",
+          "x": 0,
+          "y": 0,
+          "place": "giua",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "kind": "text",
+              "id": "chu-4",
+              "x": 0,
+              "y": 0,
+              "w": 560,
+              "text": "Đổi khung, *bố cục tự theo*",
+              "size": 64,
+              "align": "left",
+              "gap": 3,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.55
+              }
+            },
+            {
+              "kind": "group",
+              "id": "hang-4",
+              "x": 0,
+              "y": 0,
+              "dir": "ngang",
+              "align": "giua",
+              "justify": "giua",
+              "gap": 4,
+              "children": [
+                {
+                  "kind": "phone",
+                  "id": "dt-4",
+                  "w": 200,
+                  "h": 420,
+                  "src": "",
+                  "x": 0,
+                  "y": 0,
+                  "at": 0,
+                  "in": {
+                    "kind": "rise",
+                    "ease": "out",
+                    "dur": 0.6
+                  }
+                },
+                {
+                  "kind": "browser",
+                  "id": "tr-4",
+                  "w": 400,
+                  "h": 250,
+                  "url": "chua-dat-ten.vn",
+                  "x": 0,
+                  "y": 0,
+                  "at": 0,
+                  "in": {
+                    "kind": "rise",
+                    "ease": "out",
+                    "dur": 0.6
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "c5-nhip",
+      "duration": 4,
+      "stagger": 0.12,
+      "elements": [
+        {
+          "kind": "nen",
+          "id": "luoi-5",
+          "x": 0,
+          "y": 0,
+          "place": "day",
+          "parts": [
+            "cham"
+          ],
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.5
+          }
+        },
+        {
+          "kind": "group",
+          "id": "nhom-5",
+          "x": 0,
+          "y": 0,
+          "place": "giua",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "kind": "text",
+              "id": "chu-5",
+              "x": 0,
+              "y": 0,
+              "w": 560,
+              "text": "Rồi mới tính *nhịp*",
+              "size": 64,
+              "align": "left",
+              "gap": 3,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.55
+              }
+            },
+            {
+              "kind": "timeline",
+              "id": "dong-5",
+              "w": 900,
+              "labels": [
+                "Khung xám",
+                "Đặt khối",
+                "Nội dung",
+                "Nhịp",
+                "Xong"
+              ],
+              "x": 0,
+              "y": 0,
+              "at": 0,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.6
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "c6-ket",
+      "duration": 3.6,
+      "stagger": 0.12,
+      "elements": [
+        {
+          "kind": "nen",
+          "id": "luoi-6",
+          "x": 0,
+          "y": 0,
+          "place": "day",
+          "parts": [
+            "cham"
+          ],
+          "in": {
+            "kind": "fade",
+            "ease": "out",
+            "dur": 0.5
+          }
+        },
+        {
+          "kind": "group",
+          "id": "nhom-6",
+          "x": 0,
+          "y": 0,
+          "place": "giua",
+          "dir": "doc",
+          "align": "giua",
+          "justify": "giua",
+          "gap": 5,
+          "children": [
+            {
+              "kind": "text",
+              "id": "chu-6",
+              "x": 0,
+              "y": 0,
+              "w": 560,
+              "text": "Wireframe xong, *mới tô màu*",
+              "size": 72,
+              "align": "left",
+              "gap": 3,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.55
+              }
+            },
+            {
+              "kind": "logo",
+              "id": "logo-6",
+              "name": "Bản thử",
+              "mark": "◻",
+              "w": 300,
+              "size": 44,
+              "x": 0,
+              "y": 0,
+              "at": 0,
+              "in": {
+                "kind": "rise",
+                "ease": "out",
+                "dur": 0.6
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vibe Host — Marketer (9:16, UI thật ở đoạn deploy)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================================
+   CLIP MARKETER — khung dọc 9:16
+
+   Sáu cảnh dựng trên 6 mockup trong public/image/vibehostmarketer/, CỘNG một
+   cảnh deploy dùng GIAO DIỆN VIBE HOST THẬT dựng bằng HTML/CSS (không phải ảnh):
+   chọn nguồn “Tải file” → kéo-thả gói vongquay-mayman.zip → ba bước triển khai
+   → website lên mạng. Nhờ là DOM thật nên con trỏ bấm đúng nút, trạng thái đổi
+   thật, và phóng bao nhiêu cũng nét.
+
+   Chuyển động trên ảnh tĩnh làm bằng ba thứ nguyên thuỷ, khai báo theo dữ liệu:
+     · che   — khối màu trùng nền, co lại để hé dần nội dung có sẵn (gõ chữ,
+               đổ dòng bảng, chạy thanh tiến trình)
+     · vòng  — khung sáng bao quanh một thành phần, bung ra rồi thở nhẹ
+     · quay  — khoét hình khuyên rồi xoay (bánh xe quay thật)
+   ========================================================================== */
+:root{
+  --cam:#e2530e; --cam-2:#f2803a; --cam-mo:#fef6f2;
+  --xanh:#16a34a;
+  --giay:#ffffff; --giay-2:#f8fafa; --vien:#e8eaee; --vien-2:#eef0f4;
+  --chu:#111827; --chu-2:#374151; --chu-mo:#6b7280; --chu-nhat:#9ca3af;
+  --ink:#212230; --ink-2:#383945; --ink-3:#2a2b38;
+  --nen:#0e1119;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:#05070c;color:#fff;font-family:'Be Vietnam Pro',system-ui,sans-serif;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;overflow:hidden}
+#stage{position:relative;width:720px;height:1280px;overflow:hidden;background:var(--nen);
+  border-radius:12px;transform-origin:50% 50%;-webkit-font-smoothing:antialiased}
+body.exporting{background:#000;gap:0}
+body.exporting #stage{border-radius:0}
+body.exporting #ui,body.exporting #chaps{display:none}
+
+/* ---------- cảnh ảnh ---------- */
+.sc{position:absolute;inset:0;overflow:hidden;will-change:opacity}
+.kb{position:absolute;inset:0;will-change:transform}
+.kb>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+
+/* ba thứ nguyên thuỷ vẽ đè lên ảnh */
+.che{position:absolute;will-change:transform}
+.vong{position:absolute;border:3px solid var(--cam-2);border-radius:12px;
+  box-shadow:0 0 0 5px rgba(242,128,58,.18),0 10px 34px rgba(242,128,58,.30);
+  will-change:transform,opacity;pointer-events:none}
+.vong.tron{border-radius:999px}
+
+/* ---------- lớp phủ toàn khung ---------- */
+/* Nền sân khấu — chỉ lộ ra ở cảnh deploy (hai dải trên/dưới cửa sổ trình duyệt).
+   Trước đây gần như đen tuyền nên nhìn nặng và trống; giờ là dải chuyển màu ấm
+   có quầng cam của thương hiệu, chữ trắng đặt lên vẫn nổi. */
+#nenSau{position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(120% 52% at 50% 12%, rgba(226,83,14,.26), transparent 62%),
+    radial-gradient(86% 46% at 82% 92%, rgba(58,104,225,.18), transparent 66%),
+    linear-gradient(168deg,#1b2030 0%,#12151f 52%,#1c1526 100%)}
+#nenLuoi{position:absolute;inset:0;pointer-events:none;opacity:.42;
+  background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);
+  background-size:52px 52px;
+  -webkit-mask-image:radial-gradient(118% 82% at 50% 46%,#000 26%,transparent 76%);
+          mask-image:radial-gradient(118% 82% at 50% 46%,#000 26%,transparent 76%)}
+#vig{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(122% 76% at 50% 40%,transparent 52%,rgba(0,0,0,.46) 100%)}
+#sweep{position:absolute;top:-30%;left:-60%;width:70%;height:160%;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);
+  transform:rotate(14deg);will-change:transform,opacity}
+#conf{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+#conf i{position:absolute;display:block;border-radius:1px;will-change:transform}
+#flash{position:absolute;inset:0;background:#fff;mix-blend-mode:screen;opacity:0}
+#den{position:absolute;inset:0;background:#04060a;will-change:opacity}
+
+/* ---------- chữ ---------- */
+/* Padding đáy 268 chứ không phải 108 như ban đầu: chừa chỗ cho dải phụ đề bên
+   dưới, hai lớp chữ chồng nhau thì không đọc được lớp nào. Còn phụ đề để ở 138
+   (tức ~207px trên bản xuất 1920) là để vượt khỏi vùng TikTok/Reels phủ nút bấm
+   và mô tả — đặt sát đáy thì chữ nằm dưới lớp giao diện của nền tảng. */
+#txt{position:absolute;left:0;right:0;bottom:0;padding:0 52px 296px;pointer-events:none}
+/* phụ đề: nền mờ bo tròn để chữ trắng còn đọc được khi trôi qua vòng quay sáng */
+#pd{position:absolute;left:40px;right:40px;bottom:138px;text-align:center;pointer-events:none}
+#pd span{display:inline-block;padding:9px 20px;border-radius:14px;
+  background:rgba(6,9,14,.62);backdrop-filter:blur(2px);
+  font-size:30px;font-weight:600;line-height:1.32;color:#fff;letter-spacing:-.005em;
+  text-shadow:0 3px 14px rgba(0,0,0,.85)}
+#scrim{position:absolute;left:0;right:0;bottom:0;height:520px;pointer-events:none;
+  background:linear-gradient(to top,rgba(4,6,10,.94) 6%,rgba(4,6,10,.70) 34%,transparent 100%);
+  will-change:opacity}
+#bar2{width:64px;height:5px;border-radius:99px;background:linear-gradient(90deg,var(--cam-2),var(--cam));
+  margin-bottom:18px;will-change:transform,opacity}
+#t1{font-size:52px;font-weight:700;line-height:1.13;letter-spacing:-.02em;
+  text-shadow:0 6px 30px rgba(0,0,0,.65);will-change:transform,opacity}
+#t2{margin-top:12px;font-size:27px;font-weight:500;line-height:1.3;color:#d6dbe4;
+  text-shadow:0 4px 20px rgba(0,0,0,.65);will-change:transform,opacity}
+#t1 em{font-style:normal;color:var(--cam-2)}
+
+/* chữ hook cảnh mở đầu — to, đập thẳng vào mắt */
+/* Đặt DƯỚI, trong khoảng trống bên dưới bánh xe. Đặt ở trên thì con số đè thẳng
+   lên tiêu đề “VÒNG QUAY MAY MẮN” in sẵn trong ảnh — nhìn như lỗi hiển thị. */
+#hook{position:absolute;left:0;right:0;bottom:296px;text-align:center;pointer-events:none}
+#hookN{font-family:'Space Grotesk',sans-serif;font-size:104px;font-weight:700;line-height:1;
+  letter-spacing:-.03em;background:linear-gradient(92deg,#ffc48a,var(--cam-2) 55%,var(--cam));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 8px 30px rgba(0,0,0,.6));will-change:transform,opacity}
+#hookS{margin-top:4px;font-size:31px;font-weight:600;color:#fff;
+  text-shadow:0 5px 24px rgba(0,0,0,.7);will-change:transform,opacity}
+
+#prog{position:absolute;left:0;bottom:0;height:4px;
+  background:linear-gradient(90deg,var(--cam-2),var(--cam));opacity:.85}
+
+/* ---------- con trỏ ---------- */
+#cursor{position:absolute;width:30px;height:30px;margin:-2px 0 0 -2px;
+  filter:drop-shadow(0 3px 7px rgba(0,0,0,.6));will-change:transform}
+#ripple{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;
+  border:2.5px solid rgba(242,128,58,.95);will-change:transform,opacity}
+
+/* ---------- cửa sổ trình duyệt cho cảnh deploy ---------- */
+#win{position:absolute;border-radius:14px;overflow:hidden;background:#fff;
+  box-shadow:0 46px 100px -22px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.10);
+  will-change:transform,opacity}
+#chrome{position:absolute;left:0;top:0;width:100%;height:38px;background:#1b1d27;
+  display:flex;align-items:center;gap:9px;padding:0 14px;border-bottom:1px solid #2a2d3a}
+.dot{width:10px;height:10px;border-radius:50%}
+#urlbar{flex:1;height:22px;margin-left:8px;border-radius:999px;background:#0f1219;
+  display:flex;align-items:center;gap:7px;padding:0 12px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:#9aa4b5}
+#urlbar b{color:#dbe3ef;font-weight:500}
+#viewport{position:absolute;left:0;overflow:hidden;background:#fff}
+/* ==========================================================================
+   ỨNG DỤNG — mọi con số bên dưới là px THẬT của giao diện (khung 1914×950)
+   ========================================================================== */
+#app{position:absolute;left:0;top:0;width:1914px;height:780px;background:#fff;overflow:hidden;
+  transform-origin:0 0;font-size:14px;color:var(--chu)}
+
+/* ----- thanh bên ----- */
+#sidebar{position:absolute;left:0;top:0;width:268px;height:780px;background:var(--ink)}
+#logo{position:absolute;left:16px;top:15px;display:flex;align-items:center;gap:12px}
+#logoMark{width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,#f7a03c,var(--cam));display:flex;align-items:center;justify-content:center}
+#logoTxt{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:21px;letter-spacing:-.01em;
+  background:linear-gradient(92deg,#f7913f,var(--cam));-webkit-background-clip:text;background-clip:text;color:transparent}
+#collapse{position:absolute;left:222px;top:23px;opacity:.55}
+#navLabel{position:absolute;left:24px;top:90px;font-size:11px;font-weight:600;
+  letter-spacing:.10em;color:#79818f}
+.nav{position:absolute;left:13px;width:240px;height:38px;border-radius:10px;
+  display:flex;align-items:center;gap:13px;padding-left:13px;color:#dfe3ea}
+.nav svg{opacity:.85;flex:none}
+.nav span{font-size:14px;font-weight:500}
+.nav.on{background:var(--ink-2)}
+.nav.on span{color:#fff;font-weight:600}
+.nav.on svg{opacity:1}
+#sideFoot{position:absolute;left:16px;top:648px;width:236px;height:100px;
+  background:var(--ink-3);border-radius:10px;padding:11px 13px}
+#sideFoot .hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+#sideFoot .hd b{font-size:12.5px;font-weight:600;color:#e6eaf1;letter-spacing:.02em}
+#sideFoot .hd i{font-style:normal;font-size:10.5px;color:#c9d0dc;background:#3a3c4a;
+  border-radius:999px;padding:3px 9px}
+#sideFoot .r{display:flex;justify-content:space-between;font-size:11px;line-height:1.95}
+#sideFoot .r span{color:#98a1b0}
+#sideFoot .r b{color:#cfd6e2;font-weight:500}
+
+/* ----- vùng nội dung + thanh trên ----- */
+#main{position:absolute;left:268px;top:0;width:1646px;height:780px;background:#fff;
+  border-left:1px solid #ececf0;border-top-left-radius:14px}
+#topbar{position:absolute;right:32px;top:22px;display:flex;align-items:center;gap:14px}
+.tbtn{height:34px;border-radius:9px;border:1px solid var(--vien);display:flex;align-items:center;
+  justify-content:center;color:var(--chu-2)}
+#tbEn{width:38px;font-size:12px;font-weight:600}
+#tbMoon{width:34px}
+#tbSep{width:1px;height:28px;background:var(--vien)}
+#tbUser{display:flex;align-items:center;gap:10px}
+#tbAv{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#f7a03c,var(--cam));
+  display:flex;align-items:center;justify-content:center}
+#tbUser .n{font-size:12.5px;font-weight:600;color:#1f2937;line-height:1.25}
+#tbUser .e{font-size:11px;color:#8b93a1;line-height:1.25}
+
+/* ----- trang ----- */
+.page{position:absolute;left:38px;top:0;width:1560px;height:780px;will-change:opacity}
+.pgH{position:absolute;left:0;top:88px;font-size:27px;font-weight:700;letter-spacing:-.015em}
+.pgS{position:absolute;left:0;top:130px;font-size:13.5px;color:var(--chu-mo)}
+.card{position:absolute;background:#fff;border:1px solid var(--vien-2);border-radius:14px}
+.ttl{position:absolute;font-size:16px;font-weight:700}
+.sub{position:absolute;font-size:12.5px;color:var(--chu-nhat)}
+
+/* thẻ số */
+.stat{width:372px;height:144px;top:174px;
+  background:linear-gradient(150deg,#fff 55%,#fff8f2);border:1px solid var(--vien-2);
+  border-radius:14px;position:absolute}
+.stat .l{position:absolute;left:26px;top:26px;font-size:14.5px;font-weight:600;color:#1f2937}
+.stat .n{position:absolute;left:26px;top:56px;font-size:34px;font-weight:700;color:#0f172a;line-height:1}
+.stat .s{position:absolute;left:26px;top:110px;font-size:12.5px;color:var(--chu-nhat)}
+.stat .i{position:absolute;right:24px;top:22px;width:34px;height:34px;border-radius:50%;
+  background:#fbfcfd;border:1px solid #f0f2f5;display:flex;align-items:center;justify-content:center;
+  color:var(--chu-2)}
+
+/* vòng tài nguyên */
+.ring4{position:absolute;top:64px;width:278px;text-align:center}
+.ring4 .lab{position:absolute;left:0;top:122px;width:100%;display:flex;align-items:center;
+  justify-content:center;gap:7px;font-size:13px;color:var(--chu-2)}
+.ring4 .mid{position:absolute;left:0;top:44px;width:100%;text-align:center}
+.ring4 .mid b{font-size:15px;font-weight:700}
+.ring4 .mid i{font-style:normal;font-size:10px;color:var(--chu-nhat)}
+.ring4 .mid s{display:block;text-decoration:none;font-size:10.5px;color:var(--chu-nhat);margin-top:2px}
+.ring4 .dot{position:absolute;left:50%;top:100px;width:7px;height:7px;margin-left:-3.5px;
+  border-radius:50%;background:#22c55e}
+
+/* thẻ quảng cáo tên miền */
+#promo{position:absolute;left:1172px;top:344px;width:388px;height:218px;border-radius:14px;
+  background:linear-gradient(140deg,#f2954f,#e2530e 62%);overflow:hidden}
+#promo .ic{position:absolute;left:24px;top:24px;width:38px;height:38px;border-radius:10px;
+  background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center}
+#promo .t{position:absolute;left:24px;top:78px;width:340px;font-size:14.5px;font-weight:700;color:#fff}
+#promo .b{position:absolute;left:24px;top:102px;width:340px;font-size:12px;line-height:1.5;
+  color:rgba(255,255,255,.92)}
+#promo .btn{position:absolute;left:24px;top:162px;width:340px;height:40px;border-radius:9px;
+  background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.38);
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  font-size:13px;font-weight:600;color:#fff}
+
+/* trạng thái rỗng */
+.empty{position:absolute;left:0;width:100%;text-align:center;color:var(--chu-mo)}
+#emptyBtn{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 18px;border-radius:9px;
+  background:#1f2430;color:#fff;font-size:12.5px;font-weight:600}
+
+/* ----- màn Triển khai website ----- */
+#stepper{position:absolute;right:0;top:86px;display:flex;align-items:flex-start;gap:0}
+.st{width:130px;text-align:center;position:relative}
+.st .c{width:30px;height:30px;border-radius:50%;margin:0 auto;display:flex;align-items:center;
+  justify-content:center;font-size:13px;font-weight:700;background:#f1f3f6;color:#9aa3af}
+.st.on .c{background:var(--cam);color:#fff;box-shadow:0 0 0 4px rgba(226,83,14,.14)}
+.st.done .c{background:var(--cam);color:#fff}
+.st .t{margin-top:9px;font-size:11.5px;color:var(--chu-mo)}
+.st.on .t{color:var(--chu);font-weight:600}
+.stLine{position:absolute;top:15px;height:2px;background:#e9ecf1}
+.stLine.on{background:var(--cam)}
+
+.tile{position:absolute;width:353px;height:66px;border:1px solid var(--vien);border-radius:12px;
+  background:#fff}
+.tile .ic{position:absolute;left:12px;top:12px;width:40px;height:40px;border-radius:10px;
+  background:#f3f5f7;display:flex;align-items:center;justify-content:center;color:var(--chu-2)}
+.tile .t{position:absolute;left:64px;top:14px;font-size:14px;font-weight:600}
+.tile .d{position:absolute;left:64px;top:35px;width:275px;font-size:11.5px;color:var(--chu-mo);
+  line-height:1.3}
+.tile.on{border:1.6px solid var(--cam);background:var(--cam-mo)}
+.tile.on .ic{background:#fbdfcd;color:var(--cam)}
+/* dấu tích chỉ hiện ở thẻ đang chọn — mặc định phải tắt, không thì thẻ nào cũng có */
+.tile .chk{position:absolute;right:10px;top:10px;width:19px;height:19px;border-radius:50%;opacity:0;
+  background:var(--cam);display:flex;align-items:center;justify-content:center;will-change:transform,opacity}
+.hr{position:absolute;height:1px;background:var(--vien-2)}
+
+#gitInput{position:absolute;height:36px;border:1px solid var(--vien);border-radius:8px;
+  display:flex;align-items:center;padding:0 14px;font-size:13px;color:var(--chu);
+  font-family:'JetBrains Mono',monospace;background:#fff;white-space:nowrap;overflow:hidden}
+#gitInput.on{border-color:var(--cam);box-shadow:0 0 0 3px rgba(226,83,14,.10)}
+#gitPh{color:var(--chu-nhat)}
+#caret{display:inline-block;width:1.4px;height:15px;background:var(--cam);margin-left:2px}
+#btnCheck{position:absolute;height:36px;border:1px solid var(--vien);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;color:var(--chu-nhat)}
+#btnCheck.on{border-color:#c7ebd3;background:#eaf7ee;color:var(--xanh);font-weight:600}
+#btnNext{position:absolute;height:38px;width:112px;border-radius:9px;display:flex;align-items:center;
+  justify-content:center;gap:6px;font-size:13.5px;font-weight:600;
+  background:#f8cfb6;color:#fff;will-change:transform}
+#btnNext.on{background:linear-gradient(92deg,var(--cam-2),var(--cam));
+  box-shadow:0 8px 18px rgba(226,83,14,.32)}
+
+/* bảng tóm tắt bên phải */
+.sumRow{position:absolute;left:22px;width:336px;display:flex;align-items:center;
+  justify-content:space-between;font-size:12.5px}
+.sumRow .l{display:flex;align-items:center;gap:8px;color:var(--chu-2)}
+.sumRow .v{font-weight:600;color:var(--chu-nhat)}
+.sumRow .v.hi{color:var(--cam)}
+.box{position:absolute;left:22px;width:336px;border:1px solid var(--vien-2);border-radius:10px;
+  background:#fbfcfd;padding:12px 14px}
+.box .t{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;margin-bottom:6px}
+.box .b{font-size:11.5px;line-height:1.5;color:var(--chu-mo)}
+.box .li{display:flex;align-items:flex-start;gap:8px;font-size:11.5px;color:var(--chu-2);
+  line-height:1.5;margin-top:5px}
+
+/* ----- trang “đang triển khai” ----- */
+.step{position:absolute;display:flex;gap:12px;align-items:flex-start}
+.stepDot{width:18px;height:18px;border-radius:50%;border:2px solid #d6dae1;flex:none;margin-top:1px;
+  display:flex;align-items:center;justify-content:center}
+.stepDot.dang{border-color:var(--cam);border-right-color:transparent;will-change:transform}
+.stepDot.xong{border-color:var(--xanh);background:var(--xanh)}
+.stepDot.xong::after{content:'';width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;
+  transform:rotate(-45deg) translate(1px,-1px)}
+.stepT{font-size:14px;font-weight:600;line-height:1.25}
+.stepS{font-size:12px;color:var(--chu-mo);margin-top:3px}
+#chipRun{position:absolute;font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:999px;
+  background:#fff3ec;color:var(--cam);border:1px solid #fbd8c5}
+#bar{position:absolute;height:7px;border-radius:999px;background:#edf0f4;overflow:hidden}
+#barIn{position:absolute;left:0;top:0;bottom:0;border-radius:999px;
+  background:linear-gradient(90deg,var(--cam-2),var(--cam))}
+#pct{position:absolute;font-size:13px;font-weight:600;font-family:'Space Grotesk',sans-serif;text-align:right}
+#log{position:absolute;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#7a8598;line-height:2}
+#log div{white-space:nowrap;will-change:opacity,transform}
+
+/* ----- trang “đã lên mạng” ----- */
+#okCard{position:absolute;left:0;top:174px;width:1000px;height:290px}
+#okRing{position:absolute;left:0;top:0;width:58px;height:58px;border-radius:50%;background:#eaf7ee;
+  display:flex;align-items:center;justify-content:center;will-change:transform}
+#okT{position:absolute;left:76px;top:6px;font-size:25px;font-weight:700;letter-spacing:-.015em}
+#okS{position:absolute;left:76px;top:42px;font-size:13px;color:var(--chu-mo)}
+#okUrl{position:absolute;left:0;top:86px;height:42px;display:flex;align-items:center;gap:9px;
+  padding:0 16px;border-radius:10px;background:var(--giay-2);border:1px solid var(--vien);
+  font-family:'JetBrains Mono',monospace;font-size:14px;color:#1f2937;will-change:transform,opacity}
+#okUrl b{font-weight:500;color:var(--cam)}
+.meta{position:absolute;top:150px;display:flex;align-items:center;gap:7px;font-size:12.5px;color:#4b5563;
+  will-change:transform,opacity}
+.meta i{width:15px;height:15px;border-radius:50%;background:#eaf7ee;display:inline-block;position:relative;flex:none}
+.meta i::after{content:'';position:absolute;left:4px;top:4px;width:6px;height:3px;
+  border-left:1.7px solid var(--xanh);border-bottom:1.7px solid var(--xanh);transform:rotate(-45deg)}
+#okBtn{position:absolute;left:0;top:194px;height:42px;padding:0 20px;border-radius:10px;
+  background:linear-gradient(92deg,var(--cam-2),var(--cam));color:#fff;font-size:14px;font-weight:600;
+  display:flex;align-items:center;gap:8px;box-shadow:0 10px 24px rgba(226,83,14,.32);
+  will-change:transform,opacity}
+
+/* ----- vòng sáng chỉ thành phần (toạ độ tính theo px của ứng dụng) ----- */
+.ring{position:absolute;border:3px solid var(--cam);border-radius:14px;
+  box-shadow:0 0 0 6px rgba(226,83,14,.15),0 10px 30px rgba(226,83,14,.26);
+  will-change:transform,opacity;pointer-events:none}
+.tag{position:absolute;white-space:nowrap;font-size:17px;font-weight:600;color:#fff;
+  background:var(--cam);padding:7px 14px;border-radius:10px;
+  box-shadow:0 8px 20px rgba(226,83,14,.4);will-change:transform,opacity;pointer-events:none}
+.tag::after{content:'';position:absolute;left:20px;bottom:-5px;width:11px;height:11px;
+  background:var(--cam);transform:rotate(45deg)}
+.tag.duoi::after{top:-5px;bottom:auto}
+.tag.ben::after{display:none}                 /* đặt cạnh bên thì bỏ mũi nhọn */
+
+
+/* ==========================================================================
+   PANEL “TẢI FILE” — dựng thêm theo đúng ngôn ngữ thiết kế của ứng dụng.
+   Ảnh chụp gốc chỉ có phần Git URL; panel kéo-thả này dựng lại từ chính mô tả
+   của thẻ nguồn trong ứng dụng (“Kéo-thả hoặc chọn file .zip, .html, .htm”).
+   ========================================================================== */
+#tha{position:absolute;left:30px;top:296px;width:1094px;height:132px;border-radius:12px;
+  border:2px dashed #d8dce2;background:#fbfcfd;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:7px;will-change:background-color,border-color}
+#tha.hover{border-color:var(--cam);background:var(--cam-mo)}
+#tha .ic{color:#9aa3af;will-change:transform}
+#tha.hover .ic{color:var(--cam)}
+#tha .t{font-size:14px;font-weight:600;color:var(--chu-2)}
+#tha .s{font-size:12px;color:var(--chu-nhat)}
+/* thẻ tệp bay vào rồi nằm xuống ô thả */
+#tep{position:absolute;width:330px;height:74px;border-radius:12px;background:#fff;
+  border:1px solid var(--vien);box-shadow:0 16px 40px rgba(15,23,42,.18);
+  display:flex;align-items:center;gap:13px;padding:0 16px;will-change:transform,opacity}
+#tep .z{width:44px;height:44px;border-radius:10px;background:#fff3ec;color:var(--cam);
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;
+  font-family:'Space Grotesk',sans-serif;flex:none}
+#tep .n{font-size:14px;font-weight:600;color:var(--chu);line-height:1.25}
+#tep .m{font-size:11.5px;color:var(--chu-nhat);margin-top:2px}
+#tep .ok{margin-left:auto;width:22px;height:22px;border-radius:50%;background:var(--xanh);
+  display:flex;align-items:center;justify-content:center;will-change:opacity,transform}
+/* dòng “đã chọn tệp” hiện sau khi thả */
+#daChon{position:absolute;left:30px;top:296px;width:1094px;height:132px;border-radius:12px;
+  border:1.6px solid var(--cam);background:var(--cam-mo);will-change:opacity}
+
+/* ---------- bảng điều khiển xem thử ---------- */
+#ui{display:flex;align-items:center;gap:14px;width:720px;max-width:96vw;font-size:13px;color:#9aa6b8}
+#ui button{background:#161b26;border:1px solid #262d3c;color:#dbe3ef;border-radius:8px;
+  padding:7px 13px;font:inherit;font-weight:600;cursor:pointer}
+#scrub{flex:1;accent-color:var(--cam)}
+#tnum{font-family:ui-monospace,monospace;min-width:112px;text-align:right;color:#cfd8e6}
+#chaps{display:flex;gap:6px;flex-wrap:wrap;width:720px;max-width:96vw;justify-content:center}
+#chaps button{padding:5px 9px;font-size:11.5px;font-weight:500}
+.xoa{position:absolute;pointer-events:none}
+.ttRanh{position:absolute;border-radius:999px;background:#151a22}
+.ttDay{position:absolute;border-radius:999px;background:linear-gradient(90deg,#ff8f42,#fa6f00)}
+.ttSo{position:absolute;text-align:right;color:#fa6f00;font-weight:700;letter-spacing:-.01em}
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <div id="nenSau"></div><div id="nenLuoi"></div>
+  <!-- cảnh deploy: cửa sổ trình duyệt chứa giao diện Vibe Host thật -->
+  <div class="sc" id="scApp"><div class="kb" id="kbApp">
+    <div id="win">
+      <div id="chrome">
+        <span class="dot" style="background:#ff5f57"></span>
+        <span class="dot" style="background:#febc2e"></span>
+        <span class="dot" style="background:#28c840"></span>
+        <div id="urlbar"><svg width="10" height="12" viewBox="0 0 9 11" fill="none"><path d="M2 4.5V3a2.5 2.5 0 015 0v1.5" stroke="#6ee7a8" stroke-width="1.2"/><rect x=".8" y="4.4" width="7.4" height="6" rx="1.4" fill="#6ee7a8" opacity=".85"/></svg><span id="urlTxt"><b>vibehost.vn/trien-khai</b></span></div>
+      </div>
+      <div id="viewport"><div id="app"></div></div>
+    </div>
+  </div></div>
+
+  <div id="conf"></div>
+  <div id="sweep"></div>
+  <div id="vig"></div>
+  <div id="scrim"></div>
+  <div id="hook"><div id="hookN"></div><div id="hookS"></div></div>
+  <div id="txt"><div id="bar2"></div><div id="t1"></div><div id="t2"></div></div>
+  <div id="pd"><span></span></div>
+  <img id="cursor" alt="" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'%3E%3Cpath d='M5 2.5l13.2 7.9-5.9 1.2 3.2 6.4-2.7 1.4-3.2-6.4-4.6 3.9z' fill='%23fff' stroke='%23111' stroke-width='1.3' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <div id="ripple"></div>
+  <div id="prog"></div>
+  <div id="den"></div>
+  <div id="flash"></div>
+</div>
+
+<div id="ui">
+  <button id="btnPlay">▶ Chạy</button>
+  <input id="scrub" type="range" min="0" max="52" step="0.01" value="0">
+  <span id="tnum">0.00 / 52.00s</span>
+</div>
+<div id="chaps"></div>
+
+<script>
+(()=>{
+/* ==========================================================================
+   KÍCH THƯỚC & TIỆN
+   ========================================================================== */
+const DUR=52.0;
+const ST_W=720, ST_H=1280;                 /* khung dựng, xuất 1080×1920 là ×1.5 */
+const IMG_W=941, IMG_H=1672;               /* mockup nguồn */
+const KX=ST_W/IMG_W, KY=ST_H/IMG_H;
+const APP_W=1914, APP_H=780;               /* giao diện Vibe Host thật, đã rút
+   bớt phần trống phía dưới: khung dọc mà để nguyên 950px thì lòi mảng trắng */
+const MK='public/image/vibehostmarketer/';
+const ANH=['ChatGPT Image Aug 22, 2026, 09_25_55 AM (1).png',
+           'ChatGPT Image Aug 22, 2026, 09_25_56 AM (2).png',
+           'ChatGPT Image Aug 22, 2026, 09_25_56 AM (3).png',
+           'ChatGPT Image Aug 22, 2026, 09_25_56 AM (4).png',
+           'ChatGPT Image Aug 22, 2026, 09_25_56 AM (5).png',
+           'ChatGPT Image Aug 22, 2026, 09_25_56 AM (6).png'];
+const KET='out/shots/vibehostingmarketer/8.png';   /* thẻ kết Mắt Bão + Vibe Host */
+
+const $=s=>document.querySelector(s);
+/* Ba tham số: bộ dựng giao diện ứng dụng truyền cả HTML vào đây. Thiếu tham số
+   thứ ba là thanh bên, thanh trên và dải nhật ký im lặng biến mất. */
+const el=(t,c,html)=>{const e=document.createElement(t);if(c)e.className=c;
+  if(html!=null)e.innerHTML=html;return e};
+const cl=(v,a,b)=>v<a?a:v>b?b:v;
+const tt=(t,a,b)=>b<=a?(t>=b?1:0):cl((t-a)/(b-a),0,1);
+const eOut=x=>1-Math.pow(1-x,3);
+const eIn=x=>x*x*x;
+const eIO=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+const eOut5=x=>1-Math.pow(1-x,5);
+const eBack=x=>{const c=2.70158,d=1.70158;return 1+c*Math.pow(x-1,3)+d*Math.pow(x-1,2)};
+const lerp=(a,b,k)=>a+(b-a)*k;
+const seg=(t,a,b,e=eIO)=>e(tt(t,a,b));
+const pop=(t,a,b,v=.30,r=.35)=>Math.min(seg(t,a,a+v,eOut),1-seg(t,b-r,b,eIn));
+const px=v=>v.toFixed(2)+'px';
+const setO=(e,o)=>{e.style.opacity=o.toFixed(3);e.style.visibility=o<0.002?'hidden':'visible'};
+/* ==========================================================================
+   ICON — nét vector, phóng bao nhiêu cũng không bể
+   ========================================================================== */
+const P={
+  home:'M3 10.2 12 3l9 7.2V20a1 1 0 0 1-1 1h-4.6v-6H8.6v6H4a1 1 0 0 1-1-1z',
+  rocket:'M12 3c3 2.2 4.8 5.6 4.8 9L14.4 14.4H9.6L7.2 12c0-3.4 1.8-6.8 4.8-9zM9.8 16.6 8.4 21l3.6-1.8L15.6 21l-1.4-4.4',
+  box:'M4 8.5h16V19a1.2 1.2 0 0 1-1.2 1.2H5.2A1.2 1.2 0 0 1 4 19zM3.2 4.6h17.6v3.9H3.2z',
+  db:'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',
+  inbox:'M3.2 5.2h17.6v13.6H3.2zM3.2 13h5l1.6 2.6h4.4L15.8 13h5',
+  agent:'M12 3.2v3M12 17.8v3M3.2 12h3M17.8 12h3M6 6l2.1 2.1M15.9 15.9 18 18M18 6l-2.1 2.1M8.1 15.9 6 18',
+  globe:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z',
+  activity:'M3 12h4l3 8 4-16 3 8h4',
+  xcircle:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM15 9l-6 6M9 9l6 6',
+  cpu:'M6.5 6.5h11v11h-11zM9.6 9.6h4.8v4.8H9.6M9.5 3v3.5M14.5 3v3.5M9.5 17.5V21M14.5 17.5V21M3 9.5h3.5M3 14.5h3.5M17.5 9.5H21M17.5 14.5H21',
+  ram:'M3 8.4h18v7.2H3zM7 15.6V19M12 15.6V19M17 15.6V19',
+  hdd:'M3.2 5.4h17.6v13.2H3.2zM3.2 12h17.6M6.8 15.6h.02',
+  grid:'M4 4h6.4v6.4H4zM13.6 4H20v6.4h-6.4zM4 13.6h6.4V20H4zM13.6 13.6H20V20h-6.4z',
+  info:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 11v5.5M12 7.6h.02',
+  link:'M9.4 14.6 14.6 9.4M10.8 7.2 12.4 5.6a3.6 3.6 0 0 1 5.1 5.1L15.9 12.3M13.2 16.8l-1.6 1.6a3.6 3.6 0 0 1-5.1-5.1L8.1 11.7',
+  search:'M11 4.4a6.6 6.6 0 1 0 0 13.2 6.6 6.6 0 0 0 0-13.2zM16 16l4 4',
+  plus:'M12 5.4v13.2M5.4 12h13.2',
+  chev:'m6.5 9.5 5.5 5.5 5.5-5.5',
+  moon:'M20.2 14.4A8.4 8.4 0 0 1 9.6 3.8a8.4 8.4 0 1 0 10.6 10.6z',
+  upload:'M12 16.2V4.2M8 8.2l4-4 4 4M4 16.4V19a1.4 1.4 0 0 0 1.4 1.4h13.2A1.4 1.4 0 0 0 20 19v-2.6',
+  code:'m9 6.6-5.4 5.4L9 17.4M15 6.6l5.4 5.4L15 17.4',
+  bulb:'M9.4 18.4h5.2M10.4 21.4h3.2M12 2.8a6.4 6.4 0 0 0-3.7 11.6v2.2h7.4v-2.2A6.4 6.4 0 0 0 12 2.8z',
+  spark:'M12 3.2 14 8.4l5.2 2-5.2 2-2 5.2-2-5.2-5.2-2 5.2-2z',
+  check:'m5 12.6 4.6 4.6L19 7.4',
+  panel:'M4 5h16v14H4zM9.5 5v14',
+};
+function ic(n,s=18,w=1.7,col='currentColor'){
+  return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="'+col+
+    '" stroke-width="'+w+'" stroke-linecap="round" stroke-linejoin="round"><path d="'+P[n]+'"/></svg>';
+}
+const icGithub='<svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48l-.01-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.95 0-1.09.39-1.99 1.03-2.69-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.03a9.5 9.5 0 0 1 5 0c1.91-1.3 2.75-1.03 2.75-1.03.55 1.38.2 2.4.1 2.65.64.7 1.03 1.6 1.03 2.69 0 3.85-2.34 4.7-4.57 4.95.36.31.68.92.68 1.85l-.01 2.75c0 .27.18.58.69.48A10 10 0 0 0 12 2z"/></svg>';
+const icVercel='<svg width="18" height="18" viewBox="0 0 24 24" fill="#374151"><path d="M12 4.5 21 20H3z"/></svg>';
+const icVE='<svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M4 6.5 8.6 17.5 13.2 6.5" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 8h4.4M16 12h3.6M16 16h4.4" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>';
+
+/* ==========================================================================
+   DỰNG GIAO DIỆN ỨNG DỤNG
+   ========================================================================== */
+const app=$('#app');
+
+/* ----- thanh bên ----- */
+const NAV=[['home','Trang chủ'],['rocket','Triển khai website'],['box','Triển khai từ mẫu'],
+           ['db','Tạo database'],['inbox','Sao lưu'],['agent','Kết nối AI Agent']];
+const side=el('div');side.id='sidebar';
+side.appendChild(el('div','', '<div id="logo"><div id="logoMark">'+icVE+'</div><div id="logoTxt">Vibe Host</div></div>'
+  +'<div id="collapse">'+ic('panel',18,1.6,'#aeb6c4')+'</div>'
+  +'<div id="navLabel">KHÔNG GIAN LÀM VIỆC</div>'));
+NAV.forEach(([i,t],k)=>{
+  const n=el('div','nav',ic(i,18,1.7,'#cfd5df')+'<span>'+t+'</span>');
+  n.style.top=px(119+k*38);n.id='nav'+k;side.appendChild(n);
+});
+side.appendChild(el('div','','<div id="sideFoot">'
+  +'<div class="hd"><b>VAYS</b><i>Gói Vibe Host Pro</i></div>'
+  +'<div class="r"><span>Dịch vụ</span><b>0/10</b></div>'
+  +'<div class="r"><span>CPU</span><b>0/4 core</b></div>'
+  +'<div class="r"><span>RAM</span><b>0/8 GB</b></div></div>'));
+app.appendChild(side);
+
+/* ----- vùng chính + thanh trên ----- */
+const main=el('div');main.id='main';
+main.appendChild(el('div','','<div id="topbar">'
+  +'<div class="tbtn" id="tbEn">EN</div>'
+  +'<div class="tbtn" id="tbMoon">'+ic('moon',17,1.7,'#4b5563')+'</div>'
+  +'<div id="tbSep"></div>'
+  +'<div id="tbUser"><div id="tbAv">'+icVE.replace(/21/g,'16')+'</div>'
+  +'<div><div class="n">Nguyễn văn mười</div><div class="e">quynd@matbao.com</div></div>'
+  +ic('chev',16,1.8,'#8b93a1')+'</div></div>'));
+app.appendChild(main);
+
+/* ----- trang: Trang chủ ----- */
+const STATS=[['Tổng website','0','Tất cả website của bạn','globe'],
+             ['Trực tuyến','0','Đang hoạt động bình thường','activity'],
+             ['Thất bại','0','Website gặp sự cố','xcircle'],
+             ['Cơ sở dữ liệu','0','Cơ sở dữ liệu đang chạy','db']];
+const RES=[['CPU','0/4 core','cpu'],['RAM','0/8 GB','ram'],
+           ['Lưu trữ','0/20 GB','hdd'],['Dịch vụ','0/10','grid']];
+const pHome=el('div','page');pHome.id='pageHome';
+pHome.appendChild(el('div','pgH',null)).textContent='Trang chủ';
+pHome.appendChild(el('div','pgS',null)).textContent='Tổng quan tài nguyên và danh sách website đang triển khai';
+STATS.forEach(([l,n,s,i],k)=>{
+  const c=el('div','stat','<div class="l">'+l+'</div><div class="n">'+n+'</div>'
+    +'<div class="s">'+s+'</div><div class="i">'+ic(i,17,1.7)+'</div>');
+  c.style.left=px(k*396);c.id='stat'+k;pHome.appendChild(c);
+});
+const resCard=el('div','card');resCard.style.cssText='left:0;top:344px;width:1148px;height:218px';
+resCard.appendChild(el('div','ttl',null)).textContent='Tài nguyên gói';
+resCard.querySelector('.ttl').style.cssText='left:30px;top:26px';
+resCard.appendChild(el('div','','<div style="position:absolute;right:26px;top:26px;color:#9ca3af">'+ic('info',16,1.7)+'</div>'));
+RES.forEach(([lab,val,i],k)=>{
+  const r=el('div','ring4',
+    '<svg width="278" height="112" viewBox="0 0 278 112">'
+    +'<circle cx="139" cy="56" r="42" fill="none" stroke="#eef2f5" stroke-width="9"/></svg>'
+    +'<div class="mid"><b>0</b><i>%</i><s>'+val+'</s></div>'
+    +'<div class="dot"></div>'
+    +'<div class="lab">'+ic(i,15,1.7,'#4b5563')+'<span>'+lab+'</span></div>');
+  r.style.left=px(4+k*286);resCard.appendChild(r);
+});
+pHome.appendChild(resCard);
+pHome.appendChild(el('div','','<div id="promo">'
+  +'<div class="ic">'+ic('link',19,1.8,'#fff')+'</div>'
+  +'<div class="t">Gắn tên miền riêng thay cho subdomain</div>'
+  +'<div class="b">Website đang dùng subdomain *.cmc-1.vibenode.matbao.ai. Gắn tên miền riêng để chuyên nghiệp hơn.</div>'
+  +'<div class="btn">'+ic('search',16,1.9,'#fff')+'Tìm tên miền</div></div>'));
+const listCard=el('div','card');listCard.style.cssText='left:0;top:590px;width:1560px;height:268px';
+listCard.innerHTML='<div class="ttl" style="left:30px;top:26px">Danh sách website</div>'
+  +'<div class="sub" style="left:30px;top:52px">0 website đang triển khai</div>'
+  +'<div class="empty" style="top:106px;color:#c3c9d2">'+ic('globe',34,1.5)+'</div>'
+  +'<div class="empty" style="top:152px;font-size:13.5px">Chưa có website nào</div>'
+  +'<div class="empty" style="top:186px"><span id="emptyBtn">'+ic('plus',15,2,'#fff')+'Triển khai website mới</span></div>';
+pHome.appendChild(listCard);
+const dbCard=el('div','card');dbCard.style.cssText='left:0;top:886px;width:1560px;height:180px';
+dbCard.innerHTML='<div class="ttl" style="left:30px;top:26px">Danh sách Database</div>';
+pHome.appendChild(dbCard);
+main.appendChild(pHome);
+
+/* ----- trang: Triển khai website ----- */
+const SRC=[['upload','Tải file','Kéo-thả hoặc chọn file .zip, .html, .htm'],
+           ['code','Dán HTML','Dán trực tiếp mã HTML vào ô soạn thảo'],
+           ['github','GitHub','Kết nối GitHub (OAuth), tự deploy khi push'],
+           ['link','Git URL','Clone từ URL repo công khai, chỉ định nhánh'],
+           ['vercel','Vercel','Import từ Vercel Project URL + Token']];
+const pDep=el('div','page');pDep.id='pageDeploy';
+pDep.appendChild(el('div','pgH',null)).textContent='Đưa website lên mạng';
+pDep.appendChild(el('div','pgS',null)).textContent='Chọn mã nguồn, kiểm tra thông tin rồi để Vibe Host lo phần kỹ thuật';
+const STEP=['Mã nguồn','Chuẩn bị','Đưa lên mạng'];
+function stepper(active,done){
+  let h='<div class="stLine'+(done>=1?' on':'')+'" style="left:65px;width:130px"></div>'
+       +'<div class="stLine'+(done>=2?' on':'')+'" style="left:195px;width:130px"></div>';
+  STEP.forEach((s,k)=>{
+    const cls=done>k?'done':active===k?'on':'';
+    h+='<div class="st '+cls+'"><div class="c">'+(done>k?ic('check',15,2.6,'#fff'):(k+1))+'</div>'
+      +'<div class="t">'+s+'</div></div>';
+  });
+  return h;
+}
+const stp=el('div');stp.id='stepper';stp.innerHTML=stepper(0,0);pDep.appendChild(stp);
+const srcCard=el('div','card');srcCard.id='srcWrap';
+srcCard.style.cssText='left:0;top:174px;width:1154px;height:464px';
+srcCard.innerHTML='<div class="ttl" style="left:30px;top:26px">Chọn nguồn</div>';
+SRC.forEach(([i,t,d],k)=>{
+  const tile=el('div','tile','<div class="ic">'+(i==='github'?icGithub:i==='vercel'?icVercel:ic(i,19,1.7))+'</div>'
+    +'<div class="t">'+t+'</div><div class="d">'+d+'</div>'
+    +'<div class="chk">'+ic('check',12,3,'#fff')+'</div>');
+  tile.style.left=px(30+(k%3)*371);tile.style.top=px(62+Math.floor(k/3)*84);
+  tile.id='src'+k;srcCard.appendChild(tile);
+});
+srcCard.innerHTML+='<div class="hr" style="left:30px;top:238px;width:1094px"></div>'
+  +'<div class="ttl" style="left:30px;top:262px">Git URL</div>'
+  +'<div style="position:absolute;left:30px;top:296px;font-size:12.5px;color:#4b5563">URL kho lưu trữ</div>'
+  +'<div id="gitInput" style="left:30px;top:318px;width:982px"><span id="gitPh">https://github.com/user/repo</span><span id="gitTxt"></span><span id="caret"></span></div>'
+  +'<div id="btnCheck" style="left:1024px;top:318px;width:100px">'+ic('check',15,2,'currentColor')+'<span id="ckTxt">Kiểm tra</span></div>'
+  +'<div class="hr" style="left:30px;top:376px;width:1094px"></div>'
+  +'<div id="btnNext" style="left:1012px;top:400px">Tiếp tục ›</div>';
+pDep.appendChild(srcCard);
+const sumCard=el('div','card');sumCard.style.cssText='left:1178px;top:174px;width:382px;height:436px';
+sumCard.innerHTML='<div class="ttl" style="left:22px;top:24px">Tóm tắt triển khai</div>'
+  +'<div class="sumRow" style="top:72px"><span class="l">'+ic('code',15,1.7,'#6b7280')+'Nguồn</span><span class="v hi" id="sumSrc">Chưa chọn</span></div>'
+  +'<div class="sumRow" style="top:104px"><span class="l">'+ic('globe',15,1.7,'#6b7280')+'Tên website</span><span class="v" id="sumName">Chưa đặt</span></div>'
+  +'<div class="sumRow" style="top:136px"><span class="l">'+ic('link',15,1.7,'#6b7280')+'Địa chỉ</span><span class="v" id="sumAddr">Chưa đặt</span></div>'
+  +'<div class="hr" style="left:22px;top:168px;width:336px"></div>'
+  +'<div class="box" style="top:186px"><div class="t">'+ic('spark',15,1.8,'#e2530e')+'Starter — AI đề xuất</div>'
+  +'<div class="b">Phù hợp cho lần đưa website lên mạng đầu tiên; có thể thay đổi sau.</div></div>'
+  +'<div class="box" style="top:282px"><div class="t">'+ic('bulb',15,1.8,'#e2530e')+'Lưu ý</div>'
+  +'<div class="li">'+ic('check',13,2.4,'#16a34a')+'<span>Website sẽ được cấp SSL miễn phí.</span></div>'
+  +'<div class="li">'+ic('check',13,2.4,'#16a34a')+'<span>Thời gian triển khai thường từ 1–3 phút.</span></div>'
+  +'<div class="li">'+ic('check',13,2.4,'#16a34a')+'<span>Bạn có thể nâng cấp tài nguyên bất kỳ lúc nào.</span></div></div>';
+pDep.appendChild(sumCard);
+main.appendChild(pDep);
+
+/* ----- trang: đang triển khai ----- */
+const BUOC=[['Nhận mã nguồn từ Git','Đang tải kho mã…'],
+            ['Cài đặt & đóng gói','Đang cài gói và đóng gói…'],
+            ['Cấp SSL & đưa lên mạng','Đang phát chứng chỉ…']];
+const pRun=el('div','page');pRun.id='pageRun';
+pRun.appendChild(el('div','pgH',null)).textContent='Đưa website lên mạng';
+pRun.appendChild(el('div','pgS',null)).textContent='Hệ thống đang xử lý — anh có thể chờ tại đây hoặc quay lại sau.';
+const stp2=el('div');stp2.id='stepper2';stp2.className='';stp2.innerHTML=stepper(1,1);
+stp2.style.cssText='position:absolute;right:0;top:86px;display:flex';pRun.appendChild(stp2);
+const runCard=el('div','card');runCard.style.cssText='left:0;top:174px;width:1000px;height:290px';
+let rh='';
+BUOC.forEach(([t,s],k)=>{
+  rh+='<div class="step" id="stp'+k+'" style="left:32px;top:'+(34+k*62)+'px">'
+    +'<div class="stepDot" id="dot'+k+'"></div><div><div class="stepT">'+t+'</div>'
+    +'<div class="stepS" id="ss'+k+'">Chưa bắt đầu</div></div></div>';
+});
+runCard.innerHTML=rh+'<div id="chipRun" style="left:240px;top:36px">Đang chạy</div>'
+  +'<div id="bar" style="left:32px;top:232px;width:800px"><div id="barIn"></div></div>'
+  +'<div id="pct" style="left:850px;top:226px;width:110px">0%</div>';
+pRun.appendChild(runCard);
+pRun.appendChild(el('div','','<div id="log" style="position:absolute;left:1050px;top:208px">'
+  +'<div>→ git clone growth-report</div><div>→ nhận diện Next.js — build</div>'
+  +'<div>→ phát chứng chỉ SSL</div><div>→ mở cổng, kiểm tra sức khoẻ</div></div>'));
+main.appendChild(pRun);
+
+/* ----- trang: đã lên mạng ----- */
+const pOk=el('div','page');pOk.id='pageOk';
+pOk.appendChild(el('div','pgH',null)).textContent='Đưa website lên mạng';
+pOk.appendChild(el('div','pgS',null)).textContent='Hoàn tất — website của anh đã chạy trên mạng.';
+const stp3=el('div');stp3.innerHTML=stepper(2,3);
+stp3.style.cssText='position:absolute;right:0;top:86px;display:flex';pOk.appendChild(stp3);
+const okCard=el('div');okCard.id='okCard';
+okCard.innerHTML='<div id="okRing">'+ic('check',26,3,'#16a34a')+'</div>'
+  +'<div id="okT">Website đã lên mạng</div>'
+  +'<div id="okS">Xong sau 1 phút 12 giây — không cần cấu hình gì thêm.</div>'
+  +'<div id="okUrl">'+ic('link',15,1.8,'#16a34a')+'<span>growth-report.<b>cmc-1.vibenode.matbao.ai</b></span></div>'
+  +'<div class="meta" style="left:2px"><i></i>SSL miễn phí</div>'
+  +'<div class="meta" style="left:150px"><i></i>Tự deploy khi push</div>'
+  +'<div class="meta" style="left:340px"><i></i>Sao lưu hằng ngày</div>'
+  +'<div id="okBtn">Mở website ›</div>';
+pOk.appendChild(okCard);
+main.appendChild(pOk);
+
+/* ----- vòng sáng + nhãn chỉ thành phần ----- */
+const fx=el('div');fx.style.cssText='position:absolute;inset:0;pointer-events:none';
+['rA','rB'].forEach(id=>{const r=el('div','ring');r.id=id;fx.appendChild(r)});
+['tA','tB'].forEach(id=>{const g=el('div','tag');g.id=id;fx.appendChild(g)});
+app.appendChild(fx);
+
+/* ==========================================================================
+   ĐO HỘP CỦA TỪNG THÀNH PHẦN — lấy thẳng từ bố cục thật, không đo tay
+   ========================================================================== */
+const HOP={};
+function hop(sel){
+  if(HOP[sel])return HOP[sel];
+  const r=$(sel).getBoundingClientRect(),a=app.getBoundingClientRect();
+  const k=a.width/APP_W;
+  return HOP[sel]={x:(r.left-a.left)/k,y:(r.top-a.top)/k,w:r.width/k,h:r.height/k};
+}
+const tam=s=>{const b=hop(s);return{u:(b.x+b.w/2)/APP_W,v:(b.y+b.h/2)/APP_H}};
+function datVong(elm,sel,no=6){
+  const b=hop(sel);
+  elm.style.left=px(b.x-no);elm.style.top=px(b.y-no);
+  elm.style.width=px(b.w+no*2);elm.style.height=px(b.h+no*2);
+}
+/* ben: 'phai' (cạnh phải, dx đẩy thêm để né thành phần bên cạnh) | 'tren' | 'duoi' */
+function datNhan(elm,sel,txt,ben,dx=0){
+  const b=hop(sel);elm.textContent=txt;
+  if(ben==='phai'){elm.className='tag ben';elm.style.left=px(b.x+b.w+22+dx);elm.style.top=px(b.y+b.h/2-20)}
+  else if(ben==='duoi'){elm.className='tag duoi';elm.style.left=px(b.x+8+dx);elm.style.top=px(b.y+b.h+16)}
+  else{elm.className='tag';elm.style.left=px(b.x+8+dx);elm.style.top=px(b.y-54)}
+}
+
+/* ==========================================================================
+   ĐỔI KHỐI “GIT URL” THÀNH PANEL “TẢI FILE”
+   Giữ nguyên tiêu đề + 5 thẻ nguồn do bộ dựng ứng dụng sinh ra, chỉ thay phần
+   đuôi. Kịch bản là kéo gói .zip lên nên nguồn phải là “Tải file”.
+   ========================================================================== */
+(()=>{
+  const SW=$('#srcWrap');
+  const cut=SW.innerHTML.indexOf('<div class="hr"');
+  SW.innerHTML=SW.innerHTML.slice(0,cut)
+    +'<div class="hr" style="left:30px;top:238px;width:1094px"></div>'
+    +'<div class="ttl" style="left:30px;top:262px">Tải file</div>'
+    +'<div style="position:absolute;left:30px;top:292px;font-size:12.5px;color:#4b5563">'
+      +'Gói mã nguồn của website (.zip, .html, .htm) — tối đa 200 MB</div>'
+    +'<div id="tha" style="left:30px;top:318px;width:1094px;height:140px">'
+      +'<div class="ic">'+ic('upload',30,1.8)+'</div>'
+      +'<div class="t">Kéo tệp vào đây, hoặc bấm để chọn</div>'
+      +'<div class="s">Vibe Host tự nhận diện khung sườn và dựng gói chạy</div></div>'
+    +'<div class="hr" style="left:30px;top:482px;width:1094px"></div>'
+    +'<div id="btnNext" style="left:952px;top:506px;width:172px">Triển khai ngay ›</div>';
+  SW.style.height='578px';
+  /* thẻ tệp bay vào — để ngoài ô thả để bay tự do trong vùng nội dung */
+  const tep=el('div');tep.id='tep';
+  tep.innerHTML='<div class="z">ZIP</div><div><div class="n">vongquay-mayman.zip</div>'
+    +'<div class="m">24,7 MB</div></div><div class="ok">'+ic('check',13,3,'#fff')+'</div>';
+  $('#pageDeploy').appendChild(tep);
+})();
+
+/* ==========================================================================
+   HÌNH HỌC CỬA SỔ CHO CẢNH DEPLOY
+   ========================================================================== */
+const WIN_W=1080, S_APP=WIN_W/APP_W, VP_H=APP_H*S_APP, CHROME=38;
+const WIN_H=CHROME+VP_H, WIN_X=(ST_W-WIN_W)/2, WIN_TOP=(ST_H-WIN_H)/2;
+$('#win').style.cssText+=';left:'+px(WIN_X)+';top:'+px(WIN_TOP)+';width:'+px(WIN_W)+';height:'+px(WIN_H);
+$('#viewport').style.cssText+=';top:'+px(CHROME)+';width:'+px(WIN_W)+';height:'+px(VP_H);
+$('#app').style.transform='scale('+S_APP+')';
+const appToStage=(ax,ay)=>({x:WIN_X+ax*S_APP, y:WIN_TOP+CHROME+ay*S_APP});
+
+/* ==========================================================================
+   KỊCH BẢN
+   ========================================================================== */
+const T={s1:0,s2:6.0,s3:11.0,s4:17.0,s5:22.5,s6:38.0,s7:47.0};
+const SC=[
+ {k:'img',a:0.0 ,b:6.0 ,src:0,s0:1.42,s1:1.03,p0:[309,690],p1:[470,790],
+  t1:'Minigame <em>hút khách</em>',t2:'Không cần code, không cần thiết kế'},
+ {k:'img',a:6.0 ,b:11.0,src:1,s0:1.18,s1:1.32,p0:[470,860],p1:[470,980],
+  t1:'Khách trúng — <em>để lại thông tin</em>',t2:'Lead chảy thẳng về dashboard'},
+ {k:'img',a:11.0,b:17.0,src:2,s0:1.10,s1:1.14,p0:[560,600],p1:[430,1010],
+  t1:'Kể ý tưởng <em>cho AI</em>',t2:'Một câu mô tả là đủ'},
+ {k:'img',a:17.0,b:22.5,src:3,s0:1.03,s1:1.07,p0:[300,560],p1:[300,1120],
+  t1:'AI dựng <em>giao diện · API · database</em>',t2:'Vài phút là xong sản phẩm'},
+ {k:'app',a:22.5,b:38.0,
+  t1:'Đưa lên mạng bằng <em>Vibe Host</em>',t2:'Kéo gói .zip — phần còn lại tự chạy'},
+ {k:'img',a:38.0,b:47.0,src:5,s0:1.16,s1:1.20,p0:[700,430],p1:[700,1020],
+  t1:'Dữ liệu người chơi <em>về đủ</em>',t2:'SSL · Data tại Việt Nam · Sao lưu hằng ngày'},
+ {k:'img',a:47.0,b:52.0,src:'ket',s0:1.06,s1:1.00,p0:[470,800],p1:[470,836],
+  t1:'Ý tưởng nào cũng <em>lên mạng</em>',t2:'Vibe Host lo phần đưa lên mạng'},
+];
+const HOA=0.42;
+
+/* Bánh xe ở cảnh mở đầu ĐỨNG YÊN, dùng thẳng ảnh gốc.
+   Trước đây có cho vành múi màu xoay, nhưng ảnh gốc đã in sẵn vòng bóng đổ của
+   nút QUAY NGAY lên chính vùng múi màu (r≈105–125, màu trung vị nâu xám
+   #644d37) — cho quay thì bóng quay theo, quét thành vệt sáng/tối cạnh nút; mà
+   khoét tránh bóng thì lại còn dải múi đứng yên chen vào, lúc quay trượt thành
+   quầng nhoè. Đứng yên là sạch tuyệt đối. Chuyển động của cảnh này nằm ở máy
+   quay lùi dần, số đếm người chơi nhảy lên, confetti và chữ. */
+
+/* Ba thứ nguyên thuỷ vẽ đè lên ảnh. Hộp tính theo toạ độ mockup 941×1672.
+   che  : khối màu trùng nền, co lại để hé nội dung ('xuong' hé từ trên xuống,
+          'phai' hé từ trái sang — dùng cho hiệu ứng gõ chữ)
+   vong : khung sáng bao quanh một thành phần                                  */
+const LOP=[
+ {sc:0,k:'che' ,box:[600,250,905,1092],mau:'#11161a',huong:'xuong',a:3.75,b:5.00},
+ {sc:0,k:'che' ,box:[ 38,1128,905,1508],mau:'#11151a',huong:'xuong',a:4.60,b:5.75},
+ {sc:1,k:'vong',box:[285,828,655,888],a:6.95,b:7.85},
+ {sc:1,k:'vong',box:[285,912,655,972],a:7.75,b:8.65},
+ {sc:1,k:'vong',box:[285,996,655,1056],a:8.55,b:9.45},
+ {sc:1,k:'vong',box:[288,1076,650,1164],a:9.55,b:10.90},
+ {sc:2,k:'che' ,box:[352,441,880,490],mau:'#181c22',huong:'phai',a:11.70,b:12.85},
+ {sc:2,k:'che' ,box:[352,490,812,538],mau:'#181c22',huong:'phai',a:12.85,b:13.70},
+ {sc:2,k:'vong',box:[126,794,708,1302],a:14.60,b:16.60},
+ {sc:3,k:'vong',box:[ 26,470,294,608],a:18.10,b:19.05},
+ {sc:3,k:'vong',box:[ 26,790,294,928],a:19.15,b:20.10},
+ {sc:3,k:'vong',box:[ 26,1170,294,1308],a:20.20,b:21.15},
+ {sc:3,k:'vong',box:[ 22,1422,314,1530],a:21.25,b:22.40},
+ {sc:5,k:'che' ,box:[482,200,926,842],mau:'#0a1117',huong:'xuong',a:38.60,b:41.30},
+ {sc:5,k:'vong',box:[486,782,922,836],a:41.35,b:42.45},
+ {sc:5,k:'vong',box:[484,872,700,962],a:42.70,b:43.45},
+ {sc:5,k:'vong',box:[708,872,924,962],a:43.15,b:43.90},
+ {sc:5,k:'vong',box:[484,974,700,1064],a:43.60,b:44.35},
+ {sc:5,k:'vong',box:[708,974,924,1064],a:44.05,b:44.80},
+ {sc:5,k:'vong',box:[484,1082,924,1402],a:44.80,b:46.60},
+];
+
+/* ==========================================================================
+   XOÁ LOGO VIBE HOST IN SẴN TRONG ẢNH MOCKUP
+   [cảnh, x0,y0,x1,y1 (toạ độ mockup 941×1672), màu nền thanh]
+   Trang vòng quay là sản phẩm CỦA NGƯỜI DÙNG, không phải trang của Vibe Host —
+   để nguyên logo Vibe Host trên đó là sai câu chuyện: Vibe Host chỉ xuất hiện ở
+   đoạn đưa lên mạng. Ảnh mockup in sẵn logo nên phải che.
+   Che bằng miếng phẳng màu chứ không sửa ảnh gốc: đo ra vùng trống của thanh
+   phẳng màu thật (biên độ mỗi kênh chỉ ±2 mức), nên miếng che liền mạch, mà ảnh
+   gốc vẫn nguyên vẹn để sau này đổi ý còn lấy lại.
+   Giữ lại huy hiệu LIVE và số người chơi — đó là nội dung của trang, không phải
+   thương hiệu Vibe Host.
+   ========================================================================== */
+const XOA=[
+ {sc:0, box:[ 40,106,314,190], mau:'#0a0e12'},   /* thanh đầu trang vòng quay */
+ {sc:1, box:[ 34,105,290,188], mau:'#05090c'},
+ {sc:2, box:[ 26,107,294,192], mau:'#080e13'},
+ {sc:2, box:[ 34,229,142,336], mau:'#080d12'},   /* dấu VE ở đầu khung chat */
+ {sc:2, box:[215,240,430,305], mau:'#090e13'},   /* chữ "Vibe Host" — chừa lại "AI" */
+ {sc:2, box:[ 51,619,129,702], mau:'#10151a'},   /* dấu VE dòng "đang suy nghĩ" */
+ {sc:2, box:[205,645,329,690], mau:'#10151a'},   /* chữ "Vibe Host" trong dòng đó */
+ {sc:2, box:[197,869,318,906], mau:'#0c1219'},   /* logo nhỏ trong thẻ xem trước */
+ {sc:3, box:[ 38,283,350,311], mau:'#0a0f16'},   /* thanh tiến trình + chữ 62% in sẵn */
+ {sc:3, box:[ 20, 89,264,176], mau:'#060a11'},
+ {sc:3, box:[388,227,572,288], mau:'#070c13'},   /* thẻ xem trước bên phải */
+ {sc:5, box:[ 27,182,146,219], mau:'#050a10'},   /* trình duyệt nhỏ ở cảnh dữ liệu */
+];
+
+/* Mốc thao tác trên giao diện thật (cảnh deploy) */
+const D={
+  vao:22.50, chon:24.70, hien:25.45, cam:26.65, tha:28.35, bam:30.40,
+  buoc:[[30.80,31.95],[31.95,33.45],[33.45,34.85]], xong:35.05,
+};
+/* Chuột phải đi LÊN cầm lấy gói .zip rồi KÉO XUỐNG ô thả — để tệp tự bay xuống
+   thì chuyển động không khớp với con trỏ, nhìn ra ngay là giả.
+   NGHI: điểm tệp nằm chờ (toạ độ giao diện) và độ lệch của con trỏ so với tâm thẻ. */
+const NGHI={x:1006,y:112}, TAY={x:70,y:14}, THA={x:883,y:562};
+const URL_LIVE='luckywheel.vibehost.app';
+
+/* ==========================================================================
+   LỜI ĐỌC (VO) — [giây bắt đầu, câu]
+   Khe của một câu kết thúc khi câu sau bắt đầu; câu cuối tính tới hết DUR.
+   Đây là nguồn duy nhất: tools/generate-voiceover.mjs đọc thẳng mảng này ra để
+   gọi TTS, nên sửa lời thì sửa ở đây, đừng chép sang chỗ khác.
+   Mốc đặt theo đúng nhịp hình: câu nói tới thao tác nào thì bắt đầu ngay trước
+   lúc thao tác đó xảy ra trên màn hình (xem D{} và LOP[] ở trên).
+   ========================================================================== */
+const VO=[
+  [ 0.55,'Một vòng quay may mắn. Hơn nghìn người chơi cùng lúc.'],
+  [ 3.95,'Không cần code, không cần thiết kế.'],
+  [ 6.40,'Khách trúng phần thưởng, để lại thông tin ngay.'],
+  [ 9.35,'Toàn bộ chảy thẳng về hệ thống của bạn.'],
+  [11.45,'Ý tưởng chỉ cần kể cho AI bằng một câu.'],
+  [14.70,'Mô tả xong, AI bắt tay vào dựng.'],
+  [17.30,'Giao diện, API, cơ sở dữ liệu.'],
+  [20.15,'Vài phút sau là có sản phẩm hoàn chỉnh.'],
+  [22.85,'Giờ đưa lên mạng bằng Vibe Host.'],
+  [25.30,'Chọn tải file, kéo gói mã nguồn vào.'],
+  [27.95,'Bấm nút Triển khai. Không Dockerfile, không cài đặt gì.'],
+  [31.70,'Hệ thống tự tải lên, tự cấp SSL.'],
+  [35.30,'Hơn một phút sau, website chạy thật trên mạng.'],
+  [38.60,'Dữ liệu người chơi về đủ, xem được ngay.'],
+  [41.40,'SSL sẵn sàng. Dữ liệu đặt tại Việt Nam. Sao lưu hằng ngày.'],
+  [46.20,'Ý tưởng nào cũng lên được mạng.'],
+  [48.20,'Vibe Host. Của Mắt Bão.'],
+];
+
+/* ==========================================================================
+   DỰNG CẢNH ẢNH + CÁC LỚP VẼ ĐÈ
+   ========================================================================== */
+const stage=$('#stage'), scApp=$('#scApp'), kbApp=$('#kbApp'), truoc=$('#conf');
+SC.forEach((s,i)=>{
+  if(s.k==='app'){ s.el=scApp; s.kb=kbApp; return }
+  const sc=el('div','sc'), kb=el('div','kb');
+  const im=el('img'); im.src = s.src==='ket'?KET:MK+ANH[s.src]; im.alt='';
+  kb.appendChild(im);
+  sc.appendChild(kb); stage.insertBefore(sc,truoc);
+  s.el=sc; s.kb=kb;
+});
+/* lớp vẽ đè: gắn vào đúng .kb của cảnh nên tự đi theo máy quay */
+LOP.forEach(L=>{
+  const e=el('div', L.k==='che'?'che':'vong');
+  const [x0,y0,x1,y1]=L.box;
+  e.style.left=px(x0*KX); e.style.top=px(y0*KY);
+  e.style.width=px((x1-x0)*KX); e.style.height=px((y1-y0)*KY);
+  if(L.k==='che'){ e.style.background=L.mau;
+    e.style.transformOrigin = L.huong==='xuong' ? 'center bottom' : 'right center'; }
+  SC[L.sc].kb.appendChild(e); L.el=e;
+});
+
+/* miếng che logo: gắn thẳng vào .kb như lớp vẽ đè, nên đi theo máy quay và
+   phóng to thu nhỏ cùng ảnh */
+XOA.forEach(X=>{
+  const e=el('div','xoa');
+  const [x0,y0,x1,y1]=X.box;
+  e.style.left=px(x0*KX); e.style.top=px(y0*KY);
+  e.style.width=px((x1-x0)*KX); e.style.height=px((y1-y0)*KY);
+  e.style.background=X.mau;
+  SC[X.sc].kb.appendChild(e);
+});
+
+/* ==========================================================================
+   THANH TIẾN TRÌNH "AI ĐANG DỰNG SẢN PHẨM" — vẽ thật, không dùng vệt in sẵn
+   Ảnh mockup chỉ vẽ thanh tới 62%, nên cách cũ (hé dần vệt cam in sẵn) chạy hết
+   vệt là đứng — nhìn ra ngay là hỏng. Ở đây che vệt đó đi rồi dựng thanh bằng
+   DOM: chạy trọn 0→100%, số phần trăm nhảy theo, và tới 100% đúng lúc thẻ
+   "Hoàn tất dựng sản phẩm" bật sáng.
+   Toạ độ theo mockup 941×1672: rãnh x 43–285, y 289–305; chữ % nằm bên phải.
+   ========================================================================== */
+const TT={x0:43, x1:285, y0:289, y1:305, tu:17.15, den:21.10};
+/* Nhịp chạy: KHÔNG tuyến tính, vì thanh chạy đều tăm tắp nhìn cũng giả. Mấy mốc
+   dưới đây cho nó lúc nhanh lúc chậm như tải thật, nhưng luôn tiến, không lùi. */
+const TT_MOC=[[0,0],[0.14,0.18],[0.30,0.26],[0.46,0.55],[0.62,0.64],[0.78,0.88],[0.90,0.94],[1,1]];
+function ttPhan(k){
+  if(k<=0)return 0; if(k>=1)return 1;
+  for(let i=0;i<TT_MOC.length-1;i++){
+    const [a,va]=TT_MOC[i],[b,vb]=TT_MOC[i+1];
+    if(k<=b) return lerp(va,vb,eIO((k-a)/(b-a)));
+  }
+  return 1;
+}
+{
+  const kb=SC[3].kb, W=(TT.x1-TT.x0)*KX, H=(TT.y1-TT.y0)*KY;
+  const rnh=el('div','ttRanh'); rnh.style.cssText='left:'+px(TT.x0*KX)+';top:'+px(TT.y0*KY)
+    +';width:'+px(W)+';height:'+px(H);
+  const day=el('div','ttDay'); day.style.cssText='left:'+px(TT.x0*KX)+';top:'+px(TT.y0*KY)
+    +';height:'+px(H);
+  const so=el('div','ttSo'); so.style.cssText='left:'+px(292*KX)+';top:'+px(285*KY)
+    +';width:'+px(56*KX)+';font-size:'+px(24*KY)+';line-height:'+px(24*KY);
+  kb.appendChild(rnh); kb.appendChild(day); kb.appendChild(so);
+  TT.day=day; TT.so=so;
+}
+
+/* confetti — công thức cố định, không dùng số ngẫu nhiên */
+const MAU=['#ff8a3d','#ffd23d','#4ac6ff','#7c5cff','#38d39f','#ff5c8a'];
+const CONF=[];
+for(let i=0;i<44;i++){
+  const r=Math.abs((Math.sin(i*127.1)*43758.5453)%1), r2=Math.abs((Math.sin(i*311.7)*24634.6345)%1);
+  const o={toc:0.17+r2*0.21, pha:r, xoay:130+r2*430, lech:9+r*28};
+  const e=el('i'); e.style.cssText='left:'+(r*100).toFixed(2)+'%;width:'+(5+r2*7).toFixed(1)
+    +'px;height:'+(9+r*9).toFixed(1)+'px;background:'+MAU[i%MAU.length];
+  $('#conf').appendChild(e); o.el=e; CONF.push(o);
+}
+
+/* ==========================================================================
+   MÁY QUAY
+   ========================================================================== */
+function kbAnh(s,ix,iy){                       /* Ken Burns trên ảnh mockup */
+  const gx=ix*KX, gy=iy*KY, bx=ST_W*(s-1)/2, by=ST_H*(s-1)/2;
+  return{tx:cl(-s*(gx-ST_W/2),-bx,bx), ty:cl(-s*(gy-ST_H/2),-by,by)};
+}
+function kbApp_(s,ax,ay){                      /* máy quay trên giao diện thật */
+  const p=appToStage(ax,ay);
+  let tx=-s*(p.x-ST_W/2);
+  if(s*WIN_W>=ST_W){                           /* không để lộ nền sau cửa sổ */
+    const lo=ST_W-ST_W/2-s*(WIN_X+WIN_W-ST_W/2), hi=-ST_W/2-s*(WIN_X-ST_W/2);
+    tx=cl(tx,lo,hi);
+  }
+  return{tx, ty:-s*(p.y-ST_H/2)};
+}
+/* mốc máy quay cảnh deploy: [giây, phóng, x, y] theo toạ độ giao diện */
+const CAMD=[
+ [22.50,1.16, 883,450],[24.20,1.18, 883,452],
+ [24.90,1.18, 883,430],[26.50,1.15, 890,372],
+ [28.55,1.20, 883,520],[29.60,1.46,1320,652],
+ [30.40,1.50,1344,690],
+ [30.60,1.30, 806,330],[34.90,1.28, 806,330],
+ [35.10,1.30, 560,350],[38.00,1.44, 430,386],
+];
+function camDeploy(t){
+  let i=0; while(i<CAMD.length-2 && t>=CAMD[i+1][0]) i++;
+  const a=CAMD[i],b=CAMD[i+1],k=eIO(tt(t,a[0],b[0]));
+  return{s:lerp(a[1],b[1],k), x:lerp(a[2],b[2],k), y:lerp(a[3],b[3],k)};
+}
+/* đường đi con trỏ trong cảnh deploy: [giây, x, y] theo toạ độ giao diện */
+let CUR=null;
+function duongTro(){
+  const tile=tam('#src0'), nut=tam('#btnNext');
+  const T2=s=>[s.u*APP_W, s.v*APP_H];
+  const CAM_=[NGHI.x+TAY.x, NGHI.y+TAY.y];      /* chỗ chuột cầm lấy tệp */
+  const THA_=[THA.x+TAY.x, THA.y+TAY.y];        /* chỗ chuột buông tệp */
+  return[
+   [22.50,2400,1200],[23.30,2400,1200],
+   [24.55,...T2(tile)],[25.45,...T2(tile)],
+   [26.45,...CAM_],[D.cam,...CAM_],
+   [D.tha,...THA_],[D.tha+0.50,...THA_],
+   [30.28,...T2(nut)],[30.90,...T2(nut)],
+   [31.60,2400,1200],[38.00,2400,1200],
+  ];
+}
+function troAt(t){
+  let i=0; while(i<CUR.length-2 && t>=CUR[i+1][0]) i++;
+  const a=CUR[i],b=CUR[i+1],k=eIO(tt(t,a[0],b[0]));
+  return{x:lerp(a[1],b[1],k), y:lerp(a[2],b[2],k)};
+}
+const BAM=[24.70,30.40];                        /* các mốc bấm chuột */
+
+/* ==========================================================================
+   CHỈNH LỜI TRONG GIAO DIỆN THẬT CHO ĐÚNG CÂU CHUYỆN
+   Bộ dựng ứng dụng vốn viết cho kịch bản Git URL — ở đây là tải gói .zip lên.
+   ========================================================================== */
+(()=>{
+  const B=[['Tải gói lên máy chủ','Đang tải vongquay-mayman.zip…'],
+           ['Giải nén & kiểm tra','Đang kiểm tra cấu trúc thư mục…'],
+           ['Cấp SSL & đưa lên mạng','Đang phát chứng chỉ…']];
+  document.querySelectorAll('#pageRun .stepT').forEach((e,i)=>e.textContent=B[i][0]);
+  window.__BUOC=B;
+  const L=['→ nhận vongquay-mayman.zip (24,7 MB)','→ giải nén 128 tệp',
+           '→ phát chứng chỉ SSL','→ mở cổng, kiểm tra sức khoẻ'];
+  [...$('#log').children].forEach((d,i)=>d.textContent=L[i]);
+  $('#okUrl').innerHTML=ic('link',15,1.8,'#16a34a')
+    +'<span>luckywheel.<b>vibehost.app</b></span>';
+  $('#okS').textContent='Xong sau 48 giây — không cần cấu hình gì thêm.';
+  $('#tep').style.left=px(412); $('#tep').style.top=px(525);
+})();
+
+/* ==========================================================================
+   VẼ MỘT KHUNG HÌNH
+   ========================================================================== */
+const E={sweep:$('#sweep'),scrim:$('#scrim'),bar2:$('#bar2'),t1:$('#t1'),t2:$('#t2'),pd:$('#pd'),
+  hook:$('#hook'),hookN:$('#hookN'),hookS:$('#hookS'),prog:$('#prog'),flash:$('#flash'),
+  conf:$('#conf'),den:$('#den'),cursor:$('#cursor'),ripple:$('#ripple'),
+  tha:$('#tha'),tep:$('#tep'),btn:$('#btnNext'),rA:$('#rA'),tA:$('#tA'),rB:$('#rB'),tB:$('#tB')};
+/* ==========================================================================
+   PHỤ ĐỀ
+   Mốc lấy từ out/voiceover/phu-de.json — do bộ lồng tiếng ghi ra sau khi đã ép
+   nhịp và đẩy tránh chồng tiếng, tức VỊ TRÍ THẬT của từng câu tiếng. Không lấy
+   thẳng mốc trong VO[] vì câu có thể lùi vài phần mười giây so với mốc khai, mà
+   phụ đề lệch tiếng là thấy ngay. Chưa có file thì tạm dùng VO[] để còn xem thử.
+   ========================================================================== */
+let PD=VO.map((v,i,a)=>({tu:v[0], den:(a[i+1]?a[i+1][0]:DUR)-0.05, loi:v[1]}));
+async function napPhuDe(){
+  try{
+    const r=await fetch('out/voiceover/phu-de-vibe-host-marketer.json',{cache:'no-store'});
+    if(r.ok){const j=await r.json(); if(Array.isArray(j)&&j.length)PD=j}
+  }catch(e){/* xem thử ngoại tuyến thì cứ dùng mốc trong VO[] */}
+}
+let pdI=-1;
+
+const TXT=[[3.90,5.85],[6.25,8.50],[11.25,13.55],[17.25,19.45],
+           [22.80,25.10],[38.30,40.60],[47.30,52.00]];
+/* [từ, đến, thành phần, chữ, phía, đẩy ngang] — cột cuối để né chữ có sẵn trong UI */
+const VONG_APP=[[23.60,25.40,'#src0','Chọn Tải file','duoi',0],
+                [25.95,28.30,'#tha','Kéo gói .zip vào đây','tren',556],
+                [29.70,30.90,'#btnNext','Triển khai','tren',0]];
+let capI=-1;
+
+function render(t){
+  /* ----- cảnh ----- */
+  SC.forEach((s,i)=>{
+    const vao=seg(t,s.a-(i?HOA:0),s.a-(i?HOA:0)+HOA,eIO);
+    const ra=i===SC.length-1?0:seg(t,s.b-HOA,s.b,eIO);
+    const o=i===0?1-ra:vao*(1-ra);
+    setO(s.el,o);
+    if(o<0.002)return;
+    if(s.k==='app'){
+      const c=camDeploy(t), p=kbApp_(c.s,c.x,c.y);
+      s.kb.style.transform='translate('+px(p.tx)+','+px(p.ty)+') scale('+c.s.toFixed(4)+')';
+    }else{
+      const k=eIO(tt(t,s.a-HOA,s.b));
+      const sc_=lerp(s.s0,s.s1,k);
+      const p=kbAnh(sc_,lerp(s.p0[0],s.p1[0],k),lerp(s.p0[1],s.p1[1],k));
+      s.kb.style.transform='translate('+px(p.tx)+','+px(p.ty)+') scale('+sc_.toFixed(4)+')';
+    }
+  });
+
+  /* ----- phụ đề ----- */
+  {
+    const i=PD.findIndex(c=>t>=c.tu-0.12 && t<=c.den+0.18);
+    if(i!==pdI){ pdI=i; if(i>=0)E.pd.firstElementChild.innerHTML=PD[i].loi }
+    setO(E.pd, i<0?0:pop(t,PD[i].tu-0.12,PD[i].den+0.18,.14,.16));
+  }
+
+  /* ----- thanh tiến trình cảnh "AI dựng sản phẩm" ----- */
+  {
+    const ph=ttPhan(tt(t,TT.tu,TT.den));
+    TT.day.style.width=px(ph*(TT.x1-TT.x0)*KX);
+    const n=Math.round(ph*100)+'%';
+    if(TT.so.textContent!==n)TT.so.textContent=n;
+  }
+
+  /* ----- các lớp che / vòng sáng trên ảnh ----- */
+  LOP.forEach(L=>{
+    if(L.k==='che'){
+      const p=seg(t,L.a,L.b,eIO);
+      L.el.style.transform = L.huong==='xuong'
+        ? 'scaleY('+(1-p).toFixed(4)+')' : 'scaleX('+(1-p).toFixed(4)+')';
+    }else{
+      const o=pop(t,L.a,L.b,.26,.30);
+      setO(L.el,o);
+      if(o>0.002){
+        const g=seg(t,L.a,L.a+0.32,eBack), tho=1+0.012*Math.sin((t-L.a)*6);
+        L.el.style.transform='scale('+((1.10-0.10*g)*tho).toFixed(4)+')';
+      }
+    }
+  });
+
+  /* ----- cảnh deploy: giao diện thật đổi trạng thái theo cú bấm ----- */
+  veApp(t);
+
+  /* ----- con trỏ (chỉ trong cảnh deploy) ----- */
+  const trong = t>=D.vao && t<38.0;
+  if(trong && CUR){
+    const c=camDeploy(t), p=kbApp_(c.s,c.x,c.y), q=troAt(t);
+    const g=appToStage(q.x,q.y);
+    const sx=ST_W/2+c.s*(g.x-ST_W/2)+p.tx, sy=ST_H/2+c.s*(g.y-ST_H/2)+p.ty;
+    let nhan=(t>=D.cam&&t<D.tha)?0.88:1;        /* đang giữ chuột để kéo tệp */
+    for(const b of BAM) if(t>=b-0.02&&t<b+0.16) nhan=0.86+0.14*eOut(tt(t,b+0.02,b+0.16));
+    E.cursor.style.transform='translate('+px(sx)+','+px(sy)+') scale('+nhan.toFixed(3)+')';
+    setO(E.cursor,(t>23.10&&t<31.50)?1:0);
+    let rip=0,rk=0;
+    for(const b of BAM) if(t>=b&&t<b+0.5){rk=tt(t,b,b+0.5);rip=1-eOut(rk)}
+    E.ripple.style.transform='translate('+px(sx)+','+px(sy)+') scale('+(1+rk*5).toFixed(3)+')';
+    setO(E.ripple,rip*0.9);
+  }else{ setO(E.cursor,0); setO(E.ripple,0) }
+
+  /* ----- chữ ----- */
+  const i=Math.max(0,SC.findIndex(s=>t>=s.a-HOA*0.5&&t<s.b-HOA*0.5));
+  const s=SC[i], [ta,tb]=TXT[i];
+  const vaoT=seg(t,ta,ta+0.62,eOut), raT=seg(t,tb-0.55,tb,eIO);
+  const oT=vaoT*(1-raT);
+  if(capI!==i){capI=i;E.t1.innerHTML=s.t1;E.t2.textContent=s.t2}
+  setO(E.scrim,Math.max(oT*0.98,seg(t,0.4,1.0,eOut)*(1-seg(t,2.4,2.9,eIO))*0.9));
+  setO(E.bar2,oT);setO(E.t1,oT);setO(E.t2,oT);
+  E.bar2.style.transform='scaleX('+(0.2+0.8*vaoT).toFixed(3)+')';
+  E.bar2.style.transformOrigin='left center';
+  E.t1.style.transform='translateY('+px((1-vaoT)*34+raT*-16)+')';
+  E.t2.style.transform='translateY('+px((1-seg(t,ta+0.12,ta+0.78,eOut))*26+raT*-12)+')';
+
+  /* ----- chữ hook: số người chơi nhảy lên ----- */
+  const oh=pop(t,0.45,2.85,.30,.42);
+  setO(E.hook,oh);
+  if(oh>0.002){
+    const n=Math.round(seg(t,0.50,1.75,eOut)*1254);
+    const s2=n>=1000?String(n).slice(0,-3)+'.'+String(n).slice(-3):String(n);
+    if(E.hookN.textContent!==s2)E.hookN.textContent=s2;
+    E.hookS.textContent='người đang chơi ngay lúc này';
+    const k=seg(t,0.45,0.95,eBack);
+    E.hookN.style.transform='scale('+(0.72+0.28*k).toFixed(3)+')';
+    E.hookS.style.transform='translateY('+px((1-seg(t,0.80,1.30,eOut))*20)+')';
+    setO(E.hookS,seg(t,0.80,1.30,eOut)*(1-seg(t,2.45,2.85,eIO)));
+  }
+
+  /* ----- vệt sáng, confetti, chớp, màn đen mở đầu ----- */
+  const sw=tt(t,s.a-0.10,s.a+0.85);
+  E.sweep.style.transform='translateX('+px(sw*ST_W*2.1)+') rotate(14deg)';
+  setO(E.sweep,(sw>0&&sw<1)?Math.sin(sw*Math.PI)*0.9:0);
+  const cf=Math.max(pop(t,0.10,3.90,.25,.60),pop(t,6.05,8.20,.20,.70));
+  setO(E.conf,cf*0.85);
+  if(cf>0.002)CONF.forEach(o=>{
+    const y=((t*o.toc+o.pha)%1);
+    o.el.style.transform='translate3d('+Math.sin((t+o.pha*9)*1.1)*o.lech+'px,'
+      +(y*(ST_H+120)-60).toFixed(1)+'px,0) rotate('+(t*o.xoay).toFixed(0)+'deg)';
+  });
+  let fl=0;
+  SC.forEach((x,j)=>{ if(j&&t>=x.a-HOA&&t<x.a-HOA+0.20) fl=Math.max(fl,(1-tt(t,x.a-HOA,x.a-HOA+0.20))*0.11) });
+  setO(E.flash,fl);
+  setO(E.den,1-seg(t,0.00,0.30,eOut));
+  E.prog.style.width=(t/DUR*100).toFixed(2)+'%';
+}
+
+/* ==========================================================================
+   CẢNH DEPLOY — GIAO DIỆN VIBE HOST THẬT
+   Không phải ảnh: từng nút đổi trạng thái thật theo cú bấm của con trỏ.
+   ========================================================================== */
+function veApp(t){
+  if(t<D.vao-0.6||t>38.4)return;
+  /* trang nào đang hiện */
+  setO($('#pageHome'),0);
+  setO($('#pageDeploy'),1-seg(t,D.bam+0.10,D.bam+0.32,eIO));
+  setO($('#pageRun'),seg(t,D.bam+0.10,D.bam+0.32,eIO)*(1-seg(t,D.xong,D.xong+0.22,eIO)));
+  setO($('#pageOk'),seg(t,D.xong,D.xong+0.22,eIO));
+
+  /* thẻ nguồn “Tải file” được chọn thật */
+  const chon=t>=D.chon;
+  $('#src0').classList.toggle('on',chon);
+  const ck=$('#src0 .chk');
+  ck.style.opacity=chon?1:0;
+  ck.style.transform='scale('+(chon?(0.4+0.6*seg(t,D.chon,D.chon+0.22,eBack)):0.4).toFixed(3)+')';
+  $('#sumSrc').textContent=chon?'Tải file':'Chưa chọn';
+
+  /* Gói .zip: nằm chờ → con trỏ cầm lấy → đi theo đúng con trỏ → buông vào ô thả.
+     Tâm thẻ luôn bằng vị trí con trỏ trừ đi độ lệch tay cầm, nên hai thứ khớp nhau
+     từng khung hình. */
+  const hien=t>=D.hien-0.05&&t<D.bam+0.10;
+  setO(E.tep,hien?seg(t,D.hien,D.hien+0.22,eOut):0);
+  let tamX=NGHI.x, tamY=NGHI.y, dangCam=false;
+  if(t>=D.cam&&t<D.tha){
+    const q=troAt(t); tamX=q.x-TAY.x; tamY=q.y-TAY.y; dangCam=true;
+  }else if(t>=D.tha){
+    const k=seg(t,D.tha,D.tha+0.20,eOut);       /* buông ra thì hít vào giữa ô thả */
+    const q=troAt(D.tha);
+    tamX=lerp(q.x-TAY.x,THA.x,k); tamY=lerp(q.y-TAY.y,THA.y,k);
+  }
+  if(hien){
+    const nang=dangCam?1.05:1, xoay=dangCam?-2.2:0;
+    const nhun=1-0.05*pop(t,D.tha,D.tha+0.34,.10,.20);
+    E.tep.style.transform='translate('+px(tamX-THA.x)+','+px(tamY-THA.y)+') rotate('
+      +xoay+'deg) scale('+(nang*nhun).toFixed(3)+')';
+    E.tep.style.boxShadow=dangCam?'0 26px 60px rgba(15,23,42,.34)':'0 16px 40px rgba(15,23,42,.18)';
+    const okk=seg(t,D.tha+0.14,D.tha+0.44,eBack);
+    setO(E.tep.querySelector('.ok'),okk);
+    E.tep.querySelector('.ok').style.transform='scale('+(0.3+0.7*okk).toFixed(3)+')';
+  }
+  /* ô thả chỉ sáng khi tệp thật sự được kéo tới gần */
+  E.tha.classList.toggle('hover', hien && tamY>430);
+  const chuTha=1-seg(t,D.tha-0.30,D.tha,eIO);
+  ['.ic','.t','.s'].forEach(q=>setO(E.tha.querySelector(q),chuTha));
+  /* nhận tệp xong thì bảng tóm tắt bên phải điền vào, nút bật sáng */
+  const xong=t>=D.tha+0.30;
+  $('#sumName').textContent=xong?'vongquay-mayman':'Chưa đặt';
+  $('#sumAddr').textContent=xong?URL_LIVE:'Chưa đặt';
+  E.btn.classList.toggle('on',xong);
+  E.btn.style.transform='scale('+(1-0.06*pop(t,D.bam,D.bam+0.18,.05,.10)).toFixed(3)+')';
+
+  /* ba bước triển khai */
+  if(t>=D.bam&&t<D.xong+0.4){
+    const B=window.__BUOC;
+    D.buoc.forEach(([a,b],i)=>{
+      const d=$('#dot'+i), ss=$('#ss'+i);
+      d.className='stepDot'+(t>=b?' xong':t>=a?' dang':'');
+      d.style.transform=(t>=a&&t<b)?'rotate('+((t-a)*520).toFixed(0)+'deg)':'';
+      const txt=t>=b?'Xong':t>=a?B[i][1]:'Chưa bắt đầu';
+      if(ss.textContent!==txt)ss.textContent=txt;
+    });
+    const cur=D.buoc.findIndex(([a,b])=>t>=a&&t<b);
+    setO($('#chipRun'),cur>=0?1:0);
+    if(cur>=0)$('#chipRun').style.top=px(36+cur*62);
+    const p=seg(t,D.buoc[0][0],D.buoc[2][1],eIO);
+    $('#barIn').style.width=(p*100).toFixed(2)+'%';
+    $('#pct').textContent=Math.round(p*100)+'%';
+    [...$('#log').children].forEach((d,i)=>{
+      const k=pop(t,D.buoc[0][0]+0.10+i*0.62,D.xong+0.30,.22,.12);
+      setO(d,k*0.95); d.style.transform='translateX('+px((1-k)*10)+')';
+    });
+  }
+
+  /* trang “đã lên mạng” */
+  if(t>=D.xong-0.1){
+    const k=seg(t,D.xong,D.xong+0.34,eOut);
+    $('#okRing').style.transform='scale('+(0.5+0.5*seg(t,D.xong+0.02,D.xong+0.40,eBack)).toFixed(3)+')';
+    const uk=seg(t,D.xong+0.26,D.xong+0.62,eOut);
+    $('#okUrl').style.transform='translateY('+px((1-uk)*10)+')'; setO($('#okUrl'),uk);
+    [...document.querySelectorAll('#okCard .meta')].forEach((m,j)=>{
+      const q=seg(t,D.xong+0.40+j*0.10,D.xong+0.76+j*0.10,eOut);
+      setO(m,q); m.style.transform='translateY('+px((1-q)*8)+')';
+    });
+    const bk=seg(t,D.xong+0.60,D.xong+0.90,eBack);
+    setO($('#okBtn'),bk); $('#okBtn').style.transform='scale('+(0.9+0.1*bk).toFixed(3)+')';
+  }
+
+  /* vòng sáng chỉ vào đúng nút đang thao tác */
+  const hien2=VONG_APP.map((v,j)=>[pop(t,v[0],v[1],.24,.28),j]).filter(x=>x[0]>0.002).slice(0,1);
+  if(hien2.length){
+    const [o,j]=hien2[0], v=VONG_APP[j];
+    datVong(E.rA,v[2]); datNhan(E.tA,v[2],v[3],v[4],v[5]);
+    setO(E.rA,o); setO(E.tA,o);
+    const g=seg(t,v[0],v[0]+0.30,eBack), tho=1+0.010*Math.sin((t-v[0])*6);
+    E.rA.style.transform='scale('+((1.10-0.10*g)*tho).toFixed(4)+')';
+    E.tA.style.transform='translateY('+px((1-o)*-6)+') scale('+(0.94+0.06*o).toFixed(3)+')';
+  }else{ setO(E.rA,0); setO(E.tA,0) }
+  setO(E.rB,0); setO(E.tB,0);
+}
+
+/* ==========================================================================
+   CHẠY / TUA
+   ========================================================================== */
+/* TOC: hệ số chạy nhanh/chậm, truyền qua địa chỉ `?toc=1.1`. Nhân vào ĐỒNG HỒ
+   chứ không đụng gì tới render() — mọi mốc trong SC[], LOP[], D{} giữ nguyên số
+   cũ, chỉ là đồng hồ chạy nhanh hơn. Nhờ vậy bộ xuất vẫn vẽ thật từng khung ở
+   30 hình/giây; tăng tốc bằng cách bỏ bớt khung của bản đã xuất thì hình giật. */
+const TOC=Math.max(0.25,Math.min(4,parseFloat(new URLSearchParams(location.search).get('toc'))||1));
+let t=0,DUNG=true,last=0;
+function loop(now){
+  if(!DUNG){
+    t+=Math.min(0.30,(now-last)/1000)*TOC;
+    if(t>=DUR){t=DUR;DUNG=true;$('#btnPlay').textContent='▶ Chạy'}
+    render(t);ui();
+  }
+  last=now;requestAnimationFrame(loop);
+}
+function ui(){$('#scrub').value=t.toFixed(2);
+  $('#tnum').textContent=t.toFixed(2)+' / '+DUR.toFixed(2)+'s'}
+$('#btnPlay').addEventListener('click',()=>{
+  if(t>=DUR)t=0; DUNG=!DUNG; last=performance.now();
+  $('#btnPlay').textContent=DUNG?'▶ Chạy':'❚❚ Dừng'});
+$('#scrub').addEventListener('input',e=>{t=parseFloat(e.target.value);render(t);ui()});
+[[0,'Hook'],[6,'Thu lead'],[11,'Kể AI'],[17,'AI dựng'],[22.5,'Deploy thật'],
+ [26.4,'Kéo .zip'],[30.4,'Triển khai'],[35,'Lên mạng'],[38,'Dữ liệu+USP'],[47,'Kết']]
+.forEach(([s,n])=>{const b=document.createElement('button');
+  b.textContent=s+'s · '+n; b.onclick=()=>{t=s;render(t);ui()};$('#chaps').appendChild(b)});
+
+function fit(){
+  if(document.body.classList.contains('exporting')){$('#stage').style.transform='none';return}
+  const k=Math.min((innerWidth-40)/ST_W,(innerHeight-150)/ST_H,1);
+  $('#stage').style.transform='scale('+k+')';
+  $('#stage').style.margin=((k-1)*ST_H/2)+'px '+((k-1)*ST_W/2)+'px';
+}
+addEventListener('resize',fit);
+function khoiDong(){CUR=duongTro();render(0);ui()}
+
+if(/[?&]export=1/.test(location.search)){
+  document.body.classList.add('exporting');
+  window.__clip={
+    /* Bộ xuất tính mọi thứ theo giờ CỦA BẢN XUẤT, nên duration/at/seek phải quy
+       đổi qua TOC; t bên trong vẫn là giờ của kịch bản. */
+    duration:DUR/TOC,
+    ready:async()=>{
+      await napPhuDe();
+      await document.fonts.ready;
+      await Promise.all([...document.images].filter(i=>i.src).map(i=>i.decode().catch(()=>{})));
+      fit();khoiDong();
+    },
+    play:()=>{DUNG=false;last=performance.now()},
+    at:()=>t/TOC, seek:s=>{t=cl(s*TOC,0,DUR);render(t)}, step:s=>{t=cl(s*TOC,0,DUR);render(t)},
+  };
+}
+fit();
+napPhuDe().then(()=>document.fonts.ready).then(khoiDong);
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
