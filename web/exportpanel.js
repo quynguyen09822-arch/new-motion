@@ -1,9 +1,14 @@
 /**
  * XUẤT VIDEO — và nói thật về thời gian.
  *
- * Bộ xuất hứng hình bằng cách QUAY MÀN HÌNH theo thời gian thật, nên dựng một
- * phim 26 giây mất ít nhất 26 giây. Đó không phải chỗ chậm cần giấu, mà là điều
- * phải báo trước — người dùng chờ mà không biết chờ bao lâu thì tưởng treo.
+ * HAI CÁCH DỰNG, và phải nói rõ cái nào đang chạy:
+ *   · "Nhanh" nhảy thẳng tới từng mốc giây rồi chụp, chia 4 luồng. Đo được nhanh
+ *     gấp khoảng 2,8 lần so với quay thật, và cho ra ĐÚNG một file mỗi lần chạy.
+ *   · "Trung thực" quay màn hình theo thời gian thật — phim 26 giây mất ít nhất
+ *     26 giây. Giữ lại làm đối chứng khi nghi hình ra sai.
+ *
+ * Thời gian chờ vẫn phải báo trước dù đã nhanh hơn: người dùng chờ mà không biết
+ * chờ bao lâu thì tưởng treo.
  */
 
 const el = (the, lop, chu) => {
@@ -27,6 +32,31 @@ export function taoBangXuat(boc, { laySlug, bao, layDoc, chonMon }) {
     const o = el('option', null, n); o.value = v; chonChat.appendChild(o);
   }
   chonChat.value = 'high';
+
+  const chonDinh = el('select', 'o-nhap');
+  for (const [v, n] of [['mp4', 'MP4 — mặc định, đăng đâu cũng được'],
+                        ['webm', 'WebM — nhẹ hơn, để nhúng web'],
+                        ['gif', 'GIF — ảnh động gửi chat'],
+                        ['png', 'Chuỗi ảnh PNG — đưa sang phần mềm khác']]) {
+    const o = el('option', null, n); o.value = v; chonDinh.appendChild(o);
+  }
+
+  const chonCach = el('select', 'o-nhap');
+  for (const [v, n] of [['nhanh', 'Nhanh — nhảy từng khung, 4 luồng'],
+                        ['trung-thuc', 'Trung thực — quay thời gian thật (chậm)']]) {
+    const o = el('option', null, n); o.value = v; chonCach.appendChild(o);
+  }
+
+  /* Cách cũ chỉ ra được MP4 — máy chủ cũng chặn, nhưng chặn ngay ở đây thì người
+     dùng không phải bấm rồi mới biết mình chọn sai. */
+  const hopCach = () => {
+    const cu = chonCach.value === 'trung-thuc';
+    for (const o of chonDinh.options) o.disabled = cu && o.value !== 'mp4';
+    if (cu) chonDinh.value = 'mp4';
+    chonChat.disabled = !cu;    // chất lượng chỉ có nghĩa với bộ cũ
+  };
+  chonCach.onchange = hopCach;
+  hopCach();
 
   const nutXuat = el('button', 'nut chinh rong', 'Xuất video');
   const nutHuy = el('button', 'nut nho', 'Dừng');
@@ -84,7 +114,8 @@ export function taoBangXuat(boc, { laySlug, bao, layDoc, chonMon }) {
     nutXuat.disabled = nutKiem.disabled = true;
     const r = await fetch('/api/export', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug, preset: chonKho.value, chatLuong: chonChat.value }),
+      body: JSON.stringify({ slug, preset: chonKho.value, chatLuong: chonChat.value,
+        dinhDang: chonDinh.value, cach: chonCach.value }),
     });
     const d = await r.json();
     if (!d.ok) {
@@ -93,9 +124,12 @@ export function taoBangXuat(boc, { laySlug, bao, layDoc, chonMon }) {
     }
     viecId = d.id;
     nutHuy.style.display = '';
-    // Nói trước thời gian: bộ xuất chạy đúng bằng thời lượng phim, cộng lúc ghép.
-    const uoc = Math.round(d.giay * 1.4 + 15);
-    trangThai.textContent = `Phim dài ${g1(d.giay)} giây — dựng mất khoảng ${uoc} giây.`;
+    /* Ước lượng theo ĐÚNG cách đang chạy. Đo được: nhảy khung ~0,64 giây phim
+       mỗi giây chờ (4 luồng, máy rảnh); quay thật thì 1 đổi 1, cộng lúc ghép.
+       Số này tụt khi máy bận — nên nói "khoảng", đừng nói chắc. */
+    const uoc = d.nhanh ? Math.round(d.giay * 0.65 + 12) : Math.round(d.giay * 1.4 + 15);
+    trangThai.textContent = `Phim dài ${g1(d.giay)} giây — dựng mất khoảng ${uoc} giây`
+      + (d.nhanh ? ' (cách nhanh).' : ' (cách trung thực).');
     if (d.dangCho > 0) bao('Đang dựng một video khác, cái này xếp hàng chờ.');
 
     theoDoi(d.id, (g) => {
@@ -103,9 +137,18 @@ export function taoBangXuat(boc, { laySlug, bao, layDoc, chonMon }) {
         const a = el('a', 'nut chinh rong', `Tải về: ${g.ketQua.file}`);
         a.href = `/clip/out/${encodeURIComponent(g.ketQua.file)}`;
         a.download = g.ketQua.file;
-        const xem = el('video', 'xem-truoc');
-        xem.src = a.href; xem.controls = true; xem.playsInline = true;
-        ketQua.append(xem, a);
+        /* Thẻ <video> không mở được GIF, và chuỗi ảnh thì chẳng có file nào để
+           mở. Đưa nhầm thẻ là ô xem trước đen thui mà không báo gì. */
+        const duoi = (g.ketQua.file.split('.').pop() || '').toLowerCase();
+        if (duoi === 'gif') {
+          const xem = el('img', 'xem-truoc'); xem.src = a.href; xem.alt = 'Ảnh động vừa dựng';
+          ketQua.appendChild(xem);
+        } else if (duoi === 'mp4' || duoi === 'webm') {
+          const xem = el('video', 'xem-truoc');
+          xem.src = a.href; xem.controls = true; xem.playsInline = true;
+          ketQua.appendChild(xem);
+        }
+        ketQua.appendChild(a);
         trangThai.textContent = 'Xong.';
         bao('Đã dựng xong video.');
       } else if (g.trangThai === 'loi') {
@@ -201,8 +244,10 @@ export function taoBangXuat(boc, { laySlug, bao, layDoc, chonMon }) {
   muc.appendChild(el('h3', 'muc-ten', 'Xuất video'));
   const b1 = el('div', 'num'); b1.append(el('label', 'num-nhan', 'Khổ hình'), chonKho);
   const b2 = el('div', 'num'); b2.append(el('label', 'num-nhan', 'Chất lượng'), chonChat);
+  const b3 = el('div', 'num'); b3.append(el('label', 'num-nhan', 'Định dạng'), chonDinh);
+  const b4 = el('div', 'num'); b4.append(el('label', 'num-nhan', 'Cách dựng'), chonCach);
   const hang = el('div', 'hang-nut'); hang.append(nutXuat, nutHuy);
-  muc.append(b1, b2, hang, thanh, trangThai, ketQua,
+  muc.append(b1, b3, b4, b2, hang, thanh, trangThai, ketQua,
     el('hr', 'ke'), nutKiem);
   boc.appendChild(muc);
 

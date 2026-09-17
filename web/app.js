@@ -21,6 +21,7 @@ import { BO_KIT, BO_MON, KIT, MAU_MON, nhanBanCanh, nhanBanMon, themCanh, themKi
 import { taoBangXuat } from './exportpanel.js';
 import { taoKhung } from './khung.js';
 import { taoBangVideo } from './videos.js';
+import { taoBangTieng } from './tieng.js';
 import { taoZoom } from './zoom.js';
 import { taoAnhNho } from './anhnho.js';
 import { taoKeoCot } from './cot.js';
@@ -53,6 +54,14 @@ const bangXuat = taoBangXuat($('bang-xuat'), {
   bao: (c, h) => bao(c, h),
   layDoc: () => kho.doc(),
   chonMon: (c) => { doiThe('tt'); datChon(c); },
+});
+const bangTieng = taoBangTieng($('bang-tieng'), {
+  layDoc: () => kho.doc(),
+  bao: (c, h) => bao(c, h),
+  // Mọi sửa đổi đi qua `kho.sua` để còn hoàn tác được — rãnh tiếng cũng là một
+  // phần của kịch bản, không phải thiết lập riêng nằm ngoài lịch sử.
+  sua: (f) => kho.sua('sửa rãnh tiếng', f),
+  layGiay: () => (kho.doc()?.scenes || []).reduce((t, c) => t + (c.duration || 0), 0),
 });
 const bangKhung = taoKhung({
   bocGiua: $('san-khung'), bocBang: $('bang-khung'), bao: (c, h) => bao(c, h),
@@ -167,6 +176,9 @@ let henSoat = null;
 function soatLai() {
   clearTimeout(henSoat);
   dsLop.veLaiAnh();
+  // Bảng tiếng chỉ vẽ lại khi ĐANG MỞ — vẽ một bảng đang ẩn là phí, mà nó còn
+  // gọi máy chủ đo sóng âm cho từng rãnh.
+  if ($('the-tieng').getAttribute('aria-selected') === 'true') bangTieng.ve();
   henSoat = setTimeout(() => {
     const kq = bangXuat.veSoat();
     const n = kq?.soNang || 0;
@@ -408,6 +420,7 @@ function doiThe(ten) {
   for (const [t, the, bang] of [['tt', 'the-tt', 'bang-thuoc-tinh'],
                                 ['xuat', 'the-xuat', 'bang-xuat'],
                                 ['khung', 'the-khung', 'bang-khung'],
+                                ['tieng', 'the-tieng', 'bang-tieng'],
                                 ['video', 'the-video', 'bang-video']]) {
     $(the).setAttribute('aria-selected', String(t === ten));
     $(bang).classList.toggle('an', t !== ten);
@@ -421,6 +434,7 @@ function doiThe(ten) {
 $('the-tt').onclick = () => doiThe('tt');
 $('the-xuat').onclick = () => doiThe('xuat');
 $('the-khung').onclick = () => doiThe('khung');
+$('the-tieng').onclick = () => { doiThe('tieng'); bangTieng.ve(); };
 $('the-video').onclick = () => { doiThe('video'); if (!bangVideo.coGi()) bangVideo.nap(); };
 
 /* ---------- danh sách clip ---------- */

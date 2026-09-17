@@ -24,6 +24,7 @@ const MIME = {
   '.webm': 'video/webm',
   '.mp3': 'audio/mpeg',
   '.wav': 'audio/wav',
+  '.zip': 'application/zip',
   '.woff2': 'font/woff2',
   '.ttf': 'font/ttf',
 };

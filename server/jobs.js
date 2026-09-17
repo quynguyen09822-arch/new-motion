@@ -11,10 +11,18 @@
  * với người dùng rằng nó chạy đúng bằng thời lượng phim — cách hứng hình là quay
  * màn hình theo thời gian thật, giấu cũng không được.
  */
-import { spawn } from 'node:child_process';
+import { spawn, execFileSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import { TOOLS } from './proj.js';
 import { thamSoChuyen } from './nguonvideo.js';
+import { fileURLToPath } from 'node:url';
+
+/* Gốc của CHÍNH ứng dụng này — khác `PROJ` (gốc dự án clip). Bộ xuất nhanh nằm
+   trong repo có git của ứng dụng, còn `export-video.mjs` nằm bên dự án clip
+   không có git; hai đường dẫn không được lẫn nhau. */
+const GOC_APP = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const viec = new Map();   // id → bản ghi
 let dem = 0;
@@ -23,6 +31,7 @@ let dangChay = null;
 
 const CHANG = {
   'khoi-dong': 'Đang mở trình duyệt',
+  'nhay-khung': 'Đang nhảy từng khung',
   chuyen: 'Đang chuyển sang định dạng trình duyệt xem được',
   'dung-hinh': 'Đang dựng từng khung hình',
   'ghep': 'Đang ghép bằng ffmpeg',
@@ -95,6 +104,14 @@ function chayTiep() {
           v.chang = 'chuyen';
           v.phanTram = Math.min(99, (troi / v.doanGiay) * 100);
         }
+      } else if (/khung (\d+)\/(\d+)/.test(s)) {
+        /* Bộ xuất nhanh in tiến độ bằng `\r` nên cả chuỗi về trong MỘT dòng,
+           chứa nhiều mốc chồng lên nhau. Lấy mốc CUỐI chứ không lấy mốc đầu —
+           lấy đầu thì thanh tiến độ tụt lùi mỗi lần có chunk mới. */
+        const ds = [...s.matchAll(/khung (\d+)\/(\d+)/g)];
+        const [, da, tong] = ds[ds.length - 1];
+        v.chang = 'nhay-khung';
+        v.phanTram = Math.min(95, 3 + (Number(da) / Number(tong)) * 92);
       } else if (/Đang chạy phim từ giây/.test(s)) {
         v.chang = 'dung-hinh'; v.moc = Date.now(); v.phanTram = 5;
       } else if (/Đang ghép bằng ffmpeg/.test(s)) {
@@ -148,6 +165,46 @@ export function xuatVideo({ slug, khungXem, preset, chatLuong, giay, tenRa }) {
     '--out', tenRa,
   ];
   return taoViec('xuat', `Xuất video ${slug}`, args, { doanGiay: giay });
+}
+
+/**
+ * XUẤT VIDEO CÓ CHẠY ĐƯỢC TRÊN MÁY NÀY KHÔNG.
+ *
+ * Bản chạy trong Docker KHÔNG đóng gói `tools/`, cũng không có ffmpeg lẫn
+ * Chromium — ảnh sẽ phình lên khoảng 1 GB. Không kiểm trước thì người dùng bấm
+ * "Xuất video", chờ, rồi nhận một dòng "spawn ffmpeg ENOENT" chẳng nói lên điều
+ * gì. Kiểm ở đây để báo bằng tiếng người, ngay lúc bấm.
+ */
+export function xuatDuocKhong() {
+  const thieu = [];
+  try { execFileSync('ffmpeg', ['-version'], { stdio: 'ignore' }); }
+  catch { thieu.push('ffmpeg'); }
+  try { createRequire(path.join(TOOLS, '/'))('playwright'); }
+  catch { thieu.push('trình duyệt Chromium'); }
+  if (!existsSync(path.join(GOC_APP, 'tools', 'xuat-nhanh.mjs'))) thieu.push('bộ xuất');
+  return thieu.length
+    ? { ok: false, thieu, cau: `Bản này không dựng video được — thiếu ${thieu.join(' và ')}.`
+        + ' Hãy mở dự án trên máy làm việc rồi xuất ở đó.' }
+    : { ok: true, thieu: [] };
+}
+
+/**
+ * XUẤT NHANH — nhảy từng khung, chia nhiều luồng.
+ *
+ * Vẫn xếp chung một hàng với bộ cũ dù bộ này để khung tạm ở thư mục riêng nên
+ * chạy song song được: mỗi việc đã tự mở 4 trình duyệt rồi, cho hai việc cùng
+ * chạy trên máy 12 lõi là cả hai cùng chậm chứ không ai nhanh lên.
+ */
+export function xuatNhanh({ slug, khungXem, preset, dinhDang, giay, tenRa, luong }) {
+  const args = [
+    path.join(GOC_APP, 'tools', 'xuat-nhanh.mjs'),
+    '--url', khungXem,
+    '--preset', preset,
+    '--format', dinhDang || 'mp4',
+    '--luong', String(luong || 4),
+    '--out', tenRa,
+  ];
+  return taoViec('xuat', `Xuất nhanh ${slug} (${dinhDang || 'mp4'})`, args, { doanGiay: giay });
 }
 
 /** Chuyển một file video sang H.264 để trình duyệt phát được. */

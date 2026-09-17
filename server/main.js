@@ -22,7 +22,8 @@ import { danhSachClip, docClip, duongDanXem, locSlug } from './clips.js';
 import { chupBanGoc, lichSu } from './backup.js';
 import { khoiPhuc, luuClip } from './save.js';
 import { docNhap, ghiNhap, xoaNhap } from './drafts.js';
-import { chuyenVideo, huyViec, khoHopLe, kiemBoCuc, layViec, soDangCho, xuatVideo } from './jobs.js';
+import { duongDanTieng, khoTieng, songAm } from './tieng.js';
+import { chuyenVideo, huyViec, khoHopLe, kiemBoCuc, layViec, soDangCho, xuatDuocKhong, xuatNhanh, xuatVideo } from './jobs.js';
 import { THU_MUC, danhSachVideo as nguonVideo, duongDanThat, locTen, tenBanChuyen } from './nguonvideo.js';
 import { chanDoan, docKhung, suaKhung } from './khung.js';
 import { BO, danhSachVideo } from './videos.js';
@@ -168,6 +169,19 @@ const server = http.createServer(async (req, res) => {
     }
 
     /* ---------- video đã xuất ---------- */
+    /* ---------- rãnh tiếng ---------- */
+    if (p === '/api/tieng' && req.method === 'GET') {
+      return json(res, 200, { ok: true, kho: khoTieng() });
+    }
+
+    if (p === '/api/song-am' && req.method === 'GET') {
+      const f = duongDanTieng(url.searchParams.get('src') || '');
+      // Nói rõ vì sao từ chối. "400" trống không thì người dùng tưởng app hỏng.
+      if (!f) return loi(res, 400, 'Đường dẫn tiếng không hợp lệ hoặc file không có.');
+      const o = Math.max(40, Math.min(2000, Number(url.searchParams.get('o')) || 400));
+      return json(res, 200, { ok: true, ...(await songAm(f, o)) });
+    }
+
     if (p === '/api/videos' && req.method === 'GET') {
       return json(res, 200, { ok: true, bo: BO, videos: await danhSachVideo() });
     }
@@ -200,6 +214,9 @@ const server = http.createServer(async (req, res) => {
       const c = docClip(slug);
       if (!c) return loi(res, 404, `Không thấy clip "${slug}".`);
 
+      const duoc = xuatDuocKhong();
+      if (!duoc.ok) return loi(res, 501, duoc.cau);
+
       const rong = c.doc?.meta?.width, cao = c.doc?.meta?.height;
       const hopLe = khoHopLe(rong, cao).map((k) => k.v);
       if (!hopLe.includes(than.preset)) {
@@ -211,15 +228,28 @@ const server = http.createServer(async (req, res) => {
 
       const giay = (c.doc.scenes || []).reduce((t, s2) => t + (s2.duration || 0), 0);
       const dau = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '');
-      const v = xuatVideo({
-        slug,
-        khungXem: `http://127.0.0.1:${PORT}/clip/scene-player.html?scene=${slug}`,
-        preset: than.preset,
-        chatLuong: than.chatLuong,
-        giay,
-        tenRa: `${slug}-${than.preset}-${dau}.mp4`,
-      });
-      return json(res, 200, { ok: true, id: v.id, giay, dangCho: soDangCho() });
+      const khungXem = `http://127.0.0.1:${PORT}/clip/scene-player.html?scene=${slug}`;
+
+      /* HAI CÁCH DỰNG, và chúng KHÔNG thay thế nhau được hoàn toàn:
+         · "nhanh" nhảy thẳng tới từng mốc giây — nhanh hơn và cho ra đúng một
+           file mỗi lần chạy. Cần bộ dựng là hàm thuần của `t`, mà clip đời 2 thì
+           đúng vậy (đo bằng tools/do-tat-dinh.mjs).
+         · "trung thực" quay màn hình theo thời gian thật — chậm, nhưng đúng cả
+           với trang nào còn hiệu ứng tự chạy theo đồng hồ trình duyệt.
+         Mặc định để "nhanh"; ai thấy hình lạ thì đổi sang cách cũ mà đối chiếu. */
+      const DINH_DANG = ['mp4', 'webm', 'gif', 'png'];
+      const dinhDang = DINH_DANG.includes(than.dinhDang) ? than.dinhDang : 'mp4';
+      const nhanh = than.cach !== 'trung-thuc';
+      if (!nhanh && dinhDang !== 'mp4') {
+        return loi(res, 400, 'Cách dựng "trung thực" chỉ ra được MP4. Chọn cách "nhanh" cho các định dạng khác.');
+      }
+      const duoi = dinhDang === 'png' ? 'zip' : dinhDang;
+      const tenRa = `${slug}-${than.preset}-${dau}.${duoi}`;
+      const v = nhanh
+        ? xuatNhanh({ slug, khungXem, preset: than.preset, dinhDang, giay, tenRa })
+        : xuatVideo({ slug, khungXem, preset: than.preset, chatLuong: than.chatLuong, giay,
+                      tenRa: `${slug}-${than.preset}-${dau}.mp4` });
+      return json(res, 200, { ok: true, id: v.id, giay, nhanh, dinhDang, dangCho: soDangCho() });
     }
 
     if (p === '/api/check-layout' && req.method === 'POST') {

@@ -65,6 +65,11 @@ body.exporting #stage{box-shadow:none;border-radius:0}
 .k-text{display:flex;flex-direction:column;text-align:inherit}
 .k-text .t{font-weight:800;letter-spacing:-.02em;line-height:1.08;color:var(--ink)}
 .k-text .t .d{display:block}
+/* CHỮ ĐỘNG TỪNG KÝ TỰ. Bọc theo TỪ rồi mới tới ký tự — bọc thẳng từng ký tự thì
+   trình duyệt được phép ngắt dòng giữa thân một từ, và tiêu đề sẽ vỡ ở chỗ
+   không ai ngờ. `inline-block` là bắt buộc: chữ inline không nhận `transform`. */
+.k-text .tu{display:inline-block;white-space:nowrap}
+.k-text .k{display:inline-block;will-change:transform,opacity}
 /* Ảnh nằm giữa dòng chữ: cao theo CỠ CHỮ chứ không phải một con số px, nên đổi cỡ
    tiêu đề là nó giãn theo, không bao giờ lệch hàng. */
 .k-text .t img.hinh{height:.86em;width:auto;vertical-align:-.11em;display:inline-block}
@@ -343,6 +348,76 @@ const EASE = {
   inOut:  t => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3)/2,
   back:   t => { const c = 1.70158, u = t - 1; return 1 + (c+1)*u*u*u + c*u*u; },
 };
+
+/* ---- ĐƯỜNG CONG TỐC ĐỘ -----------------------------------------------------
+ * Bốn đường trên giữ NGUYÊN tên và NGUYÊN kết quả: cả kho 22 clip đang gọi
+ * chúng, đổi một li là 1445 phần tử chạy khác đi mà không ai kịp nhận ra.
+ *
+ * Phần thêm là đường Bézier bậc ba tuỳ ý — khai bằng bốn số [x1,y1,x2,y2] y hệt
+ * `cubic-bezier()` của CSS. Vì sao tự giải thay vì nhờ CSS: chuyển động ở đây
+ * tính theo ĐỒNG HỒ CỦA CLIP chứ không theo đồng hồ trình duyệt. Nhờ CSS làm
+ * hộ thì tua tới giây nào cũng ra một khung khác, và mỗi lần xuất video lại ra
+ * một kết quả khác — đúng cái bẫy mà `TICK.video` đã phải tránh.
+ */
+const CONG = {
+  'mem':      [.25, .10, .25, 1.00],   // `ease` chuẩn của CSS — êm, không tính cách
+  'vao-cham': [.42, .00, 1.00, 1.00],  // rời chỗ chậm rồi lao tới đích
+  'ra-cham':  [.00, .00, .58, 1.00],   // vọt đi ngay rồi hãm dần — hợp với chữ
+  'hai-dau':  [.42, .00, .58, 1.00],   // chậm cả hai đầu, nhanh ở giữa
+  'manh':     [.16, 1.00, .30, 1.00],  // bật ra rất nhanh rồi trôi — kiểu iOS
+  'ghim':     [.60, .00, .40, 1.00],   // dứt khoát ở giữa, đóng đinh ở hai đầu
+  'nay':      [.68, -.55, .27, 1.55],  // nhún ngược một nhịp rồi vọt qua đích
+  'vot':      [.34, 1.56, .64, 1.00],  // vọt quá đích rồi lùi về — nảy một lần
+};
+
+/** Bézier bậc ba của CSS: trả về hàm x→y. Newton trước, chia đôi để chốt. */
+function beBezier(x1, y1, x2, y2) {
+  const A = (a, b) => 1 - 3 * b + 3 * a;
+  const B = (a, b) => 3 * b - 6 * a;
+  const C = (a) => 3 * a;
+  const f = (t, a, b) => ((A(a, b) * t + B(a, b)) * t + C(a)) * t;
+  const df = (t, a, b) => 3 * A(a, b) * t * t + 2 * B(a, b) * t + C(a);
+  return (x) => {
+    if (x <= 0) return 0;
+    if (x >= 1) return 1;
+    let t = x;
+    for (let i = 0; i < 8; i++) {               // Newton — vài vòng là tới
+      const d = df(t, x1, x2);
+      if (Math.abs(d) < 1e-6) break;
+      const e = f(t, x1, x2) - x;
+      if (Math.abs(e) < 1e-7) return f(t, y1, y2);
+      t -= e / d;
+    }
+    let lo = 0, hi = 1;                         // chia đôi — chậm hơn nhưng chắc
+    t = x;
+    for (let i = 0; i < 24; i++) {
+      const e = f(t, x1, x2) - x;
+      if (Math.abs(e) < 1e-7) break;
+      if (e > 0) hi = t; else lo = t;
+      t = (lo + hi) / 2;
+    }
+    return f(t, y1, y2);
+  };
+}
+
+/* Mỗi bộ bốn số chỉ dựng hàm MỘT lần: cảnh nặng nhất có 229 phần tử × 60 khung
+   mỗi giây, dựng lại mỗi lần gọi là tự tay làm clip giật. */
+const NHO_CONG = new Map();
+function duongCong(ease) {
+  if (typeof ease === 'function') return ease;
+  if (Array.isArray(ease) && ease.length === 4) {
+    const khoa = ease.join(',');
+    let f = NHO_CONG.get(khoa);
+    if (!f) {
+      f = beBezier(+ease[0] || 0, +ease[1] || 0, +ease[2] || 0, +ease[3] || 0);
+      NHO_CONG.set(khoa, f);
+    }
+    return f;
+  }
+  if (EASE[ease]) return EASE[ease];
+  if (CONG[ease]) return duongCong(CONG[ease]);
+  return EASE.out;
+}
 const cl = (v, a, b) => v < a ? a : v > b ? b : v;
 
 /* ---- màu: đủ dùng để suy ra bảng màu nền tối, không cần thư viện ---- */
@@ -364,7 +439,7 @@ function mix(a, b, t) {
 /** Tiến độ 0→1 của một quãng, đã bẻ cong. */
 function seg(t, t0, t1, ease) {
   if (t1 <= t0) return t >= t1 ? 1 : 0;
-  return (EASE[ease] || EASE.out)(cl((t - t0) / (t1 - t0), 0, 1));
+  return duongCong(ease)(cl((t - t0) / (t1 - t0), 0, 1));
 }
 
 /* ------------------------------------------------------------- dữ liệu */
@@ -430,6 +505,110 @@ function locHinh(el, pIn) {
   const bong = BONG[cl((el.shadow | 0), 0, 5)];
   if (bong) ra.push(`drop-shadow(${bong})`);
   return ra.join(' ');
+}
+
+/* --- HOÀ TRỘN VÀ MẶT NẠ -----------------------------------------------------
+ * Hai thứ này là cách một hình phẳng bắt đầu trông như có chiều sâu: chữ `nhan`
+ * lên ảnh thì ăn vào chất liệu bên dưới thay vì dán đè, còn mặt nạ cho phép một
+ * khối HIỆN RA theo hình chứ không chỉ mờ dần.
+ */
+const HOA = {
+  thuong:     'normal',
+  nhan:       'multiply',     // tối đi — chữ/vệt như in lên giấy
+  sang:       'screen',       // sáng lên — khói, tia, loé
+  phu:        'overlay',      // vừa tăng tương phản vừa giữ chất nền
+  toi:        'darken',
+  'sang-hon': 'lighten',
+  chenh:      'difference',   // đảo màu chỗ chồng — dùng ít, rất mạnh
+  cong:       'plus-lighter', // cộng ánh sáng — hợp với vệt loé chồng nhau
+};
+
+/* % nhoè mép mặt nạ theo bậc 0..5 — cùng lối bậc thang với `soft`/`shadow`. */
+const NHOE_NA = [0, 2, 5, 10, 18, 30];
+
+/**
+ * Mặt nạ của một phần tử. Trả chuỗi rỗng nghĩa là KHÔNG che gì.
+ *
+ * Quy ước CSS: chỗ ĐẶC là chỗ nhìn thấy, chỗ trong suốt bị cắt đi.
+ *
+ * Các kiểu `quet-*` và `no-tron` là mặt nạ CHẠY THEO chuyển động vào: hết nhịp
+ * vào thì bỏ mặt nạ hẳn, vừa cho mép sắc lại vừa đỡ phải tính mỗi khung hình.
+ */
+function matNa(el, pIn) {
+  if (el.maskSrc) return `url("${el.maskSrc}")`;
+  const kieu = el.mask;
+  if (!kieu || kieu === 'khong') return '';
+  const n = NHOE_NA[cl(el.maskSoft | 0, 0, 5)];
+  const pc = (v) => `${cl(v, 0, 100).toFixed(2)}%`;
+  if (kieu === 'tron') {
+    return `radial-gradient(circle at 50% 50%, #000 ${pc(50 - n)}, transparent 50%)`;
+  }
+  if (pIn >= 1) return '';                     // quét xong rồi thì thôi
+  if (kieu === 'no-tron') {
+    const r = pIn * 78;                        // 78% mới phủ hết góc của ô vuông
+    return `radial-gradient(circle at 50% 50%, #000 ${pc(r - n)}, transparent ${pc(r)})`;
+  }
+  const goc = { 'quet-phai': 90, 'quet-trai': 270, 'quet-len': 0, 'quet-xuong': 180 }[kieu];
+  if (goc == null) return '';
+  const q = pIn * 100;
+  return `linear-gradient(${goc}deg, #000 ${pc(q - n)}, transparent ${pc(q)})`;
+}
+
+/* ============================================================== KEYFRAME
+ * `keys[]` — tự đặt mốc cho từng lúc thay vì chọn một hiệu ứng vào có sẵn.
+ *
+ *   keys: [
+ *     { t: 0,   y: 40, opacity: 0, scale: .9 },
+ *     { t: .8,  y: 0,  opacity: 1, scale: 1, ease: 'manh' },
+ *     { t: 3,   x: 120, ease: 'mem' }
+ *   ]
+ *
+ * BỐN ĐIỀU PHẢI NHỚ:
+ *
+ * 1. `t` tính theo giây CỦA CẢNH, cùng đồng hồ với `at` — không phải giây của
+ *    cả clip. Cảnh nào cũng đếm lại từ 0, nên chép một món sang cảnh khác là
+ *    chạy y nguyên.
+ *
+ * 2. `x`/`y` là ĐỘ DỜI so với chỗ món đang đứng, không phải toạ độ tuyệt đối.
+ *    Toạ độ tuyệt đối nằm ở `el.x`/`el.y` và do phần dàn trang lo. Trộn hai thứ
+ *    là món nhảy về góc trên trái ngay khung đầu.
+ *
+ * 3. TỪNG THUỘC TÍNH MỘT ĐƯỜNG RIÊNG. Mốc chỉ khai `x` thì `opacity` vẫn chạy
+ *    theo hai mốc gần nhất CÓ khai `opacity`. Nếu bắt mỗi mốc phải khai đủ mọi
+ *    thứ thì người dùng khai thiếu một cái là món nhấp nháy, mà không hiểu vì sao.
+ *
+ * 4. Có `keys` thì hiệu ứng vào/ra BỊ BỎ QUA hẳn. Cho cả hai cùng ghi
+ *    `transform` thì không ai đoán nổi kết quả — đúng cái bẫy `charStagger`
+ *    chồng `lineStagger` đã gặp.
+ */
+const NUM_KEY = ['x', 'y', 'scale', 'rotate', 'opacity'];
+const KEY_MAC_DINH = { x: 0, y: 0, scale: 1, rotate: 0, opacity: 1 };
+
+/** Giá trị của một thuộc tính tại giây `cuc`, nội suy giữa hai mốc gần nhất. */
+function docKey(keys, ten, cuc) {
+  let truoc = null, sau = null;
+  for (const k of keys) {
+    if (k == null || k[ten] == null) continue;
+    if (k.t <= cuc) { if (!truoc || k.t >= truoc.t) truoc = k; }
+    else if (!sau || k.t < sau.t) sau = k;
+  }
+  if (!truoc && !sau) return null;               // không mốc nào khai — để mặc định
+  if (!truoc) return sau[ten];                   // trước mốc đầu: giữ nguyên giá trị đầu
+  if (!sau) return truoc[ten];                   // sau mốc cuối: giữ nguyên giá trị cuối
+  // `ease` nằm trên mốc ĐÍCH: nó tả đường đi TỚI mốc đó, giống cách
+  // After Effects và CSS đều hiểu.
+  return truoc[ten] + (sau[ten] - truoc[ten]) * seg(cuc, truoc.t, sau.t, sau.ease || 'mem');
+}
+
+function tinhKey(el, cuc) {
+  const keys = el.keys;
+  if (!Array.isArray(keys) || !keys.length) return null;
+  const ra = { ...KEY_MAC_DINH };
+  for (const ten of NUM_KEY) {
+    const v = docKey(keys, ten, cuc);
+    if (v != null) ra[ten] = v;
+  }
+  return ra;
 }
 
 /* --------------------------------------------------------- dựng phần tử */
@@ -776,6 +955,48 @@ function veQuyDao(el) {
   </svg>`;
 }
 
+/**
+ * BỌC TỪNG KÝ TỰ ĐỂ CHO CHỮ CHẠY RỜI NHAU.
+ *
+ * Đi theo NÚT CHỮ chứ không cắt chuỗi HTML: dòng tiêu đề đã qua `rich()` nên
+ * bên trong có sẵn `<i>` (chữ mang màu nhấn) và `<img>` (biểu tượng chen giữa
+ * dòng). Cắt chuỗi là xé đôi các thẻ đó. Đi theo nút thì thẻ nào ra thẻ nấy,
+ * màu nhấn giữ nguyên, ảnh vẫn nằm đúng chỗ.
+ */
+function bocTungChu(goc) {
+  const khung = goc.querySelectorAll('.t .d, .s');
+  for (const o of khung) {
+    const nut = [];
+    const di = (n) => {
+      for (const c of Array.from(n.childNodes)) {
+        if (c.nodeType === 3) nut.push(c); else if (c.nodeType === 1) di(c);
+      }
+    };
+    di(o);
+    for (const t of nut) {
+      const chu = t.nodeValue;
+      if (!chu || !chu.trim()) continue;
+      const manh = document.createDocumentFragment();
+      // Tách giữ lại cả khoảng trắng: khoảng trắng nằm ngoài `.tu` thì trình
+      // duyệt mới còn chỗ hợp lệ để ngắt dòng.
+      for (const phan of chu.split(/(\s+)/)) {
+        if (!phan) continue;
+        if (/^\s+$/.test(phan)) { manh.appendChild(document.createTextNode(phan)); continue; }
+        const tu = document.createElement('span');
+        tu.className = 'tu';
+        for (const c of Array.from(phan)) {
+          const k = document.createElement('span');
+          k.className = 'k';
+          k.textContent = c;
+          tu.appendChild(k);
+        }
+        manh.appendChild(tu);
+      }
+      t.parentNode.replaceChild(manh, t);
+    }
+  }
+}
+
 const BUILD = {
   group(el, n) {
     n.style.flexDirection = el.dir === 'ngang' ? 'row' : 'column';
@@ -799,6 +1020,7 @@ const BUILD = {
       + (el.sub ? `<span class="s">${rich(el.sub)}</span>` : '');
     const rl = n.querySelector('.rule');
     if (rl) { rl.style.width = px(Math.round(size * 1.5)); rl.style.height = px(Math.max(2, Math.round(U * .25))); }
+    if (el.charStagger) bocTungChu(n);
     n.style.textAlign = el.align || 'left';
     n.style.alignItems = el.align === 'center' ? 'center' : el.align === 'right' ? 'flex-end' : 'flex-start';
     n.style.gap = px(sp(el.gap != null ? el.gap : 3));
@@ -1211,6 +1433,12 @@ function layout(doc) {
         node.style.setProperty('--ink-nhat', el.inkFaint
           || `color-mix(in srgb, ${el.ink} 50%, transparent)`);
       }
+      // Hoà trộn không đổi theo thời gian nên đặt một lần ở đây, không phải
+      // mỗi khung hình. `thuong` cũng bỏ qua luôn: đặt `normal` vào hàng trăm
+      // nút chỉ tổ sinh thêm lớp ghép mà không đổi hình.
+      if (el.blend && el.blend !== 'thuong' && HOA[el.blend]) {
+        node.style.mixBlendMode = HOA[el.blend];
+      }
       (BUILD[el.kind] || BUILD.panel)(el, node);
       parent.appendChild(node);
       ELS.push({ el, node, scene: rec, index: order++ });
@@ -1465,6 +1693,47 @@ const TICK = {
    * phân biệt một clip có người dựng với một cái ảnh biết nhấp nháy.
    */
   text(el, node, local, at) {
+    /* TỪNG KÝ TỰ. Khai `charStagger` là bỏ qua `lineStagger`: cho cả hai cùng
+       ghi `opacity` lên chồng nhau thì dòng chữ nhấp nháy, và không ai đoán
+       được vì sao. Từng ký tự đã bao gồm hiệu quả của từng dòng rồi. */
+    if (el.charStagger) {
+      // Tìm một lần rồi giữ lại: một cảnh có thể có hàng trăm ký tự, mà hàm này
+      // chạy 60 lần mỗi giây. Nút bị dựng lại thì bộ nhớ này mất theo, đúng ý.
+      let ds = node.__k;
+      if (!ds) ds = node.__k = Array.from(node.querySelectorAll('.k'));
+      if (!ds.length) return;
+      const kieu = el.charIn || 'rise';
+      const dai = el.charDur != null ? el.charDur : .42;
+      const cong = el.charEase || 'ra-cham';
+      for (let i = 0; i < ds.length; i++) {
+        const t0 = at + i * el.charStagger;
+        const st = ds[i].style;
+        if (kieu === 'go') {                 // máy đánh chữ: hiện đứt khoát, không trôi
+          st.opacity = local >= t0 ? '1' : '0';
+          continue;
+        }
+        const p = seg(local, t0, t0 + dai, cong);
+        st.opacity = String(p);
+        if (kieu === 'rise')      st.transform = `translateY(${((1 - p) * U * 1.1).toFixed(2)}px)`;
+        else if (kieu === 'roi')  st.transform = `translateY(${((p - 1) * U * 1.1).toFixed(2)}px)`;
+        else if (kieu === 'pop')  st.transform = `scale(${(.55 + .45 * p).toFixed(3)})`;
+        else if (kieu === 'xoay') st.transform = `rotate(${((1 - p) * -14).toFixed(2)}deg)`;
+        else if (kieu === 'nhoe') st.filter = p >= 1 ? '' : `blur(${((1 - p) * U * .4).toFixed(2)}px)`;
+        else                      st.transform = '';   // `fade` — chỉ mờ dần
+      }
+      // Gạch dưới đợi chữ chạy xong mới kẻ, nếu không nó tới trước cả tiêu đề.
+      const rl = node.querySelector('.rule');
+      if (rl) {
+        const t0 = at + ds.length * el.charStagger;
+        const p = seg(local, t0, t0 + .4, 'out');
+        rl.style.opacity = String(p);
+        rl.style.transform = `scaleX(${p.toFixed(3)})`;
+        rl.style.transformOrigin = el.align === 'center' ? '50% 50%'
+          : el.align === 'right' ? '100% 50%' : '0% 50%';
+      }
+      return;
+    }
+
     const so_le = el.lineStagger;
     if (!so_le) return;
     const phan = node.querySelectorAll('.t .d, .rule, .s');
@@ -1497,14 +1766,19 @@ function applyEl(rec, t) {
   const dOut = mOut.dur != null ? mOut.dur : .4;
   const pOut = el.out || el.for != null ? seg(local, outAt, outAt + dOut, mOut.ease || 'inOut') : 0;
 
+  /* CÓ `keys` thì keyframe cầm lái, hiệu ứng vào/ra nghỉ hẳn. Xem chú thích ở
+     `tinhKey` cho lý do — hai hệ cùng ghi `transform` là không đoán nổi. */
+  const kf = tinhKey(el, local - stagger);
+
   const gIn = (MOTION[mIn.kind] || MOTION.rise)(mIn.dist != null ? mIn.dist : Math.round(U * 2.2));
   const gOut = (MOTION[mOut.kind] || MOTION.fade)(mOut.dist != null ? mOut.dist : Math.round(U * 1.6));
 
-  const dx = gIn.dx * (1 - pIn) - gOut.dx * pOut;
-  const dy = gIn.dy * (1 - pIn) - gOut.dy * pOut;
-  const sc = (gIn.s + (1 - gIn.s) * pIn) * (1 - (1 - gOut.s) * pOut);
+  const dx = kf ? kf.x : gIn.dx * (1 - pIn) - gOut.dx * pOut;
+  const dy = kf ? kf.y : gIn.dy * (1 - pIn) - gOut.dy * pOut;
+  const sc = kf ? kf.scale : (gIn.s + (1 - gIn.s) * pIn) * (1 - (1 - gOut.s) * pOut);
 
-  node.style.opacity = String(cl(pIn * (1 - pOut) * (el.opacity != null ? el.opacity : 1), 0, 1));
+  node.style.opacity = String(cl(
+    (kf ? kf.opacity : pIn * (1 - pOut)) * (el.opacity != null ? el.opacity : 1), 0, 1));
   const fit = rec.fit != null ? rec.fit : 1;
   const tick = TICK[el.kind];
   if (tick) tick(el, node, local, at);
@@ -1531,13 +1805,30 @@ function applyEl(rec, t) {
     day = 1 + bien * (el.pushOut ? (1 - q) : q);
   }
 
+  /* Góc xoay: `el.rotate` là góc ĐỨNG YÊN của món, `kf.rotate` là góc đang
+     chạy theo mốc. Cộng lại chứ không thay nhau — món vốn nghiêng 8 độ mà
+     keyframe xoay thêm thì phải nghiêng từ 8 độ, không phải từ 0. */
+  const xoay = (el.rotate || 0) + (kf ? kf.rotate : 0);
   node.style.transform =
     `translate(${dx.toFixed(2)}px,${dy.toFixed(2)}px) scale(${(sc * fit * dap * day).toFixed(4)})` +
-    (el.rotate ? ` rotate(${el.rotate}deg)` : '');
+    (xoay ? ` rotate(${xoay.toFixed(2)}deg)` : '');
 
   /* Chỉ đụng `filter` khi phần tử CÓ khai hiệu ứng. Cảnh nặng nhất có 229 phần
      tử; ghi một chuỗi rỗng vào cả 229 nút mỗi khung hình là phí không cần. */
   if (el.soft || el.softIn || el.shadow) node.style.filter = locHinh(el, pIn);
+
+  /* Mặt nạ: cũng chỉ đụng khi CÓ khai. Phải ghi cả tên có tiền tố lẫn tên chuẩn
+     — bộ dựng cũ trong kho vẫn dùng `-webkit-mask`, mà bản mới thì hiểu tên
+     chuẩn; ghi cả hai thì chạy đúng ở cả hai chỗ. */
+  if (el.mask || el.maskSrc) {
+    const na = matNa(el, pIn);
+    node.style.webkitMaskImage = na;
+    node.style.maskImage = na;
+    if (na) {
+      node.style.webkitMaskSize = node.style.maskSize = '100% 100%';
+      node.style.webkitMaskRepeat = node.style.maskRepeat = 'no-repeat';
+    }
+  }
 }
 
 function applyCamera(t) {
@@ -1584,7 +1875,72 @@ function applyPointer(t) {
   if (!shown) { $cursor.style.opacity = '0'; $flash.style.opacity = '0'; }
 }
 
+/* ============================================================== RÃNH TIẾNG
+ * Tiếng chạy theo ĐỒNG HỒ CỦA CLIP, không phải đồng hồ của thẻ <audio>.
+ *
+ * Vì sao không thả cho thẻ tự phát: tua tới giây 12 thì hình nhảy tới ngay còn
+ * tiếng vẫn đọc từ đầu — sai khớp mà không báo gì. Nên mỗi lần đổi mốc thời
+ * gian là ép lại `currentTime` của từng rãnh.
+ *
+ * Vì sao chỉ ép khi lệch quá 0,12 giây: ghi `currentTime` là bắt trình duyệt
+ * tìm lại vị trí trong file nén, làm liên tục thì tiếng rè và giật. 0,12 giây
+ * là dưới ngưỡng tai người nghe ra lệch môi.
+ *
+ * LÚC XUẤT VIDEO thì TẮT HẲN. Bộ xuất nhảy từng khung, tiếng không quay theo
+ * kiểu đó được — ffmpeg ghép tiếng vào sau, từ chính danh sách rãnh này.
+ */
+const XUAT = P.get('export') === '1';
+let TIENG = [];              // [{ el, t: cấu hình rãnh }]
+
+function dungTieng() {
+  for (const r of TIENG) { try { r.el.pause(); r.el.remove(); } catch { /* kệ */ } }
+  TIENG = [];
+}
+
+function layTieng(doc) {
+  dungTieng();
+  if (XUAT) return;                       // bộ xuất tự lo phần tiếng
+  for (const t2 of (doc.audio && doc.audio.tracks) || []) {
+    if (!t2 || !t2.src) continue;
+    const el = document.createElement('audio');
+    el.src = t2.src;
+    el.preload = 'auto';
+    el.dataset.rank = t2.id || '';
+    document.body.appendChild(el);
+    TIENG.push({ el, t: t2 });
+  }
+}
+
+/** Độ to của một rãnh tại giây `cuc` tính từ lúc rãnh bắt đầu. */
+function toTieng(c, cuc, dai) {
+  let v = c.gain != null ? c.gain : 1;
+  const vao = c.fadeIn || 0, ra = c.fadeOut || 0;
+  if (vao > 0 && cuc < vao) v *= cl(cuc / vao, 0, 1);
+  if (ra > 0 && dai > 0 && cuc > dai - ra) v *= cl((dai - cuc) / ra, 0, 1);
+  return cl(v, 0, 1);
+}
+
+function dongBoTieng(moc, dangChay) {
+  for (const { el, t: c } of TIENG) {
+    const batDau = c.at || 0;
+    const tu = c.from || 0;
+    const daiNguon = isFinite(el.duration) ? el.duration - tu : Infinity;
+    const daiRanh = c.for != null ? c.for : daiNguon;
+    const cuc = moc - batDau;
+    if (cuc < -0.02 || cuc > daiRanh) {          // ngoài quãng của rãnh này
+      if (!el.paused) el.pause();
+      continue;
+    }
+    const dich = tu + Math.max(0, cuc);
+    if (Math.abs(el.currentTime - dich) > 0.12) { try { el.currentTime = dich; } catch { /* chưa nạp xong */ } }
+    el.volume = toTieng(c, Math.max(0, cuc), daiRanh);
+    if (dangChay && el.paused) el.play().catch(() => { /* trình duyệt chặn tự phát */ });
+    if (!dangChay && !el.paused) el.pause();
+  }
+}
+
 let t = 0, DUNG = true, last = 0;
+let mocTieng = 0;            // lần cuối soát lại tiếng, để khỏi soát mỗi khung
 
 function render(now) {
   t = cl(now, 0, DUR);
@@ -1594,7 +1950,14 @@ function render(now) {
 }
 
 function loop(now) {
-  if (!DUNG) { const dt = (now - last) / 1000; last = now; render(t + dt); if (t >= DUR) DUNG = true; }
+  if (!DUNG) {
+    const dt = (now - last) / 1000; last = now; render(t + dt);
+    if (t >= DUR) { DUNG = true; dongBoTieng(t, false); }
+    /* Soát lại tiếng 4 lần mỗi giây, không phải mỗi khung hình: thẻ <audio> tự
+       trôi theo đồng hồ riêng của nó nên chỉ cần kéo về khi đã lệch, còn ép mỗi
+       khung là tiếng rè. */
+    else if (now - mocTieng > 250) { mocTieng = now; dongBoTieng(t, true); }
+  }
   requestAnimationFrame(loop);
 }
 
@@ -1603,6 +1966,7 @@ function loop(now) {
 loadDoc().then(async (doc) => {
   DOC = doc;
   layout(doc);
+  layTieng(doc);
   document.title = 'ClipVibe · ' + ((doc.meta && doc.meta.name) || 'cảnh');
 
   // Đo sau khi phông chữ xong, không thì đo phải cỡ chữ dự phòng rồi thu sai.
@@ -1631,19 +1995,24 @@ loadDoc().then(async (doc) => {
         })));
       fit(); measureFit(); render(t);
     },
-    play: () => { DUNG = false; last = performance.now(); },
+    play: () => { DUNG = false; last = performance.now(); mocTieng = last; dongBoTieng(t, true); },
     /* Dừng tại chỗ. `seek` KHÔNG dừng — nó chỉ vẽ lại một khung hình, rồi vòng
        lặp chạy tiếp ngay nhịp sau. Thiếu hàm này thì nút Dừng của trình sửa bấm
        xong phim vẫn chạy. Thuần bổ sung: không công cụ nào đang gọi `pause`. */
-    pause: () => { DUNG = true; },
+    pause: () => { DUNG = true; dongBoTieng(t, false); },
     /* Đang chạy hay đang đứng — để trình sửa vẽ đúng nhãn nút, thay vì tự đoán
        bằng một lá cờ riêng rồi lệch khi phim tự hết. */
     get paused() { return DUNG; },
     at: () => t,
-    seek: (s) => render(s),
+    /* `seek` kéo tiếng theo, `step` thì KHÔNG. Lý do: `step` là đường của bộ
+       xuất video, nhảy hàng nghìn khung liên tiếp — ép `currentTime` từng lần
+       như vậy vừa vô ích (bộ xuất không thu tiếng) vừa làm chậm hẳn. */
+    seek: (s) => { render(s); dongBoTieng(t, !DUNG); },
     step: (s) => render(s),
+    /** Danh sách rãnh tiếng — để bộ xuất video biết phải ghép những gì. */
+    get tieng() { return ((DOC && DOC.audio && DOC.audio.tracks) || []).slice(); },
     /* Dành cho khung xem trước trong studio: nạp kịch bản khác mà không tải lại trang. */
-    load: (next) => { DOC = next; layout(next); measureFit(); render(0); return DUR; },
+    load: (next) => { DOC = next; layout(next); layTieng(next); measureFit(); render(0); return DUR; },
     /**
      * Ranh giới từng cảnh — để công cụ bên ngoài biết chụp ảnh ở đâu.
      * `giua` là lúc cảnh đã vào xong, chưa bắt đầu ra: chụp ở đó thì được khung

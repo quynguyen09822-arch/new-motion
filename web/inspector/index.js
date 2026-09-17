@@ -4,6 +4,7 @@
  * Chia mục theo câu hỏi trong đầu người dùng, không theo cấu trúc dữ liệu:
  * "nó viết gì" → "nó bay vào thế nào" → "lúc nào nó hiện" → "nó nằm đâu".
  */
+import { veMocChuyenDong } from './keyframe.js';
 import { DEM_TRONG, HUONG_DAN_CHUNG, HUONG_DAN_MAU, KHE_HO, KHO_CHO, KHO_DA, KHO_RA, KHO_VAO, MAU_MAT_BAO, NHAN_KHE_HO, NUM_HIEU_UNG, NUM_MAU, NUM_RIENG, TEN_LOAI } from './schema.js';
 import { taoNum } from './fields.js';
 import { cungTiLe, doiKhoHinh, khoGoiY } from '../khohinh.js';
@@ -497,6 +498,21 @@ export function taoBang(boc, kho, player) {
      * — chỗ nào cũng nghe. `tools/kiem-hieu-ung.mjs` đo lại điều đó trên cả 24
      * loại, để hôm nào bộ dựng đổi ý thì biết ngay.
      */
+    /* MỐC CHUYỂN ĐỘNG — đặt TRƯỚC mục hiệu ứng hình, vì nó thay hẳn phần
+       chuyển động vào/ra ở trên. Để sau thì người dùng vặn xong hiệu ứng vào
+       rồi mới thấy dòng "đang dùng mốc nên hiệu ứng vào/ra không chạy". */
+    boc.appendChild(veMocChuyenDong({
+      e, datMon, KHO_DA, veLai: () => ve(),
+      daiCanh: () => (player.dsCanh().find((c) => c.id === chon.canhId)?.duration) || 6,
+      /* Giờ TÍNH THEO CẢNH, không phải theo cả clip — `keys[].t` dùng cùng đồng
+         hồ với `at`. Lấy nhầm giờ của cả clip thì mốc rơi ra ngoài cảnh và món
+         đứng im, mà nhìn thanh tua thì thấy kim đang ở đúng chỗ. */
+      gioHienTai: () => {
+        const c = player.dsCanh().find((x) => x.id === chon.canhId);
+        return Math.max(0, player.giay() - (c?.start || 0));
+      },
+    }));
+
     const mH = muc('Hiệu ứng hình');
     for (const num of NUM_HIEU_UNG) {
       mH.appendChild(taoNum(num, e[num.id] ?? (num.kieu === 'bat' ? false : 0),

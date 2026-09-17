@@ -43,10 +43,54 @@ export const KHO_RA = [
 
 /** Kiểu đà — gọi theo cảm giác, không gọi tên hàm toán. */
 export const KHO_DA = [
-  { v: 'out',    nhan: 'Chậm dần lại' },
-  { v: 'inOut',  nhan: 'Êm hai đầu' },
-  { v: 'back',   nhan: 'Vượt quá rồi lùi' },
-  { v: 'linear', nhan: 'Đều tay' },
+  { v: 'out',      nhan: 'Chậm dần lại' },
+  { v: 'inOut',    nhan: 'Êm hai đầu' },
+  { v: 'back',     nhan: 'Vượt quá rồi lùi' },
+  { v: 'linear',   nhan: 'Đều tay' },
+  /* Bốn kiểu trên là của nhà, cả kho clip đang dùng — đừng đổi thứ tự hay tên.
+     Tám kiểu dưới vẽ bằng đường cong bốn điểm, cho tay nghề cao hơn một bậc. */
+  { v: 'mem',      nhan: 'Mềm — êm, không tính cách' },
+  { v: 'ra-cham',  nhan: 'Vọt đi rồi hãm — hợp với chữ' },
+  { v: 'vao-cham', nhan: 'Rời chỗ chậm rồi lao tới' },
+  { v: 'hai-dau',  nhan: 'Nhanh ở giữa, chậm hai đầu' },
+  { v: 'manh',     nhan: 'Bật rất nhanh rồi trôi' },
+  { v: 'ghim',     nhan: 'Dứt khoát, đóng đinh hai đầu' },
+  { v: 'nay',      nhan: 'Nhún ngược rồi vọt qua' },
+  { v: 'vot',      nhan: 'Vọt quá đích rồi lùi về' },
+];
+
+/** Cách một món hiện ra theo HÌNH, thay vì chỉ mờ dần. */
+export const KHO_MAT_NA = [
+  { v: 'khong',      nhan: 'Không che' },
+  { v: 'tron',       nhan: 'Cắt tròn' },
+  { v: 'no-tron',    nhan: 'Nở tròn từ giữa' },
+  { v: 'quet-phai',  nhan: 'Quét sang phải' },
+  { v: 'quet-trai',  nhan: 'Quét sang trái' },
+  { v: 'quet-len',   nhan: 'Quét lên trên' },
+  { v: 'quet-xuong', nhan: 'Quét xuống dưới' },
+];
+
+/** Cách màu của món ăn vào thứ nằm dưới nó. */
+export const KHO_HOA = [
+  { v: 'thuong',   nhan: 'Dán đè như thường' },
+  { v: 'nhan',     nhan: 'Ăn vào nền (tối đi)' },
+  { v: 'sang',     nhan: 'Loé lên (sáng ra)' },
+  { v: 'phu',      nhan: 'Phủ lên, giữ chất nền' },
+  { v: 'toi',      nhan: 'Chỉ giữ chỗ tối hơn' },
+  { v: 'sang-hon', nhan: 'Chỉ giữ chỗ sáng hơn' },
+  { v: 'chenh',    nhan: 'Đảo màu chỗ chồng nhau' },
+  { v: 'cong',     nhan: 'Cộng ánh sáng' },
+];
+
+/** Kiểu chạy của từng chữ cái. */
+export const KHO_CHU_CHAY = [
+  { v: 'rise', nhan: 'Nhô lên' },
+  { v: 'roi',  nhan: 'Rơi xuống' },
+  { v: 'pop',  nhan: 'Bật nở' },
+  { v: 'xoay', nhan: 'Xoay vào' },
+  { v: 'nhoe', nhan: 'Nét dần từ nhoè' },
+  { v: 'go',   nhan: 'Gõ như máy đánh chữ' },
+  { v: 'fade', nhan: 'Chỉ hiện dần' },
 ];
 
 /** Bảy vùng đặt sẵn. Đây là VÙNG chứ không phải điểm — nó đặt cả chỗ lẫn bề rộng. */
@@ -160,6 +204,10 @@ export const NUM_HIEU_UNG = [
   { id: 'shadow', nhan: 'Bóng đổ',         kieu: 'bac', bac: BAC_BONG },
   { id: 'push',   nhan: 'Đẩy máy chậm',    kieu: 'bac', bac: BAC_DAY },
   { id: 'pushOut', nhan: 'Đẩy ra thay vì đẩy vào', kieu: 'bat' },
+  { id: 'blend',  nhan: 'Hoà vào nền',     kieu: 'chon', chon: KHO_HOA },
+  { id: 'mask',   nhan: 'Hiện ra theo hình', kieu: 'chon', chon: KHO_MAT_NA },
+  { id: 'maskSoft', nhan: 'Nhoè mép chỗ cắt', kieu: 'bac', bac: BAC_NHOE },
+  { id: 'maskSrc', nhan: 'Cắt theo ảnh riêng', kieu: 'anh' },
 ];
 
 export const NUM_RIENG = {
@@ -175,6 +223,10 @@ export const NUM_RIENG = {
       goi: 'so với dòng chính' },
     { id: 'lineStagger', nhan: 'Hiện từng dòng', kieu: 'so', min: 0, max: 0.6, buoc: 0.01,
       goi: 'giây cách nhau giữa các dòng · 0 = hiện cùng lúc' },
+    { id: 'charStagger', nhan: 'Hiện từng chữ cái', kieu: 'so', min: 0, max: 0.3, buoc: 0.005 },
+    { id: 'charIn', nhan: 'Kiểu chạy của chữ cái', kieu: 'chon', chon: KHO_CHU_CHAY },
+    { id: 'charDur', nhan: 'Mỗi chữ cái chạy trong', kieu: 'so', min: 0.05, max: 1.2, buoc: 0.01 },
+    { id: 'charEase', nhan: 'Đà của chữ cái', kieu: 'chon', chon: KHO_DA },
     ...MAU_CHU,
   ],
   nut:      [{ id: 'label', nhan: 'Chữ trên nút', kieu: 'chu' },
@@ -327,6 +379,14 @@ const HUONG_DAN = {
     mota: 'Một phần mấy của dòng chính. Để 0,34 là câu phụ nhỏ bằng một phần ba — mức dễ đọc mà không tranh chỗ.' },
   'text.lineStagger': { tieuDe: 'Hiện lần lượt từng dòng',
     mota: 'Số giây cách nhau giữa các dòng. Bật cái này thì món KHÔNG chạy hiệu ứng bay vào chung nữa, từng dòng tự hiện lấy.' },
+  'text.charStagger': { tieuDe: 'Hiện lần lượt từng chữ cái',
+    mota: 'Số giây cách nhau giữa hai chữ cái. Để 0,03 là một dòng tiêu đề chạy hết trong khoảng một giây. Bật cái này thì hiện từng dòng bị bỏ qua.' },
+  'text.charIn': { tieuDe: 'Từng chữ cái chạy kiểu gì',
+    mota: 'Nhô lên là kiểu an toàn nhất, hợp mọi tiêu đề. Gõ như máy đánh chữ hợp với dòng lệnh. Xoay vào và Bật nở rất mạnh, chỉ nên dùng một lần.' },
+  'text.charDur': { tieuDe: 'Một chữ chạy bao lâu',
+    mota: 'Tính bằng giây, cho riêng một chữ cái chứ không phải cả dòng. Để dài hơn khoảng cách giữa hai chữ thì các chữ chồng nhịp thành một làn sóng.' },
+  'text.charEase': { tieuDe: 'Đà của từng chữ cái',
+    mota: 'Chọn "Vọt đi rồi hãm" cho chữ là hợp nhất: chữ bung ra ngay rồi đứng lại nhẹ, giống cách chữ rơi xuống giấy. Tránh "Đều tay" — nó làm chữ trông như máy đẩy.' },
 
   /* ---------- nút bấm ---------- */
   'nut.label': { tieuDe: 'Chữ trên nút',
@@ -521,6 +581,8 @@ for (const [khoa, hd] of Object.entries(HUONG_DAN)) {
  * nên không khai được trong `NUM_RIENG`. Khoá theo `id` của núm.
  */
 export const HUONG_DAN_CHUNG = {
+  mocChuyenDong: { tieuDe: 'Tự đặt mốc chuyển động',
+    mota: 'Thay vì chọn một hiệu ứng bay có sẵn, bạn đặt mốc cho từng lúc: giây này món ở đâu, giây kia thế nào. Bật lên thì hiệu ứng vào và ra nghỉ hẳn.' },
   in: { tieuDe: 'Cách món xuất hiện',
     mota: 'Chọn kiểu món bay vào khi tới lượt nó. "Nở ra êm" phóng món to dần từ tâm ra, "Trượt lên nhẹ" đẩy món từ dưới lên — kiểu mặc định của nhà.' },
   out: { tieuDe: 'Cách món biến đi',
@@ -565,6 +627,14 @@ export const HUONG_DAN_CHUNG = {
     mota: 'Nâng món lên khỏi nền, cho nó dày và có khối. Bóng bám theo đúng hình món nên logo hay ảnh khoét nền vẫn đúng viền.' },
   push: { tieuDe: 'Đẩy máy chậm suốt cảnh',
     mota: 'Phóng rất chậm suốt cảnh nên mắt không bắt được, chỉ thấy hình như đang thở. Đây là thứ tách một đoạn phim khỏi một tấm ảnh đứng yên.' },
+  blend: { tieuDe: 'Cho món ăn vào nền',
+    mota: 'Bình thường món dán đè lên nền như miếng giấy. Cho hoà vào thì màu của nó trộn với màu bên dưới: chữ ăn vào chất liệu, vệt sáng thành ánh sáng thật.' },
+  mask: { tieuDe: 'Hiện ra theo hình',
+    mota: 'Thay vì mờ dần, món bị che rồi lộ dần ra theo hình. Các kiểu Quét và Nở tròn chạy theo nhịp vào của món, xong nhịp thì mép sắc lại.' },
+  maskSoft: { tieuDe: 'Nhoè mép chỗ bị cắt',
+    mota: 'Mép cắt sắc lẹm trông như bị dao cứa. Nhoè nhẹ một chút là chỗ nối mềm đi và mắt không bắt được đường cắt. Để đậm quá thì món tan ra như sương.' },
+  maskSrc: { tieuDe: 'Cắt theo một ảnh khuôn',
+    mota: 'Chọn một ảnh làm khuôn: chỗ nào trong ảnh đặc thì chỗ đó của món hiện ra, chỗ trong suốt thì bị cắt đi. Dùng để cắt theo hình thù bất kỳ.' },
   pushOut: { tieuDe: 'Đẩy ra thay vì đẩy vào',
     mota: 'Đổi chiều: bắt đầu ở mức lớn rồi lùi dần về. Hợp lúc kết cảnh, khi muốn mở rộng ra cho thấy toàn cảnh.' },
   density: { tieuDe: 'Độ thoáng của cả clip',
