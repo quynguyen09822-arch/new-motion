@@ -22,6 +22,10 @@ import { taoBangXuat } from './exportpanel.js';
 import { taoKhung } from './khung.js';
 import { taoBangVideo } from './videos.js';
 import { taoBangTieng } from './tieng.js';
+import { taoKhungAI } from './aigiong.js';
+import { taoThanhAI } from './thanhai.js';
+import { taoDungHinh } from './dunghinh.js';
+import { taoSuaMon } from './suamon.js';
 import { taoZoom } from './zoom.js';
 import { taoAnhNho } from './anhnho.js';
 import { taoKeoCot } from './cot.js';
@@ -109,6 +113,9 @@ function veLopPhu() {
 function datChon(c) {
   chon = c;
   bang.dat(c);
+  /* Thẻ "Sửa món" phải hiện đúng món đang chọn. Không báo cho nó biết thì nó
+     nói tên món cũ, và người dùng bảo AI sửa nhầm một món khác. */
+  thanhAI?.doiChon();
   dsLop.dat(c);
   const doc = kho.doc();
   if (doc && c?.canhId) dsLop.ve(doc, c.canhId);
@@ -435,6 +442,77 @@ $('the-tt').onclick = () => doiThe('tt');
 $('the-xuat').onclick = () => doiThe('xuat');
 $('the-khung').onclick = () => doiThe('khung');
 $('the-tieng').onclick = () => { doiThe('tieng'); bangTieng.ve(); };
+// Danh sách giọng nạp LÚC MỞ THẺ, không nạp lúc khởi động: nó gọi ra Internet,
+// mà phần lớn phiên làm việc không đụng tới giọng đọc.
+
+/* Nút AI nằm ở thanh dưới, cạnh đồng hồ — chỗ người dùng đang nhìn khi XEM clip.
+   Cột phải là chỗ sửa một món đang chọn, không phải chỗ hỏi về cả clip. */
+const thanhAI = taoThanhAI({
+  nutBoc: document.querySelector('.tien-ich-phai'),
+  laySlug: () => kho.slug(),
+  bao: (c, h) => bao(c, h),
+  /* Khung giọng đọc dựng THẲNG VÀO bảng AI dưới thanh phát, không còn thẻ riêng
+     bên cột phải. Hai cửa cho cùng một thứ thì người dùng bao giờ cũng mở nhầm. */
+  dungKhungGiong: (boc) => taoKhungAI(boc, {
+    layDoc: () => kho.doc(),
+    laySlug: () => kho.slug(),
+    bao: (c, h) => bao(c, h),
+    themRanh: (r) => {
+      kho.sua('thêm lời đọc AI', (d) => {
+        d.audio = d.audio || { tracks: [] };
+        d.audio.tracks = [...(d.audio.tracks || []),
+          { id: `loi-${(d.audio.tracks || []).length + 1}`, ...r }];
+      });
+      doiThe('tieng'); bangTieng.ve();
+    },
+  }),
+  /* Dựng hình: AI đọc ảnh rồi trả về ĐỀ XUẤT một cảnh. Nhận vào thì đi qua
+     `kho.sua` như mọi thay đổi khác — hoàn tác được bằng Ctrl+Z. */
+  dungKhungHinh: (boc) => taoDungHinh(boc, {
+    laySlug: () => kho.slug(),
+    bao: (c, h) => bao(c, h),
+    nhanCanh: (canh) => {
+      let idMoi = null;
+      kho.sua('thêm cảnh AI dựng từ ảnh', (d) => {
+        // Id có thể trùng với cảnh đang có — đổi cho khác trước khi nhét vào.
+        const daCo = new Set((d.scenes || []).map((c) => c.id));
+        let id = canh.id || 'canh-ai';
+        let i = 2;
+        while (daCo.has(id)) id = `${canh.id || 'canh-ai'}-${i++}`;
+        idMoi = id;
+        d.scenes = [...(d.scenes || []), { ...canh, id }];
+      });
+      /* `veLaiCanh()` là bắt buộc khi THÊM CẢNH — `apDung()` chỉ nạp lại bộ dựng,
+         còn danh sách cảnh bên trái thì vẫn là danh sách cũ. Thiếu dòng này thì
+         cảnh đã vào clip thật mà người dùng không thấy, tưởng bấm hụt. */
+      veLaiCanh();
+      if (idMoi) datChon({ canhId: idMoi, monId: null });
+    },
+  }),
+  /* Sửa món đang chọn. Bản vá đi qua `kho.sua` nên hoàn tác được như mọi
+     thay đổi khác — AI không có đường ghi thẳng vào clip. */
+  dungKhungSua: (boc) => taoSuaMon(boc, {
+    laySlug: () => kho.slug(),
+    layChon: () => chon,
+    tenMon: (c) => {
+      const t = timMon(kho.doc(), c.canhId, c.monId);
+      return t ? tenMon(t.el) : c.monId;
+    },
+    bao: (c, h) => bao(c, h),
+    nhanVa: (va) => {
+      const c = chon;
+      if (!c?.monId) return;
+      kho.sua('AI sửa thành phần', (d) => {
+        const t = timMon(d, c.canhId, c.monId);
+        if (!t) return;
+        for (const [k, v] of Object.entries(va)) {
+          if (v === null) delete t.el[k]; else t.el[k] = v;
+        }
+      });
+      bang.ve();
+    },
+  }),
+});
 $('the-video').onclick = () => { doiThe('video'); if (!bangVideo.coGi()) bangVideo.nap(); };
 
 /* ---------- danh sách clip ---------- */

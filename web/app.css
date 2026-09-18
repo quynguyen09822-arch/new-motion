@@ -994,3 +994,146 @@ body:has(.keo-cot.dang-keo) iframe { pointer-events: none; }
 .moc-o.bat { opacity: 1; }
 .moc-o .o-nhap.ti { width: auto; min-width: 0; flex: 1 1 auto; }
 .moc-o input[type="checkbox"] { flex: 0 0 auto; margin: 0; }
+
+/* ------------------------------------------------------------------ khung AI */
+.muc-ai { display: flex; flex-direction: column; gap: 8px; }
+.o-loi { min-height: 96px; resize: vertical; font-family: inherit; line-height: 1.45; }
+.ai-giong { display: flex; flex-direction: column; gap: 3px;
+            max-height: 320px; overflow-y: auto; }
+.ai-ngan { font-size: 10px; color: var(--chu-mo); margin: 8px 0 2px;
+           border-top: 1px solid var(--vach); padding-top: 7px; }
+.ai-hang { display: flex; align-items: center; gap: 4px; border-radius: 8px;
+           border: 1px solid transparent; }
+.ai-hang.chon { border-color: var(--nhan); background: var(--nhan-nhe); }
+.ai-ten { flex: 1; display: flex; flex-direction: column; align-items: flex-start;
+          gap: 1px; padding: 5px 7px; background: none; border: 0; cursor: pointer;
+          text-align: left; color: inherit; font: inherit; min-width: 0; }
+.ai-ten-chinh { font-size: 12px; font-weight: 600; }
+.ai-ten-phu { font-size: 10px; color: var(--chu-mo); overflow: hidden;
+              text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.ai-nghe { flex: 0 0 auto; width: 26px; height: 26px; margin-right: 5px;
+           border-radius: 50%; border: 1px solid var(--vach); background: var(--nen-2);
+           display: grid; place-items: center; cursor: pointer; padding: 0; }
+.ai-nghe svg { width: 11px; height: 11px; fill: currentColor; stroke: none; }
+/* Đang phát thì đổi hẳn màu — người dùng bấm 5 giọng liên tiếp phải biết cái nào
+   đang kêu, không thì tưởng máy hỏng. */
+.ai-nghe.dang-nghe { background: var(--nhan); color: var(--tren-nhan); border-color: var(--nhan); }
+.o-brief { min-height: 62px; resize: vertical; font-family: inherit; line-height: 1.45; }
+
+/* ------------------------------------------------------------- nút AI + thanh hỏi */
+.nut-ai { display: inline-flex; align-items: center; gap: 6px; height: 32px;
+          padding: 0 13px 0 10px; border-radius: 999px; cursor: pointer;
+          border: 1px solid var(--vach); background: var(--nen-2); color: var(--chu);
+          font: inherit; font-size: 12px; font-weight: 600; }
+.nut-ai svg { width: 15px; height: 15px; fill: currentColor; stroke: none; flex: none; }
+.nut-ai:hover { border-color: var(--nhan); }
+.nut-ai.dang-mo { background: var(--nhan); color: var(--tren-nhan); border-color: var(--nhan); }
+.nut-ai-chu { letter-spacing: .04em; }
+
+/* Thanh hỏi nổi NGAY TRÊN thanh dưới, không phủ kín màn hình: người dùng phải
+   còn thấy khung hình trong lúc hỏi về nó. */
+.thanh-ai { position: fixed; left: 50%; transform: translateX(-50%);
+            bottom: calc(var(--cao-thanh-duoi, 64px) + 10px);
+            width: min(720px, calc(100vw - 32px)); z-index: 40;
+            /* Không bao giờ cao quá màn hình: thẻ "Giọng đọc" có danh sách 28
+               giọng, để tự do là nó tràn lên che hết khung xem clip. */
+            max-height: min(560px, calc(100vh - 140px)); display: flex;
+            flex-direction: column;
+            background: var(--nen-2); border: 1px solid var(--vach);
+            border-radius: 14px; padding: 10px; box-shadow: 0 10px 34px rgba(0,0,0,.42); }
+.thanh-ai.an { display: none; }
+/* Thẻ "Giọng đọc" cần rộng hơn thẻ "Hỏi AI" — danh sách giọng có hai dòng chữ
+   mỗi hàng, để hẹp thì tên giọng bị cắt. */
+.thanh-ai.rong { width: min(860px, calc(100vw - 32px)); }
+
+.ai-the-hang { display: flex; align-items: center; gap: 4px; margin-bottom: 9px;
+               flex: none; }
+.ai-the { border: 0; background: none; color: var(--chu-mo); font: inherit;
+          font-size: 12px; font-weight: 600; padding: 5px 11px; border-radius: 8px;
+          cursor: pointer; }
+.ai-the:hover { color: var(--chu); }
+.ai-the.chon { background: var(--nen-3); color: var(--chu); }
+.ai-the-hang .nut-dong-ai { margin-left: auto; }
+.ai-noi { min-height: 0; overflow-y: auto; }
+.ai-noi.an { display: none; }
+/* Danh sách giọng tự co theo chỗ còn lại của bảng, không tự đặt trần riêng —
+   đặt hai trần lồng nhau là sinh ra hai thanh cuộn chồng lên nhau. */
+.ai-noi .ai-giong { max-height: none; }
+.ai-goi-y { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+.ai-chip { border: 1px solid var(--vach); background: var(--nen-3); color: var(--chu-mo);
+           border-radius: 999px; padding: 4px 11px; font: inherit; font-size: 11px;
+           cursor: pointer; }
+.ai-chip:hover { border-color: var(--nhan); color: var(--chu); }
+.ai-chip.nhan { border-color: var(--nhan); color: var(--nhan); }
+.ai-hang-hoi { display: flex; align-items: center; gap: 7px; }
+.o-hoi { flex: 1; min-width: 0; }
+.nut-gui { flex: 0 0 auto; padding: 0 18px; }
+.nut-dong-ai { flex: 0 0 auto; }
+.ai-tra { margin-top: 9px; padding: 9px 11px; border-radius: 10px;
+          background: var(--nen-3); font-size: 12.5px; line-height: 1.55;
+          white-space: pre-wrap; max-height: 210px; overflow-y: auto; }
+.ai-tra.an { display: none; }
+.ai-tra.hong { color: #e0795a; }
+
+/* Hai cột trong thẻ "Giọng đọc": gõ bên trái, chọn giọng bên phải.
+   Dưới 720px thì xếp dọc lại — hai cột 300px thì cột nào cũng chật. */
+.ai-noi .muc-ai { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+                  gap: 6px 18px; align-items: start; }
+.ai-cot { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.ai-cot-giong { max-height: 400px; }
+.ai-cot .muc-ten { margin: 0; }
+.ai-cot-giong .ai-giong { max-height: 300px; overflow-y: auto; }
+@media (max-width: 760px) {
+  .ai-noi .muc-ai { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ------------------------------------------------------------ thẻ "Dựng hình" */
+.muc-dung { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 6px 18px; align-items: start; }
+@media (max-width: 760px) { .muc-dung { grid-template-columns: minmax(0, 1fr); } }
+/* Chưa dựng thì cột phải trống — cho nó một lời nhắc thay vì một khoảng trắng. */
+.muc-dung .dung-kq.an { display: block; visibility: hidden; }
+.dung-tha { position: relative; border: 1.5px dashed var(--vach); border-radius: 12px;
+            padding: 16px 12px; text-align: center; cursor: pointer;
+            background: var(--nen-3); transition: border-color .12s, background .12s; }
+.dung-tha:hover, .dung-tha:focus-visible, .dung-tha.dang-keo {
+  border-color: var(--nhan); background: var(--nhan-nhe); outline: none; }
+.dung-tha.co-anh { padding: 10px; }
+.dung-tha-chinh { font-size: 12.5px; font-weight: 600; margin: 0 0 4px; }
+.dung-tha-phu { font-size: 11px; color: var(--chu-mo); margin: 0; }
+/* Ảnh xem trước bị GHIM TRẦN chiều cao: người dùng hay dán ảnh chụp cả màn hình
+   dọc, để tự do là nó đẩy nút "Dựng thử" ra khỏi bảng. */
+.dung-anh { max-width: 100%; max-height: 118px; border-radius: 8px; display: block;
+            margin: 0 auto; }
+.dung-ten { display: block; margin-top: 6px; font-size: 11px; color: var(--chu-mo); }
+.dung-bo { position: absolute; top: 7px; right: 7px; }
+.o-y { min-height: 44px; resize: vertical; font-family: inherit; }
+.dung-kq { border: 1px solid var(--vach); border-radius: 10px; padding: 10px 11px;
+           background: var(--nen-3); }
+.dung-kq.an { display: none; }
+.dung-kq.hong { border-color: #8a4633; }
+.dung-tom { margin: 0 0 7px; font-size: 12px; font-weight: 600; }
+.dung-cay { max-height: 210px; overflow-y: auto; margin-bottom: 9px; }
+.dung-mon { display: flex; align-items: center; gap: 7px; padding: 2px 0; font-size: 11.5px; }
+.dung-kind { flex: none; font-family: ui-monospace, monospace; font-size: 10px;
+             color: var(--nhan); background: var(--nen-2); border-radius: 4px; padding: 1px 6px; }
+.dung-nhan { color: var(--chu-mo); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dung-loi { margin: 6px 0 2px; font-size: 11.5px; color: #e0795a; font-weight: 600; }
+.dung-loi-dong { margin: 1px 0; font-size: 11px; color: #e0795a; }
+
+/* ------------------------------------------------------------- thẻ "Sửa món" */
+.sua-chon { margin: 0 0 2px; font-size: 12px; font-weight: 600; padding: 7px 10px;
+            border-radius: 8px; background: var(--nhan-nhe); color: var(--chu); }
+.sua-chon.trong { background: var(--nen-3); color: var(--chu-mo); font-weight: 400;
+                  line-height: 1.5; }
+.sua-bang { display: flex; flex-direction: column; gap: 3px; margin-bottom: 8px;
+            max-height: 200px; overflow-y: auto; }
+.sua-dong { display: grid; grid-template-columns: minmax(64px, auto) 1fr auto 1fr;
+            align-items: baseline; gap: 6px; font-size: 11.5px; }
+.sua-truong { font-family: ui-monospace, monospace; font-size: 10px; color: var(--nhan);
+              background: var(--nen-2); border-radius: 4px; padding: 1px 6px; }
+.sua-cu { color: var(--chu-mo); text-decoration: line-through; overflow: hidden;
+          text-overflow: ellipsis; white-space: nowrap; }
+.sua-mui { color: var(--chu-mo); }
+.sua-moi { color: var(--chu); font-weight: 600; overflow: hidden;
+           text-overflow: ellipsis; white-space: nowrap; }
