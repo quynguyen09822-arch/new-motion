@@ -1,0 +1,61 @@
+/* Trang đăng nhập — tự chứa, KHÔNG dùng chung `app.css`.
+   `app.css` là bảng kiểu của một công cụ ba cột nặng gần 1.000 dòng; trang này
+   chỉ có một ô gõ. Dùng chung là tải cả nghìn dòng cho một cái ô, và mỗi lần
+   sửa giao diện trình sửa lại có nguy cơ làm xô lệch trang đăng nhập. */
+:root {
+  --nen: #0b0c0e; --nen-2: #141619; --nen-3: #1b1e23;
+  --chu: #e8eaed; --chu-mo: #9aa0a6; --vach: #2a2e35;
+  --nhan: #2f6bff; --tren-nhan: #fff; --do: #e0795a;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100dvh; display: grid; place-items: center;
+  background: var(--nen); color: var(--chu); font-family: var(--font);
+  /* Vệt sáng mờ phía sau, lấy đúng hai màu của logo. */
+  background-image: radial-gradient(60% 50% at 50% 0%, #2f6bff1f, transparent 70%);
+  padding: 24px;
+}
+.hop { width: 100%; max-width: 348px; text-align: center; }
+.logo { height: 70px; width: auto; display: block; margin: 0 auto 14px; }
+.ten { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -.3px; }
+.phu { margin: 5px 0 26px; color: var(--chu-mo); font-size: 13.5px; }
+form { text-align: left; }
+.nhan-2 { margin-top: 14px; }
+/* `.o` có `flex:1`, nhưng ô email nằm THẲNG trong form chứ không trong khung
+   flex `.o-hang` như ô mật khẩu — nên `flex` không có tác dụng và nó co lại
+   theo chiều rộng mặc định của input. Phải đặt `width:100%`. */
+.o-email { width: 100%; padding-right: 13px; }
+.nhan { display: block; font-size: 12px; color: var(--chu-mo); margin-bottom: 6px; }
+.o-hang { position: relative; display: flex; }
+.o {
+  flex: 1; min-width: 0; font: inherit; font-size: 15px; color: var(--chu);
+  background: var(--nen-2); border: 1px solid var(--vach); border-radius: 10px;
+  padding: 11px 44px 11px 13px;
+}
+.o:focus { outline: none; border-color: var(--nhan); box-shadow: 0 0 0 3px #2f6bff30; }
+.nut-mat {
+  position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+  width: 34px; height: 34px; display: grid; place-items: center;
+  background: none; border: 0; border-radius: 8px; cursor: pointer; color: var(--chu-mo);
+}
+.nut-mat:hover { color: var(--chu); background: var(--nen-3); }
+.nut-mat svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.4; }
+.nut {
+  width: 100%; margin-top: 14px; font: inherit; font-size: 14.5px; font-weight: 700;
+  color: var(--tren-nhan); background: var(--nhan); border: 0; border-radius: 10px;
+  padding: 12px; cursor: pointer;
+}
+.nut:hover { filter: brightness(1.08); }
+.nut:disabled { opacity: .6; cursor: default; }
+.loi { margin: 10px 0 0; font-size: 13px; color: var(--do); }
+.loi.an { display: none; }
+.chan { margin: 24px 0 0; font-size: 11.5px; color: var(--chu-mo); line-height: 1.6; }
+.chan code {
+  font-family: ui-monospace, monospace; font-size: 11px;
+  background: var(--nen-2); border: 1px solid var(--vach); border-radius: 5px; padding: 1px 5px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hop { animation: len .28s ease-out; }
+  @keyframes len { from { opacity: 0; transform: translateY(8px); } }
+}

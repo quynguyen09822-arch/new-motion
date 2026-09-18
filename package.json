@@ -7,6 +7,9 @@
   "scripts": {
     "dev": "node server/main.js",
     "start": "node server/main.js",
-    "kiem:schema": "node tools/kiem-schema.mjs"
+    "kiem:schema": "node tools/kiem-schema.mjs",
+    "dat-mat-khau": "node tools/dat-mat-khau.mjs",
+    "kiem": "node tools/chay-kiem.mjs",
+    "day-so-lieu": "node tools/day-nhat-ky.mjs"
   }
 }

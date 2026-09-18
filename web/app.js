@@ -515,6 +515,52 @@ const thanhAI = taoThanhAI({
 });
 $('the-video').onclick = () => { doiThe('video'); if (!bangVideo.coGi()) bangVideo.nap(); };
 
+/* ---------- đăng nhập ----------
+ * Hỏi máy chủ xem đã đặt mật khẩu chưa. Chưa đặt thì công cụ vẫn chạy (không
+ * khoá chính chủ ra ngoài) nhưng phải NÓI RÕ — bản chạy trên mạng mà không có
+ * mật khẩu thì ai cũng vào sửa clip được. */
+(async () => {
+  let d;
+  try { d = await (await fetch('/api/toi-la-ai')).json(); } catch { return; }
+  const boc = document.getElementById('o-tai-khoan');
+  if (!boc) return;
+
+  if (!d.coMatKhau) {
+    const c = document.createElement('span');
+    c.className = 'chip-canh-bao';
+    c.textContent = 'Chưa đặt mật khẩu';
+    c.title = 'Ai có đường dẫn cũng vào sửa clip được. '
+      + 'Chạy `npm run dat-mat-khau` trên máy chủ để đặt.';
+    boc.appendChild(c);
+    return;
+  }
+
+  /* Hiện EMAIL đang đăng nhập. Máy này có thể dùng chung — không nói ai đang
+     đăng nhập thì người ta sửa clip dưới tên người khác mà không biết. */
+  if (d.email) {
+    const e = document.createElement('span');
+    e.className = 'chip-ai';
+    e.textContent = d.email.split('@')[0];
+    e.title = `Đang đăng nhập: ${d.email}`;
+    boc.appendChild(e);
+  }
+
+  const n = document.createElement('button');
+  n.className = 'nut nho rong nut-ra';
+  n.type = 'button';
+  n.textContent = 'Thoát';
+  n.title = d.email ? `Đăng xuất ${d.email}` : 'Đăng xuất khỏi trình sửa';
+  n.onclick = async () => {
+    /* Hỏi trước: bấm nhầm lúc đang sửa dở là mất công mở lại và gõ mật khẩu.
+       Dùng `kho.ban()` — tên thật của hàm. Viết `kho.chuaLuu?.()` thì optional
+       chaining nuốt luôn cái sai: không bao giờ hỏi, mà cũng không báo lỗi. */
+    if (kho.ban() && !confirm('Còn thay đổi chưa lưu. Thoát luôn?')) return;
+    await fetch('/api/dang-xuat', { method: 'POST' });
+    location.href = '/dang-nhap';
+  };
+  boc.appendChild(n);
+})();
+
 /* ---------- danh sách clip ---------- */
 async function napDanhSach() {
   const d = await (await fetch('/api/clips')).json();

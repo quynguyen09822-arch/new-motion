@@ -33,7 +33,10 @@ const { chromium } = createRequire(path.join(PROJ, 'tools/'))('playwright');
 const M = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const { DEM_TRONG, KHE_HO, TEN_BAC } = await import(new URL('../web/inspector/schema.js', import.meta.url));
 
-const GOC = process.argv[2] || 'http://127.0.0.1:7803';
+/* Địa chỉ máy chủ: biến môi trường THẮNG tham số. `npm run kiem` dựng một máy
+   chủ riêng không mật khẩu ở cổng khác rồi truyền qua `MOTION_GOC` — truyền qua
+   tham số thì đụng với những bài nhận tham số khác (kiem-canh nhận TÊN CLIP). */
+const GOC = process.env.MOTION_GOC || process.argv[2] || 'http://127.0.0.1:7803';
 /* Thang bậc của bộ dựng. Giữ bản sao ở đây CÓ CHỦ Ý: lệch với bộ dựng thì mục
    "bậc mặc định khớp số đo thật" rớt, đúng thứ ta muốn biết. */
 const STEP = [0, 4, 8, 12, 16, 24, 32, 48];

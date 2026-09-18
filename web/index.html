@@ -3,6 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Sửa clip — Mắt Bão</title>
+  <link rel="icon" type="image/png" href="/logo/favicon.png">
 <!-- Phông chữ có đủ đường lùi hệ thống trong `--font`: mạng hỏng thì giao diện
      vẫn đúng, chỉ khác nét chữ. KHÔNG nạp phông vào clip. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,14 +14,20 @@
 
 <div id="app">
   <header class="thanh-tren">
-    <div class="o-hieu" aria-hidden="true">MB</div>
-    <div class="hieu">Sửa clip</div>
+    <!-- Dấu M là ẢNH, chữ "Motion" là CHỮ THẬT. Nhúng cả chữ vào ảnh thì nó mờ
+         khi phóng to, và không đổi màu theo nền được — chữ trong file logo gốc là
+         xanh navy đậm, đặt lên giao diện tối gần như mất hút. -->
+    <img class="o-hieu" src="/logo/motion-mark.png" alt="" aria-hidden="true" width="28" height="15">
+    <div class="hieu"><b>Motion</b> · Sửa clip</div>
     <select id="chon-clip" class="chon" aria-label="Chọn clip"></select>
     <span id="dau-ban" class="dau-ban an">chưa lưu</span>
 
     <div class="day"></div>
 
     <span id="dang-clip" class="chip-tin"></span>
+    <!-- Chỗ cho lời nhắc "chưa đặt mật khẩu" và nút Thoát. Ở THANH TRÊN chứ
+         không phải thanh dưới: thanh dưới là điều khiển phát phim. -->
+    <span id="o-tai-khoan" class="o-tai-khoan"></span>
 
     <span class="nhom-nut">
       <button id="nut-lui" class="nut-tron" type="button" title="Hoàn tác (Ctrl+Z)" aria-label="Hoàn tác"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 4L2.5 7.5 6 11"/><path d="M2.5 7.5h7a4 4 0 0 1 0 8H8"/></svg></button>

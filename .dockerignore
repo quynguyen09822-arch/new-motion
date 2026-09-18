@@ -10,5 +10,17 @@ __pycache__
 # Ảnh dựng mẫu và tài liệu — không cần cho lúc chạy.
 stitch_d_n_kh_i_nghi_p
 clip-15s
-# Bài kiểm cần Chromium + ffmpeg, không chạy trong ảnh này.
+# Bài kiểm cần Chromium + ffmpeg, không chạy trong ảnh này — bỏ cả thư mục,
+# rồi mở lại ĐÚNG hai file mà bản chạy thật cần.
 tools
+# Bộ xuất nhanh: `server/jobs.js` gọi thẳng vào đường dẫn này. Thiếu nó thì câu
+# báo lỗi nói "thiếu bộ xuất" trong khi thứ thật sự thiếu là ffmpeg — sai chỗ.
+!tools/xuat-nhanh.mjs
+# Đặt mật khẩu: không có file này thì KHÔNG bật được đăng nhập trên bản đã
+# triển khai, mà đó lại đúng là nơi cần đăng nhập nhất.
+!tools/dat-mat-khau.mjs
+.env
+.env.*
+
+# Nhật ký lượt dùng — dữ liệu chạy.
+.nhat-ky/

@@ -16,7 +16,10 @@ const PROJ = process.env.PROJ_ROOT
   || '/home/coder/workspace/projects/clipVibehost/hosting-animatic-production';
 const { chromium } = createRequire(path.join(PROJ, 'tools/'))('playwright');
 
-const GOC = process.argv[2] || 'http://127.0.0.1:7803';
+/* Địa chỉ máy chủ: biến môi trường THẮNG tham số. `npm run kiem` dựng một máy
+   chủ riêng không mật khẩu ở cổng khác rồi truyền qua `MOTION_GOC` — truyền qua
+   tham số thì đụng với những bài nhận tham số khác (kiem-canh nhận TÊN CLIP). */
+const GOC = process.env.MOTION_GOC || process.argv[2] || 'http://127.0.0.1:7803';
 const M = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 // Kiểm trên ĐÚNG clip người dùng chỉ ra: bản văn phòng VH-02, vòng "khung gõ
 // yêu cầu" ở 13,0–16,4s — cái bị lệch trong ảnh chụp màn hình.

@@ -22,7 +22,10 @@ import path from 'node:path';
 const PROJ = process.env.PROJ_ROOT
   || '/home/coder/workspace/projects/clipVibehost/hosting-animatic-production';
 const { chromium } = createRequire(path.join(PROJ, 'tools/'))('playwright');
-const GOC = process.argv[2] || 'http://127.0.0.1:7803';
+/* Địa chỉ máy chủ: biến môi trường THẮNG tham số. `npm run kiem` dựng một máy
+   chủ riêng không mật khẩu ở cổng khác rồi truyền qua `MOTION_GOC` — truyền qua
+   tham số thì đụng với những bài nhận tham số khác (kiem-canh nhận TÊN CLIP). */
+const GOC = process.env.MOTION_GOC || process.argv[2] || 'http://127.0.0.1:7803';
 const DOC_THAT = process.env.DOC_THAT === '1';
 
 let hong = 0;

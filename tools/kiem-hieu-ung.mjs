@@ -30,7 +30,10 @@ const M = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const { BAC_BONG, BAC_DAY, BAC_NHOE, KHO_VAO, NUM_HIEU_UNG } =
   await import(new URL('../web/inspector/schema.js', import.meta.url));
 
-const GOC = process.argv[2] || 'http://127.0.0.1:7803';
+/* Địa chỉ máy chủ: biến môi trường THẮNG tham số. `npm run kiem` dựng một máy
+   chủ riêng không mật khẩu ở cổng khác rồi truyền qua `MOTION_GOC` — truyền qua
+   tham số thì đụng với những bài nhận tham số khác (kiem-canh nhận TÊN CLIP). */
+const GOC = process.env.MOTION_GOC || process.argv[2] || 'http://127.0.0.1:7803';
 const LOAI = ['group', 'panel', 'text', 'card', 'form', 'calendar', 'chip', 'phone',
   'timeline', 'logo', 'video', 'image', 'wheel', 'chat', 'shield', 'upload', 'table',
   'browser', 'sweep', 'nen', 'quydao', 'nut', 'huyhieu', 'hangnhan'];

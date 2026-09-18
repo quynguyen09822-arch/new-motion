@@ -21,7 +21,10 @@ import path from 'node:path';
 const PROJ = process.env.PROJ_ROOT
   || '/home/coder/workspace/projects/clipVibehost/hosting-animatic-production';
 const OUT = path.join(PROJ, 'out');
-const GOC = process.argv[2] || 'http://127.0.0.1:7803';
+/* Địa chỉ máy chủ: biến môi trường THẮNG tham số. `npm run kiem` dựng một máy
+   chủ riêng không mật khẩu ở cổng khác rồi truyền qua `MOTION_GOC` — truyền qua
+   tham số thì đụng với những bài nhận tham số khác (kiem-canh nhận TÊN CLIP). */
+const GOC = process.env.MOTION_GOC || process.argv[2] || 'http://127.0.0.1:7803';
 const M = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 
 let hong = 0;

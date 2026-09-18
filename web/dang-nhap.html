@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Đăng nhập — Motion</title>
+<link rel="icon" type="image/png" href="/logo/favicon.png">
+<link rel="stylesheet" href="/dang-nhap.css">
+</head>
+<body>
+<main class="hop" role="main">
+  <img class="logo" src="/logo/motion-mark.png" alt="Motion" width="132" height="70">
+  <h1 class="ten">Motion</h1>
+  <p class="phu">Trình sửa clip của Mắt Bão</p>
+
+  <form id="phieu" novalidate>
+    <label class="nhan" for="email">Email công ty</label>
+    <input id="email" name="email" type="email" class="o o-email" inputmode="email"
+           autocomplete="username" placeholder="ten.ban@matbao.com" autofocus required
+           aria-describedby="loi">
+
+    <label class="nhan nhan-2" for="mk">Mật khẩu</label>
+    <div class="o-hang">
+      <input id="mk" name="mk" type="password" class="o" autocomplete="current-password"
+             autofocus required aria-describedby="loi">
+      <button id="hien" class="nut-mat" type="button" aria-label="Hiện mật khẩu" title="Hiện mật khẩu">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 8s2.5-4.5 7-4.5S15 8 15 8s-2.5 4.5-7 4.5S1 8 1 8z"/><circle cx="8" cy="8" r="2"/></svg>
+      </button>
+    </div>
+    <!-- `aria-live` để trình đọc màn hình đọc câu báo lỗi ngay khi nó hiện ra,
+         chứ không phải chờ người dùng lia tới chỗ đó mới biết mình gõ sai. -->
+    <p id="loi" class="loi an" role="alert" aria-live="polite"></p>
+    <button id="vao" class="nut" type="submit">Vào</button>
+  </form>
+
+  <p class="chan">Quên mật khẩu? Chạy <code>npm run dat-mat-khau</code> trên máy chủ để đặt lại.</p>
+</main>
+
+<script type="module">
+const $ = (id) => document.getElementById(id);
+const phieu = $('phieu'), mk = $('mk'), email = $('email'), loi = $('loi'), vao = $('vao');
+
+/* Nhớ email đã gõ lần trước. Chỉ email — KHÔNG bao giờ nhớ mật khẩu: máy này có
+   thể là máy dùng chung, và `localStorage` thì mọi script trên trang đều đọc được. */
+try {
+  const cu = localStorage.getItem('motion_email');
+  if (cu) { email.value = cu; mk.focus(); }
+} catch { /* trình duyệt chặn localStorage thì thôi */ }
+
+/* Đuôi email do máy chủ quy định, không viết cứng ở đây — đổi đuôi trong `.env`
+   mà chỗ này vẫn ghi đuôi cũ là nói dối người dùng. */
+fetch('/api/toi-la-ai').then((r) => r.json()).then((d) => {
+  if (d?.duoi) email.placeholder = `ten.ban${d.duoi}`;
+  /* Có danh sách tài khoản thì nói rõ là KHÔNG phải email công ty nào cũng vào
+     được — người gõ đúng email của mình mà bị từ chối sẽ tưởng hệ thống hỏng. */
+  if (d?.coDanhSach) {
+    const p2 = document.querySelector('.phu');
+    if (p2) p2.textContent = 'Trình sửa clip của Mắt Bão — chỉ tài khoản được cấp quyền';
+  }
+}).catch(() => { /* không hỏi được thì giữ gợi ý sẵn */ });
+
+$('hien').onclick = () => {
+  const ho = mk.type === 'password';
+  mk.type = ho ? 'text' : 'password';
+  $('hien').setAttribute('aria-label', ho ? 'Ẩn mật khẩu' : 'Hiện mật khẩu');
+  $('hien').title = ho ? 'Ẩn mật khẩu' : 'Hiện mật khẩu';
+  mk.focus();
+};
+
+function bao(cau) {
+  loi.textContent = cau;
+  loi.classList.toggle('an', !cau);
+}
+
+phieu.onsubmit = async (ev) => {
+  ev.preventDefault();
+  if (!email.value.trim()) { email.focus(); return bao('Chưa gõ email.'); }
+  if (!mk.value) { mk.focus(); return bao('Chưa gõ mật khẩu.'); }
+  vao.disabled = true; vao.textContent = 'Đang kiểm…'; bao('');
+  try {
+    const r = await fetch('/api/dang-nhap', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.value.trim(), mk: mk.value }),
+    });
+    const d = await r.json();
+    if (d.ok) {
+      try { localStorage.setItem('motion_email', d.email || email.value.trim()); } catch { /* kệ */ }
+      // `?tiep=` giữ chỗ người dùng định tới trước khi bị hỏi mật khẩu.
+      const tiep = new URLSearchParams(location.search).get('tiep');
+      location.href = (tiep && tiep.startsWith('/') && !tiep.startsWith('//')) ? tiep : '/';
+      return;
+    }
+    bao(d.loi || 'Mật khẩu không đúng.');
+    // Email sai khuôn thì trỏ vào ô email, sai mật khẩu thì trỏ vào ô mật khẩu —
+    // để người dùng khỏi phải tự đoán mình gõ sai chỗ nào.
+    if (/email/i.test(d.loi || '')) { email.focus(); email.select(); } else mk.select();
+  } catch (e) {
+    bao(`Không gọi được máy chủ — ${String(e.message || e).slice(0, 60)}`);
+  } finally { vao.disabled = false; vao.textContent = 'Vào'; }
+};
+</script>
+</body>
+</html>

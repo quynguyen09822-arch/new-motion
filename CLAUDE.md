@@ -232,6 +232,20 @@ theo pixel ảnh mockup — sửa được và sửa thì có nghĩa. Cách làm
 Không có test framework. Các bài kiểm là script Playwright chạy thật, cần **server
 đang chạy**:
 
+**Chạy cả bộ bằng một lệnh:**
+
+```bash
+npm run kiem                # 28 bài, tự dựng máy chủ riêng ở cổng 7804
+npm run kiem -- tieng       # chỉ bài có chữ "tieng" trong tên
+```
+
+Bộ chạy tự dựng máy chủ **không mật khẩu** ở cổng riêng và truyền địa chỉ qua
+`MOTION_GOC`. Từ khi có đăng nhập, máy chủ thật đòi mật khẩu nên gọi thẳng vào
+7803 là bài kiểm nhận 302. **Đừng mở cửa hậu "bỏ qua đăng nhập ở localhost"** —
+cửa hậu nào rồi cũng có ngày bị bật nhầm trên bản chạy thật.
+
+Chạy lẻ từng bài thì vẫn được, cần server đang chạy:
+
 ```bash
 npm run dev &                       # cổng 7803
 node tools/kiem-sua.mjs             # bấm chọn · vặn · hoàn tác · lưu

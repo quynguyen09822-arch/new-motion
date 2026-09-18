@@ -30,6 +30,9 @@ import { chromium } from '/home/coder/workspace/projects/clipVibehost/hosting-an
 
 const THU_MUC = import.meta.dirname;
 const CHON = process.argv[2];
+/* Bài này nhận TÊN CLIP ở tham số, không phải địa chỉ — nên địa chỉ chỉ đọc từ
+   biến môi trường. `npm run kiem` đặt biến đó. */
+const GOC = process.env.MOTION_GOC || 'http://127.0.0.1:7803';
 const ANH = process.argv[3];
 
 const banKe = readdirSync(THU_MUC)
@@ -55,7 +58,7 @@ for (const ke of banKe) {
   const p = await b.newPage({ viewport: { width: ke.w, height: ke.h } });
   const loiJS = [];
   p.on('pageerror', (e) => loiJS.push(String(e)));
-  await p.goto(`http://127.0.0.1:7803/clip/scene-player.html?scene=${ke.slug}`, { waitUntil: 'load' });
+  await p.goto(`${GOC}/clip/scene-player.html?scene=${ke.slug}`, { waitUntil: 'load' });
   await p.waitForFunction(() => window.__clip && window.__clip.duration > 0, { timeout: 20000 });
 
   const loi = [];

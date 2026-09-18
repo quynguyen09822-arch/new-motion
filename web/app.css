@@ -101,13 +101,11 @@ body {
 }
 /* Ô hiệu: chữ tắt của Mắt Bão, chỗ neo mắt ở góc trái — giống mọi phần mềm
    dựng phim, và cũng là chỗ duy nhất trong vỏ được dùng màu thương hiệu. */
-.o-hieu {
-  width: 28px; height: 28px; flex: none;
-  border-radius: 7px; background: linear-gradient(135deg, var(--nhan), #0ea5e9);
-  color: #000; font-weight: 800; font-size: 14px;
-  display: flex; align-items: center; justify-content: center;
-}
-.hieu { font-weight: 700; font-size: 13.5px; letter-spacing: .1px; }
+/* Dấu M của logo. Ảnh cao 128px thu xuống 15px nên nét vẫn sắc trên màn hình
+   2×; đừng thay bằng bản nhỏ hơn. */
+.o-hieu { height: 15px; width: auto; flex: none; display: block; }
+.hieu { font-weight: 600; font-size: 13.5px; letter-spacing: .1px; color: var(--chu-mo); }
+.hieu b { font-weight: 800; color: var(--chu); }
 .day { flex: 1; }
 .phu { color: var(--chu-mo); font-size: 13px; }
 .lien-ket { color: var(--chu-mo); text-decoration: none; font-size: 13px; }
@@ -1137,3 +1135,18 @@ body:has(.keo-cot.dang-keo) iframe { pointer-events: none; }
 .sua-mui { color: var(--chu-mo); }
 .sua-moi { color: var(--chu); font-weight: 600; overflow: hidden;
            text-overflow: ellipsis; white-space: nowrap; }
+
+/* --------------------------------------------------------- đăng nhập / thoát */
+.nut-ra { flex: none; }
+/* Chạy trên mạng mà không có mật khẩu thì phải NHÌN THẤY, không phải đọc tài liệu. */
+.chip-canh-bao {
+  flex: none; font-size: 11px; font-weight: 600; padding: 4px 10px;
+  border-radius: 999px; color: #f0b27a; background: #f0b27a1a;
+  border: 1px solid #f0b27a40; cursor: help;
+}
+.o-tai-khoan { display: flex; align-items: center; gap: 8px; }
+.chip-ai {
+  flex: none; font-size: 11.5px; font-weight: 600; padding: 4px 10px;
+  border-radius: 999px; color: var(--chu-mo); background: var(--nen-3);
+  border: 1px solid var(--vach); cursor: default;
+}

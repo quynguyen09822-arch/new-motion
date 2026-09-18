@@ -15,3 +15,11 @@ clip-15s/*.mp4
 # Ảnh do máy kiểm chụp.
 .kiem/
 __pycache__/
+
+# Mật khẩu (băm) và khoá ký phiên đăng nhập — KHÔNG bao giờ commit
+.env
+.env.*
+mcp-stitch.json.txt
+
+# Nhật ký lượt dùng — dữ liệu chạy.
+.nhat-ky/

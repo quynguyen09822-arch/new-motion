@@ -1,0 +1,56 @@
+# Motion — trình sửa clip. Một STACK RIÊNG, không dính tới sản phẩm nào khác.
+#
+# TÊN STACK gắn tên người dùng (`motion-${CODER_USER}`). Mọi user trên server B
+# dùng CHUNG một docker daemon: để tên mặc định (= tên thư mục) thì hai người
+# cùng có thư mục `matbao-hub-video` sẽ trùng container/volume/network và đè lên
+# nhau. Chạy bằng:  docker compose -p "motion-$CODER_USER" up -d --build
+#
+# KHÔNG mở cổng ra ngoài (`ports:`). Traefik vào thẳng mạng `mb-edge` theo TÊN
+# container — hardcode IP là mỗi lần dựng lại route trỏ nhầm sang app người khác.
+
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    networks: [mb-edge]
+
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+      # Ba biến của đăng nhập. Khai ở `.env` cạnh file này (đã .gitignore).
+      MOTION_DUOI_EMAIL: ${MOTION_DUOI_EMAIL:-@matbao.com}
+      MOTION_MAT_KHAU_HASH: ${MOTION_MAT_KHAU_HASH:?}
+      # BẮT BUỘC khai, không để máy chủ tự sinh: container không giữ file giữa
+      # hai lần khởi động, nên tự sinh nghĩa là mỗi lần restart đá hết mọi người ra.
+      MOTION_KHOA_PHIEN: ${MOTION_KHOA_PHIEN:?}
+
+    volumes:
+      # BA THỨ PHẢI GIỮ LẠI, nếu không thì dựng lại ảnh là mất sạch việc của người dùng.
+      # Dùng NAMED VOLUME, tuyệt đối không bind mount: workspace dùng docker socket
+      # của host B nên daemon hiểu đường dẫn theo filesystem của B, khác hẳn đường
+      # dẫn trong container — bind mount sẽ trỏ vào chỗ rỗng.
+      - motion-scenes:/app/clip/scenes          # kịch bản clip
+      - motion-voice:/app/clip/public/voice     # lời đọc AI đã sinh
+      - motion-backup:/app/.hub-video-backups   # kho sao lưu
+      - motion-drafts:/app/.drafts              # nháp tự lưu
+
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.motion-${CODER_USER}.rule=Host(`motion-${CODER_USER}.b.matbao.ai`)"
+      - traefik.http.routers.motion-${CODER_USER}.entrypoints=websecure
+      - traefik.http.routers.motion-${CODER_USER}.tls.certresolver=le
+      - traefik.http.services.motion-${CODER_USER}.loadbalancer.server.port=3000
+      # ⚠️ CÔNG KHAI: KHÔNG có middleware `mb-local@file`, nên cả internet mở được.
+      # Lớp bảo vệ duy nhất là trang đăng nhập — vì vậy `MOTION_MAT_KHAU_HASH` ở
+      # trên khai `:?`, thiếu nó là compose TỪ CHỐI chạy chứ không lặng lẽ mở toang.
+      # Muốn giới hạn IP văn phòng thì thêm lại dòng dưới:
+      # - traefik.http.routers.motion-${CODER_USER}.middlewares=mb-local@file
+
+volumes:
+  motion-scenes:
+  motion-voice:
+  motion-backup:
+  motion-drafts:
+
+networks:
+  mb-edge: { external: true }

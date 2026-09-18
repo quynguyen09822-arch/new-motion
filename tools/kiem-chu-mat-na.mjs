@@ -23,7 +23,10 @@ const { chromium } = createRequire(path.join(PROJ, 'tools/'))('playwright');
 const { KHO_HOA, KHO_MAT_NA, KHO_CHU_CHAY, KHO_DA } =
   await import(new URL('../web/inspector/schema.js', import.meta.url));
 
-const GOC = process.argv[2] || 'http://127.0.0.1:7803';
+/* Địa chỉ máy chủ: biến môi trường THẮNG tham số. `npm run kiem` dựng một máy
+   chủ riêng không mật khẩu ở cổng khác rồi truyền qua `MOTION_GOC` — truyền qua
+   tham số thì đụng với những bài nhận tham số khác (kiem-canh nhận TÊN CLIP). */
+const GOC = process.env.MOTION_GOC || process.argv[2] || 'http://127.0.0.1:7803';
 let hong = 0;
 const dat = (ten, ok, them = '') => {
   console.log(`${ok ? '  ✓' : '  ✗'} ${ten}${them ? ` — ${them}` : ''}`);

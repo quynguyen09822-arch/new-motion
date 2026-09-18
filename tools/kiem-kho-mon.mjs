@@ -23,7 +23,10 @@ const { BO_KIT, BO_MON, KIT, MAU_MON, themKit } = await import(new URL('../web/t
 const { TEN_LOAI } = await import(new URL('../web/inspector/schema.js', import.meta.url));
 const { hinhKit, hinhMon } = await import(new URL('../web/hinhmon.js', import.meta.url));
 
-const GOC = process.argv[2] || 'http://127.0.0.1:7803';
+/* Địa chỉ máy chủ: biến môi trường THẮNG tham số. `npm run kiem` dựng một máy
+   chủ riêng không mật khẩu ở cổng khác rồi truyền qua `MOTION_GOC` — truyền qua
+   tham số thì đụng với những bài nhận tham số khác (kiem-canh nhận TÊN CLIP). */
+const GOC = process.env.MOTION_GOC || process.argv[2] || 'http://127.0.0.1:7803';
 
 /**
  * Loại cố ý KHÔNG bày trong menu — phải kèm lý do, và phải kiểm rằng nó thật sự

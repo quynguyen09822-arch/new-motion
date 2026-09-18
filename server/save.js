@@ -16,8 +16,9 @@ import path from 'node:path';
 import { SCENES, soatKichBan } from './proj.js';
 import { catBanCu, duongDanBan } from './backup.js';
 import { duongDanClip } from './clips.js';
+import { ghi } from './nhatky.js';
 
-export async function luuClip(slug, doc) {
+export async function luuClip(slug, doc, email = null) {
   const vanDe = await soatKichBan(doc);
   if (vanDe.length) return { ok: false, vanDe };
 
@@ -34,11 +35,16 @@ export async function luuClip(slug, doc) {
   writeFileSync(tam, JSON.stringify(doc, null, 2), 'utf8');
   renameSync(tam, dich);
 
+  /* Ghi nhật ký SAU khi file đã nằm yên trên đĩa, và chỉ khi đã nằm yên. Ghi
+     trước thì có lượt được đếm mà clip lại chưa lưu được — số liệu nói dối.
+     `ghi()` tự nuốt mọi lỗi, nên dòng này không bao giờ làm hỏng việc lưu. */
+  ghi('luu', { email, slug, doc });
+
   return { ok: true, vanDe: [], banCu: banCu ? path.basename(banCu, '.json') : null };
 }
 
 /** Quay lại một bản đã cất. Bản đang có cũng được cất lại trước, để còn đường lùi. */
-export async function khoiPhuc(slug, dau) {
+export async function khoiPhuc(slug, dau, email = null) {
   const nguon = duongDanBan(slug, dau);
   if (!nguon) return { ok: false, vanDe: ['Không thấy bản sao lưu này.'] };
 
@@ -47,5 +53,6 @@ export async function khoiPhuc(slug, dau) {
   const tam = `${dich}.tmp-${process.pid}`;
   copyFileSync(nguon, tam);
   renameSync(tam, dich);
+  ghi('khoi-phuc', { email, slug, them: dau });
   return { ok: true, vanDe: [] };
 }

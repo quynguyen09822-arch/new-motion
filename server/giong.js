@@ -26,6 +26,19 @@ const NHO_MAU = path.join(PROJ, 'public', '.mau-giong');   // đoạn nghe thử
 
 let nhoEnv = { moc: 0, gt: {} };
 
+/**
+ * Lấy một khoá: BIẾN MÔI TRƯỜNG TRƯỚC, rồi mới tới `.env` của dự án clip.
+ *
+ * Bản chạy trong container KHÔNG có `.env` của dự án clip — `.dockerignore`
+ * chặn mọi file bắt đầu bằng dấu chấm, và cũng KHÔNG NÊN đóng khoá vào ảnh
+ * (ai kéo ảnh về cũng đọc được từng lớp). Nơi triển khai khai khoá bằng biến
+ * môi trường, nên phải đọc ở đó trước.
+ *
+ * Kiểm bằng `k in process.env` chứ không bằng `||`: đặt biến thành chuỗi rỗng
+ * là cách nói "cố ý không có khoá này", không phải "chưa đặt".
+ */
+const layKhoa = (k) => (k in process.env ? String(process.env[k]) : (docEnv()[k] || ''));
+
 /** Đọc `.env` của dự án clip. Trả về object — KHÔNG bao giờ ghi ra nhật ký. */
 function docEnv() {
   const f = path.join(PROJ, '.env');
@@ -53,7 +66,7 @@ function docEnv() {
  * thay vì chính khoá, và lúc đó mọi lời gọi trả 401 với câu báo chung chung.
  */
 export function khoaEleven() {
-  const k = (docEnv().ELEVENLABS_API_KEY || '').trim();
+  const k = layKhoa('ELEVENLABS_API_KEY').trim();
   if (!k) return { ok: false, cau: 'Chưa khai ELEVENLABS_API_KEY trong .env của dự án clip.' };
   if (!k.startsWith('sk_')) {
     return { ok: false, cau: 'ELEVENLABS_API_KEY sai dạng — khoá thật bắt đầu bằng "sk_". '
@@ -64,8 +77,8 @@ export function khoaEleven() {
 
 /** Khoá Google AI Studio. Tên biến trong `.env` đang viết sai chính tả — nhận cả hai. */
 export function khoaGoogle() {
-  const e = docEnv();
-  const k = (e.gooogle_Ai_studio_API_key || e.GOOGLE_AI_STUDIO_API_KEY || e.GEMINI_API_KEY || '').trim();
+  const k = (layKhoa('gooogle_Ai_studio_API_key') || layKhoa('GOOGLE_AI_STUDIO_API_KEY')
+    || layKhoa('GEMINI_API_KEY')).trim();
   return k ? { ok: true, k } : { ok: false, cau: 'Chưa khai khoá Google AI Studio trong .env của dự án clip.' };
 }
 

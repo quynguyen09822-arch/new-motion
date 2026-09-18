@@ -12,6 +12,15 @@ COPY package.json ./
 COPY server/ ./server/
 COPY web/ ./web/
 
+# Hai công cụ bản chạy thật cần. `.dockerignore` bỏ cả `tools/` rồi mở lại đúng
+# hai file này — chép cả thư mục là mang theo 28 bài kiểm Playwright vô dụng.
+COPY tools/xuat-nhanh.mjs tools/dat-mat-khau.mjs ./tools/
+
+# SỐ LIỆU LƯỢT DÙNG đã gộp. Phải mang theo: container không giữ file giữa hai
+# lần triển khai (vibehost không có chỗ gắn ổ lưu), nên thiếu thư mục này là
+# mỗi lần deploy lại con số "có ai dùng không" về 0.
+COPY so-lieu/ ./so-lieu/
+
 # DỮ LIỆU CLIP gói kèm.
 #
 # Trình sửa là một cửa sổ nhìn vào dự án clip — thiếu nó thì server chết ngay
