@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>eContract — 3 tính năng cốt lõi (20 giây, 16:9)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--xanh:#16a34a;--xanh-2:#4ade80;--do:#e11d48;--nen:#070d13}
+*{box-sizing:border-box;margin:0}
+body{background:#11151b;font-family:'Be Vietnam Pro',system-ui,sans-serif;color:#fff;
+  display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px 0 0}
+body.exporting{background:#000;padding:0;gap:0}
+body.exporting #ui,body.exporting #chaps{display:none}
+
+#stage{position:relative;width:1280px;height:720px;overflow:hidden;background:var(--nen);
+  transform-origin:top left;flex:none}
+
+/* khung hình ghi màn — nguồn 1920×1032, vẽ đúng 1280×688 nên KHÔNG phóng to điểm ảnh */
+.man{position:absolute;left:0;top:16px;width:1280px;height:688px;overflow:hidden;
+  transform-origin:0 0;will-change:opacity,transform}
+.man video{position:absolute;left:0;top:0;width:1280px;height:688px;display:block}
+.man::after{content:'';position:absolute;inset:0;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07);
+  pointer-events:none}
+
+/* vòng khoanh vào thành phần giao diện */
+.vong{position:absolute;border:3px solid var(--xanh-2);border-radius:10px;
+  box-shadow:0 0 0 4px rgba(74,222,128,.16),0 14px 40px rgba(22,163,74,.28);
+  pointer-events:none;will-change:opacity,transform}
+
+/* dải chữ dưới */
+#duoi{position:absolute;left:0;right:0;bottom:0;height:290px;pointer-events:none;
+  background:linear-gradient(to top,rgba(4,8,12,.96) 26%,rgba(4,8,12,.72) 62%,transparent 100%)}
+#chu{position:absolute;left:64px;right:64px;bottom:52px;pointer-events:none}
+#so{display:inline-flex;align-items:center;gap:10px;margin-bottom:12px;
+  padding:6px 14px 6px 8px;border-radius:99px;background:rgba(22,163,74,.18);
+  border:1px solid rgba(74,222,128,.34)}
+#so b{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;
+  background:var(--xanh);font-size:15px;font-weight:700}
+#so i{font-style:normal;font-size:15px;font-weight:600;color:var(--xanh-2);letter-spacing:.02em}
+#t1{font-size:46px;font-weight:700;line-height:1.14;letter-spacing:-.02em}
+#t2{margin-top:10px;font-size:23px;font-weight:500;line-height:1.35;color:#b8c6d4;max-width:1000px}
+#t1 em{font-style:normal;color:var(--xanh-2)}
+
+/* vạch tiến độ 3 tính năng */
+#vach{position:absolute;left:64px;right:64px;bottom:26px;height:4px;display:flex;gap:8px}
+#vach div{flex:1;border-radius:99px;background:rgba(255,255,255,.16);overflow:hidden}
+#vach div span{display:block;height:100%;width:0;background:var(--xanh-2);border-radius:99px}
+
+/* thẻ kết */
+#ket{position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 40%,#0d2a1b 0%,#060c10 70%);
+  display:grid;place-items:center;text-align:center}
+#ketIn img{height:52px;display:block;margin:0 auto 26px}
+#ketIn b{display:block;font-size:64px;font-weight:800;letter-spacing:-.03em}
+#ketIn b em{font-style:normal;color:var(--xanh-2)}
+#ketIn i{display:block;margin-top:12px;font-size:24px;font-style:normal;font-weight:500;color:#9fb3c2}
+#ketIn u{display:block;margin-top:26px;font-size:18px;text-decoration:none;color:#7d94a5}
+
+#ui{display:flex;gap:12px;align-items:center;font-size:13px}
+#ui button{background:#20293a;color:#fff;border:0;border-radius:8px;padding:7px 14px;cursor:pointer}
+#scrub{width:560px}
+#chaps{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+#chaps button{background:#1b2331;color:#c9d3e2;border:0;border-radius:7px;padding:5px 10px;font-size:12px;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="duoi"></div>
+  <div id="chu"><div id="so"><b>1</b><i>TÍNH NĂNG</i></div><div id="t1"></div><div id="t2"></div></div>
+  <div id="vach"><div><span></span></div><div><span></span></div><div><span></span></div></div>
+</div>
+<div id="ui">
+  <button id="btnPlay">▶ Chạy</button>
+  <input id="scrub" type="range" min="0" max="20" step="0.01" value="0">
+  <span id="tnum">0.00 / 20.00s</span>
+</div>
+<div id="chaps"></div>
+
+<script>
+(()=>{
+/* ==========================================================================
+   eCONTRACT — 20 GIÂY, 3 TÍNH NĂNG CỐT LÕI
+   Nguồn: hai bản ghi màn hình đã cắt sẵn ở public/video/econtract/ (mọi khung
+   đều là khung khoá nên tua tới đâu hiện ngay tới đó).
+
+   Mọi thứ tính từ MỘT biến thời gian `t`. Video KHÔNG tự chạy — mỗi khung hình
+   trang tự đặt `currentTime` cho đúng, nên tua ngược tua xuôi đều khớp và bộ
+   xuất hình lấy khung nào cũng đúng khung đó.
+   ========================================================================== */
+const DUR=20.0;
+const ST_W=1280, ST_H=720;
+const VID_W=1920, VID_H=1032;          /* cỡ gốc bản ghi màn hình */
+const KX=ST_W/VID_W, KY=688/VID_H;     /* quy đổi toạ độ ảnh → toạ độ sân khấu */
+const MK='public/video/econtract/';
+
+const $=s=>document.querySelector(s);
+const el=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e};
+const cl=(v,a,b)=>v<a?a:v>b?b:v;
+const tt=(t,a,b)=>b<=a?(t>=b?1:0):cl((t-a)/(b-a),0,1);
+const eOut=x=>1-Math.pow(1-x,3);
+const eIn=x=>x*x*x;
+const eIO=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+const seg=(t,a,b,e=eIO)=>e(tt(t,a,b));
+const pop=(t,a,b,v=.26,r=.30)=>Math.min(seg(t,a,a+v,eOut),1-seg(t,b-r,b,eIn));
+const px=v=>v.toFixed(2)+'px';
+const setO=(e,o)=>{e.style.opacity=o.toFixed(3);e.style.visibility=o<0.002?'hidden':'visible'};
+
+/* ==========================================================================
+   BẢNG CẢNH
+   tep      · đoạn ghi màn dùng cho cảnh
+   goc      · giây bắt đầu trong đoạn đó
+   nhip     · tốc độ phát (0.6 = chậm lại còn 60%) — cảnh tĩnh thì cho chậm để
+              có thời gian đọc chữ, cảnh có thao tác thì để gần 1
+   Kiểm: (b-a)*nhip phải ≤ độ dài đoạn, không thì cuối cảnh video đứng hình.
+   ========================================================================== */
+const SC=[
+ {a:0.0 , b:2.30, tep:'s1-dangnhap.mp4', goc:0.15, nhip:0.95,
+  so:0, t1:'<em>eContract</em> — Hợp đồng điện tử', t2:'Ký số trọn vòng đời hợp đồng, ngay trên trình duyệt'},
+
+ {a:2.30, b:7.50, tep:'s2-hopdong.mp4', goc:0.10, nhip:0.56,
+  zo:[1.00,1.09], nhin:[1200, 620],
+  so:1, t1:'Tạo <em>mẫu tài liệu</em> hợp đồng',
+  t2:'Soạn thảo, lưu mẫu dùng lại — thông tin các bên tự động điền vào đúng chỗ'},
+
+ {a:7.50, b:10.40, tep:'s3-email.mp4', goc:0.15, nhip:0.92,
+  zo:[1.00,1.07], nhin:[1080, 530],
+  so:2, t1:'<em>Ký hợp đồng</em> trực tuyến',
+  t2:'Yêu cầu ký gửi thẳng vào email — mở link là ký được, không cần cài gì'},
+
+ /* Vào từ giây 0.85 của đoạn: trước đó trang còn đang cuộn, vòng khoanh đặt cố
+    định sẽ trượt khỏi khối chữ ký. Từ 0.85 trở đi trang đứng yên hẳn. */
+ {a:10.40, b:14.00, tep:'s4-kyten.mp4', goc:0.85, nhip:0.50,
+  zo:[1.02,1.22], nhin:[1178, 662],
+  so:2, t1:'<em>Ký hợp đồng</em> trực tuyến',
+  t2:'Ký số trên web và điện thoại · luồng ký tuần tự hoặc song song'},
+
+ {a:14.00, b:18.70, tep:'s2-hopdong.mp4', goc:0.05, nhip:0.32,
+  zo:[1.03,1.26], nhin:[ 277, 612],
+  so:3, t1:'<em>Quản lý</em> hợp đồng, văn bản',
+  t2:'Theo dõi trạng thái từng bên ký · tìm kiếm, phân loại và lưu trữ tập trung'},
+
+ {a:18.70, b:20.00, ket:true, so:0, t1:'', t2:''},
+];
+
+/* Cửa sổ hiện chữ của từng cảnh — để chữ vào sau hình một nhịp */
+const CHU=[[0.35,2.20],[2.70,7.36],[7.85,10.28],[10.60,13.88],[14.35,18.56],[0,0]];
+
+/* ==========================================================================
+   VÒNG KHOANH — [cảnh, x0,y0,x1,y1 theo toạ độ bản ghi 1920×1032, từ, đến]
+   Số đo lấy bằng cách dán lưới toạ độ lên đúng khung hình của đoạn đó.
+   ========================================================================== */
+const VONG=[
+ {sc:1, box:[ 820, 528,1584, 716], a:3.30, b:7.20},   /* khối thông tin các bên đã điền sẵn */
+ {sc:2, box:[ 824, 456,1340, 606], a:8.30, b:10.20},  /* dòng "đang chờ ký tại trang web…" */
+ {sc:3, box:[ 868, 512,1488, 812], a:11.00,b:13.85},  /* hai ô chữ ký + dấu ký số */
+ {sc:4, box:[  82, 218, 472,1008], a:14.85,b:18.50},  /* bảng thông tin + tiến độ ký */
+];
+
+/* ==========================================================================
+   DỰNG
+   ========================================================================== */
+const stage=$('#stage'), duoi=$('#duoi');
+SC.forEach((s,i)=>{
+  if(s.ket){
+    const k=el('div',null,
+      '<div id="ketIn"><img alt="" src="public/mat-bao-logo.png">'
+      +'<b><em>eContract</em></b>'
+      +'<i>Hợp đồng điện tử · ký số mọi lúc mọi nơi</i>'
+      +'<u>econtract.matbao.in</u></div>');
+    k.id='ket'; stage.insertBefore(k,duoi); s.el=k; return;
+  }
+  const m=el('div','man');
+  const v=el('video'); v.src=MK+s.tep; v.muted=true; v.playsInline=true; v.preload='auto';
+  m.appendChild(v); stage.insertBefore(m,duoi);
+  s.el=m; s.vid=v;
+});
+VONG.forEach(V=>{
+  const e=el('div','vong'); const [x0,y0,x1,y1]=V.box;
+  e.style.left=px(x0*KX); e.style.top=px(y0*KY);
+  e.style.width=px((x1-x0)*KX); e.style.height=px((y1-y0)*KY);
+  SC[V.sc].el.appendChild(e); V.el=e;
+});
+
+const E={duoi:$('#duoi'),chu:$('#chu'),so:$('#so'),t1:$('#t1'),t2:$('#t2'),
+         vach:[...document.querySelectorAll('#vach span')]};
+let chuI=-1;
+const HOA=0.34;                       /* thời gian chuyển cảnh */
+
+function render(t){
+  SC.forEach((s,i)=>{
+    const vao=seg(t,s.a-(i?HOA:0),s.a-(i?HOA:0)+HOA,eIO);
+    const ra=i===SC.length-1?0:seg(t,s.b-HOA,s.b,eIO);
+    const o=i===0?1-ra:vao*(1-ra);
+    setO(s.el,o);
+    if(o<0.002||!s.vid)return;
+    /* Đặt thẳng currentTime thay vì cho video tự chạy: tua tới đâu đúng tới đó,
+       và bộ xuất hình (chạy chậm hơn thời gian thật) vẫn lấy đúng khung. */
+    /* Máy quay đẩy nhẹ vào vùng đang khoanh. Có đoạn màn hình nguồn đứng im hoàn
+       toàn (khối chữ ký), không đẩy thì khung hình chết cứng mấy giây liền; đẩy
+       vào còn làm chữ trong giao diện to lên, dễ đọc hơn trên điện thoại.
+       Vòng khoanh là con của .man nên đi theo, không phải tính lại toạ độ. */
+    if(s.zo){
+      const k=seg(t,s.a,s.b,eIO);
+      const z=s.zo[0]+(s.zo[1]-s.zo[0])*k;
+      const fx=s.nhin[0]*KX, fy=s.nhin[1]*KY;
+      const tx=cl(ST_W/2-z*fx, ST_W-z*ST_W, 0);
+      const ty=cl(344-z*fy, 688-z*688, 0);
+      s.el.style.transform='translate('+px(tx)+','+px(ty)+') scale('+z.toFixed(4)+')';
+    }
+    const gio=s.goc+Math.max(0,t-s.a)*s.nhip;
+    const het=s.vid.duration||99;
+    const dat=Math.min(gio,het-0.02);
+    if(Math.abs(s.vid.currentTime-dat)>0.012) s.vid.currentTime=dat;
+  });
+
+  VONG.forEach(V=>{ setO(V.el, pop(t,V.a,V.b,.26,.30)) });
+
+  /* chữ */
+  let ci=-1;
+  CHU.forEach(([a,b],i)=>{ if(b>a && t>=a-0.10 && t<=b+0.10) ci=i });
+  if(ci!==chuI){
+    chuI=ci;
+    if(ci>=0){
+      E.t1.innerHTML=SC[ci].t1; E.t2.innerHTML=SC[ci].t2;
+      const n=SC[ci].so;
+      E.so.style.display=n?'inline-flex':'none';
+      if(n){E.so.querySelector('b').textContent=n}
+    }
+  }
+  if(ci<0){ setO(E.chu,0); setO(E.duoi,0) }
+  else{
+    const [a,b]=CHU[ci];
+    const v=seg(t,a,a+0.40,eOut), r=seg(t,b-0.30,b,eIn), o=v*(1-r);
+    setO(E.chu,o); setO(E.duoi,Math.max(o,seg(t,a-0.20,a,eOut)*(1-r))*0.98);
+    E.t1.style.transform='translateY('+px((1-v)*26+r*-12)+')';
+    E.t2.style.transform='translateY('+px((1-seg(t,a+0.10,a+0.60,eOut))*20+r*-9)+')';
+    E.so.style.transform='translateY('+px((1-seg(t,a,a+0.34,eOut))*16)+')';
+  }
+
+  /* vạch tiến độ ba tính năng */
+  const MOC=[[2.30,7.50],[7.50,14.00],[14.00,18.70]];
+  MOC.forEach(([a,b],i)=>{ E.vach[i].style.width=(tt(t,a,b)*100).toFixed(1)+'%' });
+  setO($('#vach'), t>=2.0 && t<18.7 ? 1 : 0);
+}
+
+/* ==========================================================================
+   CHẠY / TUA
+   ========================================================================== */
+const TOC=Math.max(0.25,Math.min(4,parseFloat(new URLSearchParams(location.search).get('toc'))||1));
+let t=0,DUNG=true,last=0;
+function loop(now){
+  if(!DUNG){
+    t+=Math.min(0.30,(now-last)/1000)*TOC;
+    if(t>=DUR){t=DUR;DUNG=true;$('#btnPlay').textContent='▶ Chạy'}
+    render(t);ui();
+  }
+  last=now;requestAnimationFrame(loop);
+}
+function ui(){$('#scrub').value=t.toFixed(2);
+  $('#tnum').textContent=t.toFixed(2)+' / '+DUR.toFixed(2)+'s'}
+$('#btnPlay').addEventListener('click',()=>{
+  if(t>=DUR)t=0; DUNG=!DUNG; last=performance.now();
+  $('#btnPlay').textContent=DUNG?'▶ Chạy':'❚❚ Dừng'});
+$('#scrub').addEventListener('input',e=>{t=parseFloat(e.target.value);render(t);ui()});
+[[0,'Mở đầu'],[2.3,'TN1 Tạo mẫu'],[7.5,'TN2 Email'],[10.4,'TN2 Ký tên'],[14,'TN3 Quản lý'],[18.7,'Kết']]
+.forEach(([s,n])=>{const b=document.createElement('button');
+  b.textContent=s+'s · '+n; b.onclick=()=>{t=s;render(t);ui()};$('#chaps').appendChild(b)});
+
+function fit(){
+  if(document.body.classList.contains('exporting')){stage.style.transform='none';return}
+  const k=Math.min((innerWidth-40)/ST_W,(innerHeight-160)/ST_H,1);
+  stage.style.transform='scale('+k+')';
+  stage.style.margin='0 0 '+((k-1)*ST_H)+'px';
+}
+addEventListener('resize',fit);
+
+/* Chờ mọi đoạn video nạp đủ siêu dữ liệu + sẵn khung đầu, không thì khung đầu
+   của cảnh ra đen. */
+function sanSang(v){
+  return new Promise(r=>{
+    if(v.readyState>=2) return r();
+    v.addEventListener('loadeddata',()=>r(),{once:true});
+    v.addEventListener('error',()=>r(),{once:true});
+    setTimeout(r,6000);
+  });
+}
+async function napHet(){
+  await Promise.all(SC.filter(s=>s.vid).map(s=>sanSang(s.vid)));
+  await Promise.all(SC.filter(s=>s.vid).map(s=>new Promise(r=>{
+    s.vid.currentTime=s.goc; s.vid.addEventListener('seeked',()=>r(),{once:true}); setTimeout(r,2500);
+  })));
+}
+function khoiDong(){render(0);ui()}
+
+if(/[?&]export=1/.test(location.search)){
+  document.body.classList.add('exporting');
+  window.__clip={
+    duration:DUR/TOC,
+    ready:async()=>{ await document.fonts.ready; await napHet(); fit(); khoiDong() },
+    play:()=>{DUNG=false;last=performance.now()},
+    at:()=>t/TOC, seek:s=>{t=cl(s*TOC,0,DUR);render(t)}, step:s=>{t=cl(s*TOC,0,DUR);render(t)},
+  };
+}
+fit();
+napHet().then(khoiDong);
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

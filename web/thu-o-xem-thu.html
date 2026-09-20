@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="vi">
+<meta charset="utf-8">
+<title>Thử ô xem thử — Motion</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- Bộ chữ tự chứa, như mọi trang khác. -->
+<link rel="stylesheet" href="/clip/public/fonts/chu.css">
+<link rel="stylesheet" href="/app.css">
+<!--
+  TRANG THỬ, KHÔNG PHẢI TÍNH NĂNG.
+
+  Dựng ra để Quý nhìn thật trước khi chốt hai chuyện trong `BANG-CHINH-V2.md`:
+  cả 11 gói chuyển động bày cùng lúc trông thế nào, và lệch pha có làm dải dịu
+  đi thật không hay chỉ nghe có lý trên giấy.
+
+  Đây cũng là chỗ dựng Việc 1 và Việc 2 sau này, và là bộ khung cho trang giới
+  thiệu gửi team — nên để lại trong repo thay vì xoá đi.
+-->
+<style>
+  body { margin: 0; background: var(--nen, #14161a); color: var(--chu, #e8eaed);
+         font-family: var(--font); padding: 24px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  p.dan { margin: 0 0 20px; color: var(--chu-mo, #9aa0a6); font-size: 13px; }
+  .dai { display: flex; flex-wrap: wrap; gap: 14px; }
+  .the { width: 210px; cursor: pointer; border: 2px solid transparent;
+         border-radius: 10px; padding: 6px; background: #1c1f26; }
+  .the[aria-pressed="true"] { border-color: #2f6bff; }
+  .the .o-xem-thu { width: 100%; }
+  .ten { font-size: 13px; font-weight: 600; margin: 8px 2px 2px; }
+  .goi { font-size: 11px; color: var(--chu-mo, #9aa0a6); margin: 0 2px 2px; line-height: 1.35; }
+  .num { margin: 22px 0 0; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; font-size: 13px; }
+  .num label { display: flex; gap: 8px; align-items: center; }
+</style>
+
+<h1>Ô xem thử — 11 gói chuyển động</h1>
+<p class="dan">Bày đủ số gói thật để xem dải có rối không. Bấm một thẻ để chọn.
+  Tắt lệch pha để so hai kiểu.</p>
+
+<div class="num">
+  <label><input type="checkbox" id="lech" checked> Lệch pha (mỗi ô vào một lúc)</label>
+  <label>Mức nhoè <input type="range" id="nhoe" min="0" max="5" value="0"> <b id="so-nhoe">0</b></label>
+  <label><input type="checkbox" id="day"> Mẫu khung + đẩy máy (xem <code>push</code>)</label>
+</div>
+
+<div class="dai" id="dai"></div>
+
+<script type="module">
+import { KHO_VAO } from '/inspector/schema.js';
+import { taoDaiXemThu, taoOXemThu } from '/inspector/o-xem-thu.js';
+
+const hop = document.getElementById('dai');
+let o = [];
+let chon = KHO_VAO[0].id;
+
+function dung() {
+  for (const x of o) x.huy();
+  hop.textContent = '';
+  const lech = document.getElementById('lech').checked;
+  const nhoe = Number(document.getElementById('nhoe').value);
+  const day = document.getElementById('day').checked;
+
+  const ds = KHO_VAO.map((g) => ({
+    vao: g.id, nhan: g.ten,
+    mau: day ? 'khung' : 'the',
+    hieuUng: { soft: nhoe, ...(day ? { push: 3 } : {}) },
+  }));
+
+  o = lech ? taoDaiXemThu(ds) : ds.map((x) => taoOXemThu({ ...x, lech: 0 }));
+
+  KHO_VAO.forEach((g, i) => {
+    const the = document.createElement('div');
+    the.className = 'the';
+    the.setAttribute('role', 'button');
+    the.setAttribute('aria-pressed', String(g.id === chon));
+    the.append(o[i].phanTu);
+    const ten = document.createElement('div');
+    ten.className = 'ten'; ten.textContent = g.ten;
+    const goi = document.createElement('p');
+    goi.className = 'goi'; goi.textContent = g.goi;
+    the.append(ten, goi);
+    the.onclick = () => {
+      chon = g.id;
+      for (const t of hop.children) t.setAttribute('aria-pressed', 'false');
+      the.setAttribute('aria-pressed', 'true');
+    };
+    hop.append(the);
+  });
+}
+
+for (const id of ['lech', 'day']) document.getElementById(id).onchange = dung;
+document.getElementById('nhoe').oninput = (e) => {
+  document.getElementById('so-nhoe').textContent = e.target.value;
+  for (const x of o) x.dat({ hieuUng: { soft: Number(e.target.value) } });
+};
+dung();
+</script>

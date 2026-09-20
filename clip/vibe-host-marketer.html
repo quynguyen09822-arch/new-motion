@@ -4,9 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Vibe Host — Marketer (9:16, UI thật ở đoạn deploy)</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- Bộ chữ tự chứa, không tải qua mạng. Đường tương đối: trang này được phục vụ
+     ở /clip/<tên>.html nên trỏ đúng /clip/public/fonts/. -->
+<link rel="stylesheet" href="public/fonts/chu.css">
 <style>
 /* ==========================================================================
    CLIP MARKETER — khung dọc 9:16
@@ -105,7 +105,7 @@ body.exporting #ui,body.exporting #chaps{display:none}
 /* Đặt DƯỚI, trong khoảng trống bên dưới bánh xe. Đặt ở trên thì con số đè thẳng
    lên tiêu đề “VÒNG QUAY MAY MẮN” in sẵn trong ảnh — nhìn như lỗi hiển thị. */
 #hook{position:absolute;left:0;right:0;bottom:296px;text-align:center;pointer-events:none}
-#hookN{font-family:'Space Grotesk',sans-serif;font-size:104px;font-weight:700;line-height:1;
+#hookN{font-family:'Be Vietnam Pro',system-ui,sans-serif;font-size:104px;font-weight:700;line-height:1;
   letter-spacing:-.03em;background:linear-gradient(92deg,#ffc48a,var(--cam-2) 55%,var(--cam));
   -webkit-background-clip:text;background-clip:text;color:transparent;
   filter:drop-shadow(0 8px 30px rgba(0,0,0,.6));will-change:transform,opacity}
@@ -144,7 +144,7 @@ body.exporting #ui,body.exporting #chaps{display:none}
 #logo{position:absolute;left:16px;top:15px;display:flex;align-items:center;gap:12px}
 #logoMark{width:36px;height:36px;border-radius:10px;
   background:linear-gradient(135deg,#f7a03c,var(--cam));display:flex;align-items:center;justify-content:center}
-#logoTxt{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:21px;letter-spacing:-.01em;
+#logoTxt{font-family:'Be Vietnam Pro',system-ui,sans-serif;font-weight:700;font-size:21px;letter-spacing:-.01em;
   background:linear-gradient(92deg,#f7913f,var(--cam));-webkit-background-clip:text;background-clip:text;color:transparent}
 #collapse{position:absolute;left:222px;top:23px;opacity:.55}
 #navLabel{position:absolute;left:24px;top:90px;font-size:11px;font-weight:600;
@@ -298,7 +298,7 @@ body.exporting #ui,body.exporting #chaps{display:none}
 #bar{position:absolute;height:7px;border-radius:999px;background:#edf0f4;overflow:hidden}
 #barIn{position:absolute;left:0;top:0;bottom:0;border-radius:999px;
   background:linear-gradient(90deg,var(--cam-2),var(--cam))}
-#pct{position:absolute;font-size:13px;font-weight:600;font-family:'Space Grotesk',sans-serif;text-align:right}
+#pct{position:absolute;font-size:13px;font-weight:600;font-family:'Be Vietnam Pro',system-ui,sans-serif;text-align:right}
 #log{position:absolute;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#7a8598;line-height:2}
 #log div{white-space:nowrap;will-change:opacity,transform}
 
@@ -354,7 +354,7 @@ body.exporting #ui,body.exporting #chaps{display:none}
   display:flex;align-items:center;gap:13px;padding:0 16px;will-change:transform,opacity}
 #tep .z{width:44px;height:44px;border-radius:10px;background:#fff3ec;color:var(--cam);
   display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;
-  font-family:'Space Grotesk',sans-serif;flex:none}
+  font-family:'Be Vietnam Pro',system-ui,sans-serif;flex:none}
 #tep .n{font-size:14px;font-weight:600;color:var(--chu);line-height:1.25}
 #tep .m{font-size:11.5px;color:var(--chu-nhat);margin-top:2px}
 #tep .ok{margin-left:auto;width:22px;height:22px;border-radius:50%;background:var(--xanh);

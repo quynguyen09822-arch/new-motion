@@ -200,10 +200,14 @@ try {
     ['permissions-policy', 'khoá máy ảnh/micro']]) {
     dat(`có ${ten}`, Boolean(dd.get(h)), (dd.get(h) || '').slice(0, 42));
   }
-  /* CSP PHẢI cho phông Google: 12 clip đời cũ nạp Be Vietnam Pro từ đó. Bản CSP
-     đầu chặn mất và 5 bài kiểm đỏ ngay. */
-  dat('CSP vẫn cho phông Google (12 clip đời cũ cần)',
-    /fonts\.googleapis\.com/.test(dd.get('content-security-policy') || ''));
+  /* CSP phải KHÔNG còn nguồn phông ngoài. Trước kia bắt buộc phải mở
+     fonts.googleapis.com cho 12 clip đời cũ; nay bộ chữ tự chứa nên đóng hẳn.
+     Giữ phép thử ở chiều ngược lại để không ai lỡ tay mở lại — mở lại là một
+     thẻ <link> lọt vào clip sẽ chạy được trên máy có mạng và chỉ gãy khi mất
+     mạng, đúng kiểu lỗi trôi qua mọi vòng kiểm. */
+  const csp = dd.get('content-security-policy') || '';
+  dat('CSP KHÔNG còn nguồn phông ngoài (bộ chữ đã tự chứa)',
+    !/fonts\.googleapis\.com|fonts\.gstatic\.com/.test(csp));
   dat('CSP cho phép tự nhúng iframe cùng origin (khung xem clip)',
     /frame-ancestors 'self'/.test(dd.get('content-security-policy') || ''));
   // HSTS chỉ khi thật sự https — bật lúc chạy http là tự khoá trình duyệt của mình.

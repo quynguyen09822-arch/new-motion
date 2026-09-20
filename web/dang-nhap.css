@@ -6,7 +6,7 @@
   --nen: #0b0c0e; --nen-2: #141619; --nen-3: #1b1e23;
   --chu: #e8eaed; --chu-mo: #9aa0a6; --vach: #2a2e35;
   --nhan: #2f6bff; --tren-nhan: #fff; --do: #e0795a;
-  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font: var(--bo-chu, "Be Vietnam Pro", system-ui, sans-serif);
 }
 * { box-sizing: border-box; }
 body {

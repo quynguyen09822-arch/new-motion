@@ -4,12 +4,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Sửa clip — Mắt Bão</title>
   <link rel="icon" type="image/png" href="/logo/favicon.png">
-<!-- Phông chữ có đủ đường lùi hệ thống trong `--font`: mạng hỏng thì giao diện
-     vẫn đúng, chỉ khác nét chữ. KHÔNG nạp phông vào clip. -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap">
+<!-- Bộ chữ TỰ CHỨA trong dự án — không tải gì qua mạng. Rút mạng vẫn đúng mặt
+     chữ. File nằm bên dự án clip để `scene-player.html` dùng chung một bản,
+     không phải hai bản sẽ trôi khỏi nhau. -->
+<link rel="stylesheet" href="/clip/public/fonts/chu.css">
 <link rel="stylesheet" href="/app.css">
 
 <div id="app">

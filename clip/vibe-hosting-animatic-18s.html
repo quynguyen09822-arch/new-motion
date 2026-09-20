@@ -4,9 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Vibe Hosting — Animatic 18s (giao diện dựng bằng code)</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- Bộ chữ tự chứa, không tải qua mạng. Đường tương đối: trang này được phục vụ
+     ở /clip/<tên>.html nên trỏ đúng /clip/public/fonts/. -->
+<link rel="stylesheet" href="public/fonts/chu.css">
 <style>
 /* ==========================================================================
    VÌ SAO GIAO DIỆN Ở ĐÂY LÀ CODE CHỨ KHÔNG PHẢI ẢNH CHỤP
@@ -96,7 +96,7 @@ body.exporting #ui,body.exporting #chaps{display:none}
 #logo{position:absolute;left:16px;top:15px;display:flex;align-items:center;gap:12px}
 #logoMark{width:36px;height:36px;border-radius:10px;
   background:linear-gradient(135deg,#f7a03c,var(--cam));display:flex;align-items:center;justify-content:center}
-#logoTxt{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:21px;letter-spacing:-.01em;
+#logoTxt{font-family:'Be Vietnam Pro',system-ui,sans-serif;font-weight:700;font-size:21px;letter-spacing:-.01em;
   background:linear-gradient(92deg,#f7913f,var(--cam));-webkit-background-clip:text;background-clip:text;color:transparent}
 #collapse{position:absolute;left:222px;top:23px;opacity:.55}
 #navLabel{position:absolute;left:24px;top:90px;font-size:11px;font-weight:600;
@@ -250,7 +250,7 @@ body.exporting #ui,body.exporting #chaps{display:none}
 #bar{position:absolute;height:7px;border-radius:999px;background:#edf0f4;overflow:hidden}
 #barIn{position:absolute;left:0;top:0;bottom:0;border-radius:999px;
   background:linear-gradient(90deg,var(--cam-2),var(--cam))}
-#pct{position:absolute;font-size:13px;font-weight:600;font-family:'Space Grotesk',sans-serif;text-align:right}
+#pct{position:absolute;font-size:13px;font-weight:600;font-family:'Be Vietnam Pro',system-ui,sans-serif;text-align:right}
 #log{position:absolute;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#7a8598;line-height:2}
 #log div{white-space:nowrap;will-change:opacity,transform}
 
@@ -298,14 +298,14 @@ body.exporting #ui,body.exporting #chaps{display:none}
 #bug{position:absolute;left:36px;bottom:40px;display:flex;align-items:center;gap:8px;
   will-change:opacity}
 #bug img{width:21px;height:21px}
-#bug span{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;
+#bug span{font-family:'Be Vietnam Pro',system-ui,sans-serif;font-weight:700;font-size:15px;
   background:linear-gradient(92deg,var(--cam-2),var(--cam));-webkit-background-clip:text;background-clip:text;color:transparent}
 
 /* ---------- mở màn / kết ---------- */
 #brand,#end{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
   justify-content:center;gap:16px}
 #brandLogo{width:104px;height:104px;will-change:transform,opacity}
-#brandName,#endName{font-family:'Space Grotesk',sans-serif;font-weight:700;letter-spacing:-.015em;
+#brandName,#endName{font-family:'Be Vietnam Pro',system-ui,sans-serif;font-weight:700;letter-spacing:-.015em;
   background:linear-gradient(92deg,#ffb47a,var(--cam-2) 45%,var(--cam));
   -webkit-background-clip:text;background-clip:text;color:transparent;will-change:transform,opacity}
 #brandName{font-size:62px}

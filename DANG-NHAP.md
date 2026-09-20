@@ -178,10 +178,11 @@ Hai điều đáng nói:
 
 - **HSTS chỉ bật khi thật sự chạy https.** Bật lúc chạy thử ở máy là tự khoá trình
   duyệt của mình khỏi `http://127.0.0.1` suốt một năm.
-- **CSP phải cho phông Google.** Bản CSP đầu của em chặn `fonts.googleapis.com` và
-  **5 bài kiểm đỏ ngay** — 12 clip đời cũ nạp Be Vietnam Pro từ đó. Không có bài
-  kiểm thì lỗi này chỉ lộ khi người dùng mở clip và thấy chữ đổi phông, một thứ rất
-  dễ bỏ qua.
+- **CSP từng phải cho phông Google, nay thì không.** Bản CSP đầu chặn
+  `fonts.googleapis.com` và **5 bài kiểm đỏ ngay** — hồi đó 12 clip đời cũ nạp Be
+  Vietnam Pro từ đó. Từ 19/09 cả bộ chữ nằm trong `clip/public/fonts/` nên CSP đã
+  **đóng hẳn** nguồn phông ngoài, và bài kiểm đổi sang khẳng định chiều ngược lại.
+  Xem `docs/CHU-TU-CHUA.md`.
 - Dùng `frame-ancestors 'self'` chứ không phải `X-Frame-Options: DENY`: công cụ này
   **dùng iframe cùng origin** để hiện khung xem clip, cấm hết là tự bịt mắt mình.
 

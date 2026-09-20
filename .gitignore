@@ -19,6 +19,10 @@ __pycache__/
 # Mật khẩu (băm) và khoá ký phiên đăng nhập — KHÔNG bao giờ commit
 .env
 .env.*
+# ...trừ BẢN MẪU. `.env.*` ở trên nuốt luôn `.env.example`, nên người mới clone
+# về không có gì để biết phải khai những biến nào — mà file mẫu thì chỉ có tên
+# biến và chú thích, không có giá trị thật nào.
+!.env.example
 mcp-stitch.json.txt
 
 # Nhật ký lượt dùng — dữ liệu chạy.

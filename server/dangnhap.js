@@ -276,8 +276,15 @@ const MO = new Set(['/dang-nhap', '/api/dang-nhap', '/api/dang-xuat', '/api/toi-
   '/health', '/api/health',
   '/dang-nhap.css', '/logo/motion-mark.png', '/logo/motion-full.png', '/logo/favicon.png']);
 
+/* Bộ chữ tự chứa phải đi được TRƯỚC cửa: trang đăng nhập cũng cần đúng mặt chữ.
+   Để tiền tố chứ không liệt kê 21 file woff2 — thêm một nét chữ là quên sửa ngay.
+   Mở một thư mục font chỉ-đọc, không phải mở `/clip/`: `static.js` vẫn chặn `..`
+   và mọi đoạn bắt đầu bằng dấu chấm, nên không lần ra ngoài thư mục này được. */
+const MO_TIEN_TO = ['/clip/public/fonts/'];
+
 export function duocVao(req, duong) {
   if (!daDatMatKhau()) return true;          // chưa đặt mật khẩu → không chặn ai
   if (MO.has(duong)) return true;
+  if (MO_TIEN_TO.some((t) => duong.startsWith(t))) return true;
   return veConHan(docCookie(req, TEN_COOKIE));
 }

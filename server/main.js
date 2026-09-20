@@ -20,6 +20,7 @@ import { PROJ, SCENES, kiemTraDuAn, soatKichBan } from './proj.js';
 import { duocPhucVu, guiFile } from './static.js';
 import { aiDangVao, daDatMatKhau, dangBiKhoa, datCookie, diaChi, dsTaiKhoan, duocVao,
   duoiEmail, ghiSai, kiemEmail, kiemMatKhau, taoVe, xoaCookie, xoaSai } from './dangnhap.js';
+import { canhMau } from './canhmau.js';
 import { danhSachClip, docClip, duongDanXem, locSlug } from './clips.js';
 import { chupBanGoc, lichSu } from './backup.js';
 import { khoiPhuc, luuClip } from './save.js';
@@ -79,12 +80,15 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Content-Security-Policy', [
     "default-src 'self'", "img-src 'self' data: blob:", "media-src 'self' data: blob:",
     "script-src 'self' 'unsafe-inline'",
-    /* PHẢI cho phép fonts.googleapis.com và fonts.gstatic.com: 12 clip đời cũ
-       nạp phông Be Vietnam Pro từ đó. Bản CSP đầu của em chặn mất, và 5 bài
-       kiểm đỏ ngay — nếu không có bài kiểm thì lỗi này chỉ lộ ra khi người dùng
-       mở clip và thấy chữ đổi phông, một thứ rất dễ bỏ qua. */
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' data: https://fonts.gstatic.com",
+    /* KHÔNG còn nguồn phông ngoài. Trước đây phải mở fonts.googleapis.com và
+       fonts.gstatic.com vì 12 clip đời cũ nạp Be Vietnam Pro từ đó; nay cả bộ
+       chữ nằm trong `clip/public/fonts/` nên `'self'` là đủ.
+       Siết lại KHÔNG phải cho đẹp: chừng nào CSP còn mở hai tên miền đó, một
+       thẻ <link> lọt lại vào clip nào đó vẫn chạy ngon trên máy có mạng và chỉ
+       gãy đúng lúc máy chủ mất mạng — kiểu lỗi không ai bắt được. Đóng lại thì
+       nó gãy NGAY ở bài kiểm. */
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self' data:",
     "connect-src 'self'", "frame-src 'self'",
     "frame-ancestors 'self'", "base-uri 'self'", "form-action 'self'",
   ].join('; '));
@@ -193,6 +197,19 @@ const server = http.createServer(async (req, res) => {
        nào, là chuyện nội bộ chứ không phải số liệu công khai. */
     if (p === '/api/thong-ke' && req.method === 'GET') {
       return json(res, 200, thongKe());
+    }
+
+    /* CẢNH MẪU cho ô xem thử trong bảng chỉnh. Bộ dựng tự gọi đường này qua
+       `?scene=/api/canh-mau?…` — xem `server/canhmau.js` để biết vì sao sinh ở
+       đây chứ không sinh ở trình duyệt.
+       Trả `no-store`: người dùng kéo thanh trượt là mỗi nấc một cảnh khác, để
+       trình duyệt nhớ bản cũ thì ô xem thử đứng im mà núm thì đã đổi. */
+    if (p === '/api/canh-mau' && req.method === 'GET') {
+      const y = Object.fromEntries(new URL(req.url, 'http://x').searchParams);
+      const { doc, vanDe } = await canhMau(y);
+      if (vanDe.length) return loi(res, 500, `Cảnh mẫu hỏng: ${vanDe.join('; ')}`);
+      res.setHeader('Cache-Control', 'no-store');
+      return json(res, 200, doc);
     }
 
     if (p === '/api/clips' && req.method === 'GET') {

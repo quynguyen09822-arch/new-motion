@@ -3,6 +3,10 @@
 <head>
 <meta charset="utf-8">
 <title>ClipVibe · Bộ dựng cảnh</title>
+<!-- Bộ chữ tự chứa, không tải qua mạng. Đường dẫn tương đối: trang này chạy ở
+     /clip/scene-player.html (máy chủ trình sửa) lẫn /scene-player.html (ai đó
+     phục vụ thẳng gốc dự án clip) — đường tuyệt đối sẽ gãy một trong hai. -->
+<link rel="stylesheet" href="public/fonts/chu.css">
 <!--
   BỘ DỰNG CẢNH — một trang, chạy được MỌI kịch bản.
 
@@ -27,13 +31,19 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:#e9e7e3;overflow:hidden}
-/* BỘ CHỮ GHIM CỨNG, không phó mặc `system-ui`.
+/* BỘ CHỮ GHIM CỨNG, và nay còn TỰ CHỨA trong dự án.
    `system-ui` để máy dựng tự chọn, mà máy dựng thì có ngày bị cài thêm/gỡ bớt
    font — hôm đó cả clip đổi bộ chữ, chữ gãy dòng khác đi, mà chẳng có gì báo.
    Đã dính một lần: workspace mất bộ font, mọi clip cũ dựng lại ra một mặt chữ
-   khác hẳn. Cần bộ chữ khác thì đổi ở ĐÂY, có chủ đích. */
+   khác hẳn.
+   Ghim Roboto/Noto/Arial vẫn chưa đủ: không file nào đi kèm, máy chủ thiếu font
+   là lại rơi về mặt khác trong im lặng. Nay chữ nằm luôn trong repo
+   (`public/fonts/`), rút mạng vẫn đúng mặt.
+   `system-ui,sans-serif` giữ làm PHAO CUỐI, không phải lựa chọn — nếu clip ra
+   mặt chữ đó nghĩa là file font hỏng, cần sửa chứ không phải chấp nhận.
+   Cần bộ chữ khác thì đổi ở ĐÂY, có chủ đích. */
 body{display:flex;align-items:center;justify-content:center;
-  font-family:Roboto,"Noto Sans","Liberation Sans",Arial,sans-serif;
+  font-family:"Be Vietnam Pro",system-ui,sans-serif;
   -webkit-font-smoothing:antialiased}
 body.exporting{background:#000}
 
@@ -1981,6 +1991,16 @@ loadDoc().then(async (doc) => {
   window.__clip = {
     get duration() { return DUR; },
     ready: async () => {
+      /* Nạp CƯỠNG BỨC mọi nét chữ đã khai, không chỉ chờ `fonts.ready`.
+         Bộ chữ chia theo dải mã (latin / latin-ext / vietnamese), và trình duyệt
+         chỉ tải một dải khi trên màn hình XUẤT HIỆN ký tự thuộc dải đó. Cảnh sau
+         mới có chữ có dấu thì file `vietnamese` tải GIỮA LÚC ĐANG QUAY — với
+         `font-display:block` thì mấy khung đó chữ vô hình, và hai lần xuất cùng
+         một clip ra hai kết quả khác nhau. Bài kiểm `xuat-nhanh` bắt đúng lỗi
+         này: "từng khung băm ra giống hệt nhau" đỏ ngay.
+         `fonts.ready` KHÔNG đủ — nó chỉ chờ những lượt tải ĐANG chờ, chứ không
+         kéo về những dải chưa ai cần tới. */
+      await Promise.all([...document.fonts].map((f) => f.load().catch(() => {})));
       await document.fonts.ready;
       await Promise.all([...document.images].filter((i) => i.src).map((i) => i.decode().catch(() => {})));
       /* Chờ video có đủ dữ liệu để vẽ. Bộ xuất bắt đầu quay NGAY sau `ready()`,

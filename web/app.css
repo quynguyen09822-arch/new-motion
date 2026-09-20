@@ -53,7 +53,10 @@
   /* Phông chữ tải từ Google Fonts, KÈM ĐỦ đường lùi hệ thống: mạng hỏng thì
      giao diện vẫn đúng, chỉ khác nét chữ. Không đưa phông vào clip — clip phải
      đo được cỡ chữ trên mọi máy, xem `measureFit()` của bộ dựng. */
-  --font: "Be Vietnam Pro", system-ui, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  /* Phao chỉ còn `system-ui`: Roboto/Noto không có file đi kèm, rơi vào đó là
+     lệch mặt chữ mà chẳng có gì báo. Rơi về system-ui nghĩa là bộ chữ hỏng,
+     nhìn ra ngay. */
+  --font: var(--bo-chu, "Be Vietnam Pro", system-ui, sans-serif);
   color-scheme: dark;
 }
 
@@ -1149,4 +1152,33 @@ body:has(.keo-cot.dang-keo) iframe { pointer-events: none; }
   flex: none; font-size: 11.5px; font-weight: 600; padding: 4px 10px;
   border-radius: 999px; color: var(--chu-mo); background: var(--nen-3);
   border: 1px solid var(--vach); cursor: default;
+}
+
+/* ---------------------------------------------------------------- ô xem thử
+ * Một ô nhỏ diễn lại một chuyển động, dùng chung cho dải gói chuyển động và
+ * popup hiệu ứng. Xem `web/inspector/o-xem-thu.js`.
+ *
+ * Kích thước do CHỖ GỌI đặt (thẻ trong dải rộng hẹp khác nhau), ở đây chỉ lo
+ * phần khung bên trong luôn phủ kín và không bắt chuột.
+ */
+.o-xem-thu {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #eef0f4;          /* đúng nền cảnh mẫu — không chớp trắng lúc nạp */
+  /* Cảnh mẫu khổ 640×360. Ô lệch tỉ lệ là bộ dựng thu cho vừa rồi chừa hai dải
+     màu nền của nó ra hai bên — trông như ô bị hỏng. Ghim tỉ lệ ở đây để chỗ
+     gọi chỉ cần đặt bề ngang. */
+  aspect-ratio: 16 / 9;
+}
+.o-xem-thu-khung {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  /* Ô xem thử là để NHÌN. Cho nó nhận chuột thì cú bấm chọn gói rơi vào trong
+     khung xem chứ không tới được thẻ, và người dùng bấm mãi không chọn được. */
+  pointer-events: none;
 }
