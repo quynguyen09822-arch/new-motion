@@ -171,7 +171,7 @@ try {
   const tr = await trinh.newPage({ viewport: { width: 1500, height: 980 } });
   const loiJS = [];
   tr.on('pageerror', (e) => loiJS.push(String(e)));
-  await tr.goto(GOC, { waitUntil: 'networkidle' });
+  await tr.goto(`${GOC}/sua`, { waitUntil: 'networkidle' });
   await tr.waitForTimeout(2200);
   await tr.click('.nut-ai');
   await tr.waitForTimeout(400);

@@ -42,8 +42,13 @@ ENV PROJ_ROOT=/app/clip
 #
 # Cố ý KHÔNG tắt phần sao lưu đi cho tiện: đó là lưới an toàn của dữ liệu clip,
 # và một bản deploy cho sửa được thì càng cần nó.
-RUN mkdir -p /app/.hub-video-backups /app/.drafts \
- && chown -R node:node /app/.hub-video-backups /app/.drafts /app/clip
+#
+# `/app/kho` là kho riêng của từng tài khoản (xem docs/KHO-RIENG.md). Phải tạo
+# sẵn và chown ở đây vì cùng lý do: `COPY` để lại quyền root, mà app chạy bằng
+# người dùng `node`. Thiếu bước này thì người đầu tiên KHÔNG phải chủ kho bấm
+# "Tạo dự án mới" sẽ nhận EACCES.
+RUN mkdir -p /app/.hub-video-backups /app/.drafts /app/kho \
+ && chown -R node:node /app/.hub-video-backups /app/.drafts /app/kho /app/clip
 
 ENV NODE_ENV=production
 ENV PORT=3000

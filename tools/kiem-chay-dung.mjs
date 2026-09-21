@@ -41,7 +41,7 @@ const giay = () => trang.evaluate(() => document.getElementById('khung').content
 const nhan = () => trang.evaluate(() => document.getElementById('nut-chay').textContent.trim());
 
 async function moClip() {
-  await trang.goto(GOC, { waitUntil: 'domcontentloaded' });
+  await trang.goto(`${GOC}/sua`, { waitUntil: 'domcontentloaded' });
   await trang.waitForSelector('#app[data-trang-thai="san-sang"], #app[data-trang-thai="hong"]',
     { timeout: 40000 });
   await trang.selectOption('#chon-clip', 'cta');

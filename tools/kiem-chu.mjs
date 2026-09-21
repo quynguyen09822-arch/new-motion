@@ -76,7 +76,7 @@ const doPhong = () => trang.evaluate(async () => {
 
 /* ① Giao diện trình sửa */
 console.log('\n① Giao diện trình sửa, mạng đã bị chặn');
-await trang.goto(GOC, { waitUntil: 'networkidle' });
+await trang.goto(`${GOC}/sua`, { waitUntil: 'networkidle' });
 let p = await doPhong();
 dat('CSS khai Be Vietnam Pro', /Be Vietnam Pro/.test(p.than), p.than.slice(0, 48));
 dat('phông THẬT SỰ được dùng để vẽ (không rơi phông hệ thống)', p.co === true,

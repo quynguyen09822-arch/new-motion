@@ -19,9 +19,12 @@ import { fileURLToPath } from 'node:url';
 import { PROJ, SCENES, kiemTraDuAn, soatKichBan } from './proj.js';
 import { duocPhucVu, guiFile } from './static.js';
 import { aiDangVao, daDatMatKhau, dangBiKhoa, datCookie, diaChi, dsTaiKhoan, duocVao,
-  duoiEmail, ghiSai, kiemEmail, kiemMatKhau, taoVe, xoaCookie, xoaSai } from './dangnhap.js';
+  duocVaoKhiXuat, duoiEmail, ghiSai, kiemEmail, kiemMatKhau, moVe, SONG_VE_XUAT, taoVe,
+  taoVeXuat, xoaCookie, xoaSai } from './dangnhap.js';
 import { canhMau } from './canhmau.js';
 import { danhSachClip, docClip, duongDanXem, locSlug } from './clips.js';
+import { chuKho, khoCua, oLuuBenVung, soDuAn } from './kho.js';
+import { KHO_HINH, taoDuAn, xoaDuAn } from './duan.js';
 import { chupBanGoc, lichSu } from './backup.js';
 import { khoiPhuc, luuClip } from './save.js';
 import { docNhap, ghiNhap, xoaNhap } from './drafts.js';
@@ -135,7 +138,22 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { ok: true });
     }
 
-    if (!duocVao(req, p)) {
+    /* ---------- VÉ XUẤT VIDEO đi kèm đường dẫn ----------
+     * Bộ xuất mở khung xem bằng Chromium không có cookie. Máy chủ tự ký một vé
+     * sống một giờ rồi nhét vào `?ve=` của đường dẫn đưa cho nó.
+     *
+     * Nhận xong thì ĐẶT LUÔN VÀO COOKIE: trang khung xem kéo theo hàng chục
+     * đường con (phông, ảnh, video nguồn) mà mấy đường ấy không mang theo tham
+     * số nào cả. Không đặt cookie thì trang mở được mà rỗng ruột.
+     *
+     * Cookie đặt theo đúng tuổi của vé, không phải 14 ngày. */
+    const veURL = url.searchParams.get('ve');
+    const thanVeURL = veURL ? moVe(veURL) : null;
+    if (thanVeURL?.xuat && duocVaoKhiXuat(p)) {
+      res.setHeader('Set-Cookie', datCookie(req, veURL, SONG_VE_XUAT));
+    }
+
+    if (!duocVao(req, p, veURL)) {
       // Lời gọi API thì trả 401 để giao diện tự xử; trang thì đưa thẳng tới chỗ
       // đăng nhập, kèm đường đang định tới để vào xong quay lại đúng chỗ đó.
       if (p.startsWith('/api/')) return loi(res, 401, 'Cần đăng nhập.');
@@ -161,6 +179,18 @@ const server = http.createServer(async (req, res) => {
         hanMuc: daDung(aiDangVao(req)),
       });
     }
+
+    /* ---------- KHO CỦA NGƯỜI ĐANG ĐĂNG NHẬP ----------
+     * Tính MỘT LẦN cho mỗi lời gọi rồi truyền xuống, không để mỗi module tự đi
+     * hỏi lại: hai chỗ hỏi vào hai thời điểm khác nhau là hai kho khác nhau, và
+     * kiểu lệch đó hiện ra thành "lưu xong mở lại không thấy đâu".
+     *
+     * Đặt SAU cửa đăng nhập vì trước cửa thì chưa biết là ai. */
+    /* Vé trong URL cũng phải nói được nó là của ai: bộ dựng đọc kịch bản trong
+       ĐÚNG kho của người bấm nút xuất. Bỏ qua thì vé mở ra kho gốc và xuất nhầm
+       clip của người khác — im lặng, vì kho gốc lúc nào cũng có clip để mở. */
+    const kho = khoCua(aiDangVao(req) || thanVeURL?.em || null);
+    let m;   // khai ở đây vì mấy route `khop()` đầu tiên nằm ngay bên dưới
 
     /* ---------- file của dự án clip, qua danh sách trắng ---------- */
     if (p.startsWith('/clip/')) {
@@ -213,18 +243,69 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (p === '/api/clips' && req.method === 'GET') {
-      const ds = await danhSachClip();
-      return json(res, 200, { ok: true, clips: ds.map((c) => ({ ...c, xem: duongDanXem(c) })) });
+      const ds = await danhSachClip(kho);
+      return json(res, 200, {
+        ok: true, kho: { ma: kho.ma, laGoc: kho.laGoc, email: kho.email },
+        clips: ds.map((c) => ({ ...c, xem: duongDanXem(c, kho) })),
+      });
     }
 
-    let m;
+    /* ---------- KHO DỰ ÁN ---------- */
+    /* Trang chào hỏi đường này để biết bày gì: tên người, kho nào, có dự án chưa. */
+    if (p === '/api/kho' && req.method === 'GET') {
+      const oLuu = oLuuBenVung();
+      return json(res, 200, { ok: true, email: kho.email || null, ma: kho.ma,
+        laGoc: kho.laGoc, soDuAn: soDuAn(kho), khoHinh: KHO_HINH,
+        coMatKhau: daDatMatKhau(),
+        /* Chỉ gửi ra khi THẬT SỰ có chuyện. Gửi kèm cả lúc bình thường thì giao
+           diện phải tự đoán nên hiện hay không, và chỗ đoán ấy sẽ đoán sai. */
+        canhBaoOLuu: oLuu.hopLe ? null : oLuu.lyDo });
+    }
+
+    /* XOÁ dự án. Đặt TRƯỚC nhánh POST cho gọn nhóm.
+       Chỉ xoá trong kho của người ĐANG ĐĂNG NHẬP — `kho` lấy từ vé chứ không
+       lấy từ tham số, nên không ai xoá được đồ của người khác. */
+    if ((m = khop('/api/du-an/:slug', p)) && req.method === 'DELETE') {
+      const slug = locSlug(m.slug);
+      if (!slug) return loi(res, 400, 'Tên dự án không hợp lệ.');
+      const kq = xoaDuAn(slug, kho);
+      if (!kq.ok) return json(res, kq.ma || 400, kq);
+      return json(res, 200, kq);
+    }
+
+    if (p === '/api/du-an' && req.method === 'POST') {
+      const than = await docJson(req);
+      const kq = await taoDuAn(than, kho, aiDangVao(req));
+      if (!kq.ok) return json(res, kq.ma || 400, kq);
+      return json(res, 201, kq);
+    }
+
+    /* KỊCH BẢN THÔ cho bộ dựng, dùng cho kho RIÊNG.
+     *
+     * Bộ dựng nạp `?scene=…` và nhận cả đường dẫn tuyệt đối, nên kịch bản nằm
+     * ngoài dự án clip vẫn tới được nó mà KHÔNG phải sửa `scene-player.html`
+     * của dự án chung — file đó có người thay hằng ngày, sửa vào là mất lặng lẽ.
+     *
+     * Kho gốc vẫn đi đường cũ (`?scene=<tên>`), nhưng đường này phục vụ cả kho
+     * gốc: một đường cho mọi kho thì không có nhánh nào ít người đi mà mục lâu
+     * ngày không ai biết. */
+    if ((m = khop('/api/kich-ban/:slug', p)) && req.method === 'GET') {
+      const slug = locSlug(m.slug);
+      if (!slug) return loi(res, 400, 'Tên dự án không hợp lệ.');
+      const c = docClip(slug, kho);
+      if (!c) return loi(res, 404, `Không thấy dự án "${slug}".`);
+      // no-store: sửa xong bấm F5 phải thấy bản mới, không thấy bản đệm.
+      res.setHeader('Cache-Control', 'no-store');
+      return json(res, 200, c.doc);
+    }
+
     if ((m = khop('/api/clip/:slug', p)) && req.method === 'GET') {
       const slug = locSlug(m.slug);
       if (!slug) return loi(res, 400, 'Tên clip không hợp lệ.');
-      const doc = docClip(slug);
+      const doc = docClip(slug, kho);
       if (!doc) return loi(res, 404, `Không thấy clip "${slug}".`);
       // Nháp mới hơn file thật thì gửi kèm để giao diện HỎI, không tự áp.
-      const nhap = docNhap(slug);
+      const nhap = docNhap(slug, kho);
       const keo = nhap && nhap.luc > doc.suaLuc ? nhap : null;
       return json(res, 200, { ok: true, ...doc, nhap: keo });
     }
@@ -233,12 +314,12 @@ const server = http.createServer(async (req, res) => {
     if ((m = khop('/api/clip/:slug', p)) && req.method === 'POST') {
       const slug = locSlug(m.slug);
       if (!slug) return loi(res, 400, 'Tên clip không hợp lệ.');
-      if (!docClip(slug)) return loi(res, 404, `Không thấy clip "${slug}".`);
+      if (!docClip(slug, kho)) return loi(res, 404, `Không thấy clip "${slug}".`);
       const than = await docJson(req);
-      const kq = await luuClip(slug, than?.doc, aiDangVao(req));
+      const kq = await luuClip(slug, than?.doc, aiDangVao(req), kho);
       if (!kq.ok) return json(res, 422, { ok: false, vanDe: kq.vanDe });
-      xoaNhap(slug); // lưu xong thì nháp hết nhiệm vụ
-      return json(res, 200, { ...kq, suaLuc: docClip(slug).suaLuc });
+      xoaNhap(slug, kho); // lưu xong thì nháp hết nhiệm vụ
+      return json(res, 200, { ...kq, suaLuc: docClip(slug, kho).suaLuc });
     }
 
     if ((m = khop('/api/draft/:slug', p)) && req.method === 'PUT') {
@@ -246,30 +327,30 @@ const server = http.createServer(async (req, res) => {
       if (!slug) return loi(res, 400, 'Tên clip không hợp lệ.');
       const than = await docJson(req);
       if (!than?.doc) return loi(res, 400, 'Thiếu kịch bản.');
-      ghiNhap(slug, than.doc);
+      ghiNhap(slug, than.doc, kho);
       return json(res, 200, { ok: true });
     }
 
     if ((m = khop('/api/draft/:slug', p)) && req.method === 'DELETE') {
       const slug = locSlug(m.slug);
       if (!slug) return loi(res, 400, 'Tên clip không hợp lệ.');
-      xoaNhap(slug);
+      xoaNhap(slug, kho);
       return json(res, 200, { ok: true });
     }
 
     if ((m = khop('/api/history/:slug', p)) && req.method === 'GET') {
       const slug = locSlug(m.slug);
       if (!slug) return loi(res, 400, 'Tên clip không hợp lệ.');
-      return json(res, 200, { ok: true, ban: lichSu(slug) });
+      return json(res, 200, { ok: true, ban: lichSu(slug, kho) });
     }
 
     if ((m = khop('/api/restore/:slug', p)) && req.method === 'POST') {
       const slug = locSlug(m.slug);
       if (!slug) return loi(res, 400, 'Tên clip không hợp lệ.');
       const than = await docJson(req);
-      const kq = await khoiPhuc(slug, String(than?.dau || ''), aiDangVao(req));
+      const kq = await khoiPhuc(slug, String(than?.dau || ''), aiDangVao(req), kho);
       if (!kq.ok) return json(res, 422, kq);
-      return json(res, 200, { ...kq, ...docClip(slug) });
+      return json(res, 200, { ...kq, ...docClip(slug, kho) });
     }
 
     /* ---------- nguồn video để đặt vào clip ---------- */
@@ -321,7 +402,7 @@ const server = http.createServer(async (req, res) => {
       }
       const slug = locSlug(than?.slug);
       if (!slug) return loi(res, 400, 'Tên clip không hợp lệ.');
-      const c = docClip(slug);
+      const c = docClip(slug, kho);
       if (!c) return loi(res, 404, `Không thấy clip "${slug}".`);
       const anh = than?.anh ? String(than.anh) : null;
       if (anh && anh.length > 5.4 * 1024 * 1024) {
@@ -345,7 +426,7 @@ const server = http.createServer(async (req, res) => {
       }
       const slug = locSlug(than?.slug);
       if (!slug) return loi(res, 400, 'Tên clip không hợp lệ.');
-      const c = docClip(slug);
+      const c = docClip(slug, kho);
       if (!c) return loi(res, 404, `Không thấy clip "${slug}".`);
       /* Ảnh gửi lên dạng base64, dài hơn ảnh gốc khoảng 1,34 lần. Thân yêu cầu
          bị chặn ở 8 MB (`GIOI_HAN_BODY` trong router.js), nên ảnh gốc chỉ được
@@ -375,7 +456,7 @@ const server = http.createServer(async (req, res) => {
       }
       const slug = locSlug(than?.slug);
       if (!slug) return loi(res, 400, 'Tên clip không hợp lệ.');
-      const c = docClip(slug);
+      const c = docClip(slug, kho);
       if (!c) return loi(res, 404, `Không thấy clip "${slug}".`);
       const d = await hoiAI({ doc: c.doc, hoi: than?.hoi });
       if (!d.ok) return loi(res, 400, d.cau);
@@ -392,7 +473,7 @@ const server = http.createServer(async (req, res) => {
       }
       const slug = locSlug(than?.slug);
       if (!slug) return loi(res, 400, 'Tên clip không hợp lệ.');
-      const c = docClip(slug);
+      const c = docClip(slug, kho);
       if (!c) return loi(res, 404, `Không thấy clip "${slug}".`);
       const d = await vietLoi({ doc: c.doc, brief: than?.brief });
       if (!d.ok) return loi(res, 400, d.cau);
@@ -453,16 +534,40 @@ const server = http.createServer(async (req, res) => {
       return json(res, kq.ok ? 200 : 422, kq);
     }
 
+    /* TẢI KỊCH BẢN VỀ MÁY — đường thoát khi bản chạy này không dựng được video.
+       Tải đúng file JSON của dự án, mở lại bằng Motion ở máy là xuất được ngay. */
+    if ((m = khop('/api/tai-kich-ban/:slug', p)) && req.method === 'GET') {
+      const slug = locSlug(m.slug);
+      if (!slug) return loi(res, 400, 'Tên dự án không hợp lệ.');
+      const c = docClip(slug, kho);
+      if (!c) return loi(res, 404, `Không thấy dự án "${slug}".`);
+      /* `locSlug` đã chặn mọi thứ ngoài chữ thường, số và gạch ngang, nên tên
+         file nhét thẳng vào đầu đề được — không có dấu nháy nào để mà thoát ra. */
+      const than = JSON.stringify(c.doc, null, 2);
+      res.writeHead(200, {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Content-Disposition': `attachment; filename="${slug}.json"`,
+        'Content-Length': Buffer.byteLength(than),
+        'Cache-Control': 'no-store',
+      });
+      return res.end(than);
+    }
+
     /* ---------- việc nặng: xuất video, kiểm bố cục ---------- */
     if (p === '/api/export' && req.method === 'POST') {
       const than = await docJson(req);
       const slug = locSlug(than?.slug);
       if (!slug) return loi(res, 400, 'Tên clip không hợp lệ.');
-      const c = docClip(slug);
+      const c = docClip(slug, kho);
       if (!c) return loi(res, 404, `Không thấy clip "${slug}".`);
 
       const duoc = xuatDuocKhong();
-      if (!duoc.ok) return loi(res, 501, duoc.cau);
+      if (!duoc.ok) {
+        /* KHÔNG chỉ báo lỗi rồi thôi. Người dùng muốn CÁI VIDEO; "hãy mở dự án
+           trên máy làm việc" là một bức tường chứ không phải một lối đi. Trả kèm
+           dấu hiệu để giao diện mở đường thoát: tải kịch bản về rồi xuất ở máy. */
+        return json(res, 501, { ok: false, loi: duoc.cau, taiDuoc: true, slug, thieu: duoc.thieu });
+      }
       {
         const ai = aiDangVao(req);
         const q = xin('xuat', ai);
@@ -481,7 +586,10 @@ const server = http.createServer(async (req, res) => {
 
       const giay = (c.doc.scenes || []).reduce((t, s2) => t + (s2.duration || 0), 0);
       const dau = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '');
-      const khungXem = `http://127.0.0.1:${PORT}/clip/scene-player.html?scene=${slug}`;
+      /* Vé cấp cho ĐÚNG người đang bấm nút, không phải một vé chung. */
+      const veX = encodeURIComponent(taoVeXuat(aiDangVao(req) || ''));
+      const duong = duongDanXem({ doi: 2, slug }, kho);
+      const khungXem = `http://127.0.0.1:${PORT}${duong}${duong.includes('?') ? '&' : '?'}ve=${veX}`;
 
       /* HAI CÁCH DỰNG, và chúng KHÔNG thay thế nhau được hoàn toàn:
          · "nhanh" nhảy thẳng tới từng mốc giây — nhanh hơn và cho ra đúng một
@@ -509,9 +617,11 @@ const server = http.createServer(async (req, res) => {
       const than = await docJson(req);
       const slug = locSlug(than?.slug);
       if (!slug) return loi(res, 400, 'Tên clip không hợp lệ.');
+      const veX2 = encodeURIComponent(taoVeXuat(aiDangVao(req) || ''));
+      const duong2 = duongDanXem({ doi: 2, slug }, kho);
       const v = kiemBoCuc({
         slug,
-        khungXem: `http://127.0.0.1:${PORT}/clip/scene-player.html?scene=${slug}`,
+        khungXem: `http://127.0.0.1:${PORT}${duong2}${duong2.includes('?') ? '&' : '?'}ve=${veX2}`,
       });
       return json(res, 200, { ok: true, id: v.id, dangCho: soDangCho() });
     }
@@ -542,7 +652,7 @@ const server = http.createServer(async (req, res) => {
 
     if ((m = khop('/api/khoxuat/:slug', p)) && req.method === 'GET') {
       const slug = locSlug(m.slug);
-      const c = slug && docClip(slug);
+      const c = slug && docClip(slug, kho);
       if (!c) return loi(res, 404, 'Không thấy clip.');
       return json(res, 200, { ok: true, kho: khoHopLe(c.doc?.meta?.width, c.doc?.meta?.height) });
     }
@@ -564,8 +674,27 @@ const server = http.createServer(async (req, res) => {
 
     if (p.startsWith('/api/')) return loi(res, 404, `Không có đường dẫn ${p}.`);
 
-    /* ---------- giao diện trình sửa ---------- */
-    const rel = p === '/' ? 'index.html' : decodeURIComponent(p.slice(1));
+    /* ---------- TRANG CHÀO và TRÌNH SỬA ----------
+     * Từ 20/09/2026 `/` là TRANG CHÀO, không còn là trình sửa.
+     *
+     * Vì sao đổi: vào app là rơi thẳng vào clip đầu tiên trong thư mục — một
+     * clip người dùng không chọn, và từ khi kho chia theo tài khoản thì còn có
+     * thể là kho trống, tức một màn hình lỗi ngay ở nước đi đầu tiên. Trang chào
+     * nói rõ công cụ này làm gì rồi để người ta tự chọn: tạo dự án mới, hay mở
+     * kho dự án của mình.
+     *
+     * Trình sửa dời sang `/sua`, mở đúng dự án bằng `?clip=<tên>`. 21 bài kiểm
+     * đã đổi theo — chúng mở `/` để lấy trình sửa. */
+    if (p === '/' || p === '/kho' || p === '/kho/') {
+      if (guiFile(req, res, path.join(WEB, 'chao.html'))) return;
+      return loi(res, 404, 'Không thấy trang chào.');
+    }
+    if (p === '/sua' || p === '/sua/') {
+      if (guiFile(req, res, path.join(WEB, 'index.html'))) return;
+      return loi(res, 404, 'Không thấy trình sửa.');
+    }
+
+    const rel = decodeURIComponent(p.slice(1));
     // Chặn mọi đoạn bắt đầu bằng dấu chấm. Không phải vì có gì để lộ ở đây —
     // thư mục web/ toàn file tĩnh — mà vì `path.extname('.env')` trả về chuỗi
     // rỗng, nên một request kiểu `.env` sẽ trông như "route không có đuôi" và
@@ -574,8 +703,10 @@ const server = http.createServer(async (req, res) => {
       return loi(res, 403, 'Đường dẫn không hợp lệ.');
     }
     if (guiFile(req, res, path.join(WEB, rel))) return;
-    // Đường dẫn không có đuôi file thì coi như route của giao diện → trả trang chủ.
-    if (!path.extname(rel) && guiFile(req, res, path.join(WEB, 'index.html'))) return;
+    // Đường dẫn không có đuôi file thì coi như route của giao diện → trả TRANG
+    // CHÀO, không trả trình sửa. Trả trình sửa thì một đường gõ sai cũng mở ra
+    // một clip nào đó, và người dùng tưởng mình đang ở đúng chỗ.
+    if (!path.extname(rel) && guiFile(req, res, path.join(WEB, 'chao.html'))) return;
     return loi(res, 404, 'Không thấy trang.');
   } catch (e) {
     console.error('Lỗi khi xử lý', p, e);
@@ -587,4 +718,19 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`🎬 Trình sửa clip đang chạy: http://127.0.0.1:${PORT}`);
   console.log(`   Dự án clip: ${PROJ}`);
   console.log(`   Kịch bản:   ${SCENES}`);
+  {
+    const c = chuKho();
+    console.log(c
+      ? `   Kho riêng:  bật — chủ kho là ${c}, người khác có kho riêng trong kho/`
+      : '   Kho riêng:  tắt — chưa khai MOTION_TAI_KHOAN nên mọi người dùng chung kho gốc');
+    /* Hét to ngay lúc khởi động, không nép vào một dòng info: đây là ca mất dữ
+       liệu không lấy lại được, và người triển khai chỉ nhìn log đúng lúc này. */
+    const oLuu = oLuuBenVung();
+    if (!oLuu.hopLe) {
+      console.error(`\n⚠️  NGUY: ${oLuu.lyDo}.`);
+      console.error('   Dự án của mọi tài khoản KHÔNG phải chủ kho sẽ mất hẳn khi dựng lại');
+      console.error('   container — kho riêng không có bản sao nào khác. Gắn volume vào');
+      console.error('   /app/kho rồi chạy lại. Xem docs/KHO-RIENG.md.\n');
+    }
+  }
 });

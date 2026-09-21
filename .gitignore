@@ -19,11 +19,17 @@ __pycache__/
 # Mật khẩu (băm) và khoá ký phiên đăng nhập — KHÔNG bao giờ commit
 .env
 .env.*
-# ...trừ BẢN MẪU. `.env.*` ở trên nuốt luôn `.env.example`, nên người mới clone
-# về không có gì để biết phải khai những biến nào — mà file mẫu thì chỉ có tên
-# biến và chú thích, không có giá trị thật nào.
-!.env.example
+# KHÔNG mở ngoại lệ cho `.env.example`. Em đã thử và nó LÀM SẬP BẢN CHẠY THẬT:
+# vibehost quét repo thấy file mẫu rồi coi mọi biến trong đó là BẮT BUỘC, và lượt
+# triển khai kế tiếp hỏng ở chặng Containerization với "thiếu MOTION_DUOI_EMAIL"
+# — dù biến ấy đã khai sẵn trên máy chủ. Muốn người mới biết phải khai gì thì ghi
+# vào README, đừng để file mẫu nằm trong repo.
 mcp-stitch.json.txt
 
 # Nhật ký lượt dùng — dữ liệu chạy.
 .nhat-ky/
+
+# Kho dự án riêng của từng tài khoản — dữ liệu người dùng, không phải mã nguồn.
+# Đây là NƠI DUY NHẤT giữ dự án của người không phải chủ kho: mất thư mục này
+# là mất việc của họ, không có git nào cứu được. Xem docs/KHO-RIENG.md.
+kho/

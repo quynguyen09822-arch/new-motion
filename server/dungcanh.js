@@ -21,7 +21,7 @@
  */
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
-import { goiGemini } from './gemini.js';
+import { goiGemini, HAN_GIAY_ANH } from './gemini.js';
 import { PROJ, soatKichBan } from './proj.js';
 
 /* 23 loại có mẫu thật trong kho clip. `video` không có mẫu nên không mời AI dùng
@@ -82,8 +82,14 @@ Hãy sửa đúng những lỗi đó rồi trả lại cảnh mới. Giữ nguy�
 một tấm hình; hãy dựng lại bố cục đó bằng đúng những thành phần app này có.
 
 KHUNG HÌNH: ${meta.width}×${meta.height} px. Toạ độ tính từ góc trên trái.
-MÀU CỦA CLIP (dùng lại, đừng chế màu mới):
-  nền ${meta.bg} · chữ ${meta.ink} · nhấn ${meta.accent}${meta.accent2 ? ` · nhấn 2 ${meta.accent2}` : ''}${meta.hot ? ` · nóng ${meta.hot}` : ''}
+MÀU — ĐỌC THẲNG TỪ ẢNH, đây là việc quan trọng bậc nhất.
+  Nhìn ảnh, lấy đúng màu nó đang dùng, rồi ghi vào món dưới dạng mã hex:
+    \`fill\`  màu nền của một khối  (panel, card, nut, chip…)
+    \`ink\`   màu chữ của một khối  (text, và mọi món có chữ bên trong)
+  Nền cả khung: nếu ảnh có màu nền rõ rệt, đặt món ĐẦU TIÊN là
+    {"kind":"panel","id":"nen-khung","x":0,"y":0,"place":"day","fill":"<màu nền của ảnh>"}
+  Bảng màu sẵn của clip chỉ là ĐƯỜNG LÙI, dùng khi ảnh mờ hoặc không rõ màu:
+    nền ${meta.bg} · chữ ${meta.ink} · nhấn ${meta.accent}${meta.accent2 ? ` · nhấn 2 ${meta.accent2}` : ''}${meta.hot ? ` · nóng ${meta.hot}` : ''}
 
 CHỈ ĐƯỢC DÙNG NHỮNG \`kind\` SAU, không được chế thêm:
 ${LOAI_CHO_PHEP.join(', ')}
@@ -96,12 +102,20 @@ LUẬT
    {"id":"...","duration":<số giây>,"stagger":0.12,"elements":[ ... ]}
 2. Mỗi phần tử BẮT BUỘC có \`id\` (chuỗi, không trùng nhau trong cảnh), \`kind\`,
    \`x\` và \`y\` (số).
-3. \`pad\` và \`gap\` là BẬC THANG 0..7, KHÔNG phải pixel. Viết 24 vào đó là sai.
+3. \`pad\` (đệm trong) và \`gap\` (khe giữa các món) là BẬC THANG 0..7, KHÔNG
+   phải pixel. Viết 24 vào đó là sai. Đây là bảng quy đổi THẬT của bộ dựng:
+     bậc 0→0px · 1→4px · 2→8px · 3→12px · 4→16px · 5→24px · 6→32px · 7→48px
+   Cách làm: ĐO khoảng trống trong ảnh bằng pixel, rồi chọn bậc gần nhất. Thẻ và
+   khối thường ở bậc 4–5; khe giữa các món trong một cụm thường bậc 3–4.
 4. Muốn xếp nhiều món theo hàng/cột thì bọc trong \`group\` với
    \`place\`: "giua"|"tren"|"duoi", \`dir\`: "doc"|"ngang", và đặt con vào \`children\`.
    Con trong group để \`x:0, y:0\` — group tự dàn.
 5. Chữ: dùng \`text\` với \`text\`, \`sub\`, \`size\`, \`align\`. Dấu \`|\` trong \`text\`
    là xuống dòng, \`**chữ**\` là tô màu nhấn.
+   CHÉP ĐỦ MỌI CHỮ NHÌN THẤY TRONG ẢNH — cả nhãn nhỏ, con số, chú thích dưới
+   chân. Không tóm tắt, không rút gọn, không bịa thêm chữ ảnh không có. Thiếu
+   một dòng là bản dựng ra khác hẳn ảnh gốc.
+   Cỡ chữ cũng ĐO từ ảnh: ước chiều cao chữ hoa theo pixel rồi đặt vào \`size\`.
 6. Ảnh: chỉ dùng \`image\` khi CHẮC CHẮN có file đó trong dự án. Không đoán tên file.
    Không chắc thì thay bằng \`panel\` hoặc \`huyhieu\`.
 7. Hiệu ứng vào: \`"in":{"kind":"rise"|"fade"|"pop","ease":"out","dur":0.6}\`.
@@ -135,7 +149,10 @@ export async function dungCanh({ doc, anh, mime, y }) {
   const goi = async (vanDeCu, canhCu) => {
     const g = await goiGemini(
       [{ text: loiNhac(meta, y, vanDeCu, canhCu) }, { inline_data: { mime_type: mime, data: anh } }],
-      { nong: 0.4, toiDa: 8000, nghi: true },
+      /* Hạn rộng vì lượt này GỬI KÈM ẢNH: model phải nhìn, đo, rồi sinh vài nghìn
+           token JSON — hạn 12 giây mặc định là cả bốn model đều quá hạn, và người
+           dùng chỉ thấy "AI dở" chứ không biết nó chưa kịp trả lời. */
+        { nong: 0.4, toiDa: 8000, nghi: true, hanGiay: HAN_GIAY_ANH },
     );
     if (!g.ok) return { loi: g.cau };
     const canh = bocJSON(g.chu);

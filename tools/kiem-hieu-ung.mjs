@@ -163,7 +163,7 @@ try {
 
   /* ---------- 6. bảng thuộc tính ---------- */
   console.log('\n6. Bảng thuộc tính bày đủ núm, và vặn thì khung hình đổi thật');
-  await trang.goto(GOC, { waitUntil: 'domcontentloaded' });
+  await trang.goto(`${GOC}/sua`, { waitUntil: 'domcontentloaded' });
   await trang.waitForSelector('#app[data-trang-thai="san-sang"]', { timeout: 40000 });
   await trang.selectOption('#chon-clip', 'cta');
   await trang.waitForSelector('#app[data-trang-thai="san-sang"]', { timeout: 40000 });

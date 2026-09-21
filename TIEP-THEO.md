@@ -98,7 +98,12 @@ Git giải cả ba, và vốn **đã là** inverse patch.
 
 ---
 
-## M5 · Đường thoát cho việc xuất video trên bản deploy `[P2 · 1 ngày]`
+## M5 · Đường thoát cho việc xuất video trên bản deploy `[P2 · ĐÃ LÀM 22/09/2026]`
+
+> **Đã làm.** Bản chạy không dựng được video thì thay chỗ báo lỗi bằng nút **Tải
+> kịch bản về máy** (`GET /api/tai-kich-ban/:slug`, có `Content-Disposition`),
+> kèm một dòng chỉ rõ làm gì tiếp. Máy chủ trả `501` kèm cờ `taiDuoc` để giao
+> diện biết mở đường thoát thay vì chỉ kêu lỗi.
 
 **Vấn đề.** Bản trên vibehost không xuất được video (ảnh Docker không có `ffmpeg` và Chromium — đã ghi rõ trong `TRIEN-KHAI.md`). Câu báo lỗi đã viết tử tế, nhưng người dùng vẫn đi vào ngõ cụt: họ muốn cái video, và công cụ chỉ nói "hãy mở dự án trên máy làm việc".
 

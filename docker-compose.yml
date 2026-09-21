@@ -23,6 +23,11 @@ services:
       # BẮT BUỘC khai, không để máy chủ tự sinh: container không giữ file giữa
       # hai lần khởi động, nên tự sinh nghĩa là mỗi lần restart đá hết mọi người ra.
       MOTION_KHOA_PHIEN: ${MOTION_KHOA_PHIEN:?}
+      # KHO RIÊNG THEO TÀI KHOẢN. Khai danh sách vào đây là BẬT; bỏ trống thì mọi
+      # người dùng chung kho gốc y như trước (xem docs/KHO-RIENG.md).
+      # Tài khoản ĐẦU TIÊN là chủ kho — người dùng thẳng `clip/scenes` sẵn có.
+      MOTION_TAI_KHOAN: ${MOTION_TAI_KHOAN:-}
+      MOTION_CHU_KHO: ${MOTION_CHU_KHO:-}
 
     volumes:
       # BA THỨ PHẢI GIỮ LẠI, nếu không thì dựng lại ảnh là mất sạch việc của người dùng.
@@ -33,6 +38,11 @@ services:
       - motion-voice:/app/clip/public/voice     # lời đọc AI đã sinh
       - motion-backup:/app/.hub-video-backups   # kho sao lưu
       - motion-drafts:/app/.drafts              # nháp tự lưu
+      # KHO RIÊNG — dòng quan trọng nhất trong danh sách này.
+      # Ba dòng trên mất thì còn bản chụp hằng ngày làm phao; `/app/kho` mất là
+      # mất HẲN dự án của mọi tài khoản không phải chủ kho, không có bản sao nào
+      # khác trên đời. App tự dò lúc khởi động và hét lên nếu thiếu dòng này.
+      - motion-kho:/app/kho                     # dự án riêng của từng tài khoản
 
     labels:
       - traefik.enable=true
@@ -47,6 +57,7 @@ services:
       # - traefik.http.routers.motion-${CODER_USER}.middlewares=mb-local@file
 
 volumes:
+  motion-kho:
   motion-scenes:
   motion-voice:
   motion-backup:

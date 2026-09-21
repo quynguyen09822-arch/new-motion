@@ -217,6 +217,9 @@ chặn hết. Cookie có `HttpOnly` · `SameSite` · `Secure` (đúng khi sau pr
 
 ## Còn lại, chưa vá
 
-- **Một mật khẩu chung** — không thu hồi được quyền của riêng một người.
+- **Một mật khẩu chung** — không thu hồi được quyền của riêng một người. Từ
+  20/09/2026 mỗi tài khoản đã có **kho dự án riêng** (`docs/KHO-RIENG.md`), nhưng
+  đó là chia *chỗ để đồ*, không phải chia *quyền*: ai biết mật khẩu và có tên
+  trong `MOTION_TAI_KHOAN` đều đăng nhập được thành bất kỳ ai trong danh sách đó.
 - **Clip mất khi dựng lại** — vibehost không có công cụ gắn ổ lưu trong MCP
   (`databases: []`, không có trường volume nào).

@@ -255,7 +255,11 @@ try {
   /* ---------- 7. logo trong trình sửa ---------- */
   console.log('\n7. Logo trong trình sửa');
   const t2 = await trinh.newPage({ viewport: { width: 1400, height: 400 } });
-  await t2.goto(`http://127.0.0.1:${CONG_KHONG}/`, { waitUntil: 'networkidle' });
+  /* `/sua`, KHÔNG phải `/`. Từ khi có trang chào thì `/` là trang chào, còn
+     trình sửa dời sang `/sua` — mục này đo logo CỦA TRÌNH SỬA (`.o-hieu`) nên mở
+     `/` là rơi vào trang chào, không thấy phần tử đó, rồi báo "logo 0px" như thể
+     ảnh hỏng. Các bài kiểm khác đã đổi theo, riêng bài này bị sót. */
+  await t2.goto(`http://127.0.0.1:${CONG_KHONG}/sua`, { waitUntil: 'networkidle' });
   await t2.waitForTimeout(2200);
   const l = await t2.evaluate(() => {
     const i = document.querySelector('.o-hieu');

@@ -53,7 +53,7 @@ async function keo(ben, dx) {
 }
 
 try {
-  await trang.goto(GOC, { waitUntil: 'domcontentloaded' });
+  await trang.goto(`${GOC}/sua`, { waitUntil: 'domcontentloaded' });
   await trang.waitForSelector('#app[data-trang-thai="san-sang"]', { timeout: 40000 });
   // Về mặc định trước, không thì bài kiểm chạy lần hai lại nhận bề rộng lần một.
   await trang.evaluate(() => localStorage.removeItem('mb-video:cot'));

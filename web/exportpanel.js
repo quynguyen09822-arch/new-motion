@@ -71,6 +71,35 @@ export function taoBangXuat(boc, { laySlug, bao, layDoc, chonMon }) {
   const trangThai = el('p', 'num-goi');
   const ketQua = el('div', 'ket-qua');
 
+  /**
+   * ĐƯỜNG THOÁT khi bản chạy này không dựng được video.
+   *
+   * Bản trong Docker không có ffmpeg lẫn Chromium (ảnh sẽ phình từ ~90 MB lên
+   * khoảng 1 GB — xem TRIEN-KHAI.md). Câu báo lỗi vốn đã viết tử tế, nhưng
+   * người dùng vẫn đi vào ngõ cụt: họ muốn cái video, còn công cụ chỉ nói "hãy
+   * mở dự án trên máy làm việc" mà không đưa cho họ thứ gì để mang đi.
+   *
+   * Nút này đưa đúng thứ đó: file kịch bản, mở lại bằng Motion ở máy là xuất
+   * được ngay.
+   */
+  function veDuongThoat(slug, cau) {
+    ketQua.innerHTML = '';
+    const hop = el('div', 'duong-thoat');
+    hop.appendChild(el('b', null, 'Bản chạy này chưa dựng được video'));
+    hop.appendChild(el('p', null, cau));
+    const a = document.createElement('a');
+    a.className = 'nut chinh rong';
+    a.href = `/api/tai-kich-ban/${encodeURIComponent(slug)}`;
+    /* `download` để trình duyệt tải xuống thay vì mở JSON ra xem — máy chủ đã
+       gửi kèm `Content-Disposition` rồi, đây là lớp thứ hai cho chắc. */
+    a.download = `${slug}.json`;
+    a.textContent = 'Tải kịch bản về máy';
+    hop.appendChild(a);
+    hop.appendChild(el('p', 'thoat-chi', 'Mở Motion ở máy làm việc, thả file này vào '
+      + 'thư mục kịch bản rồi bấm Xuất video như thường.'));
+    ketQua.appendChild(hop);
+  }
+
   function veKho(kho) {
     chonKho.innerHTML = '';
     for (const k of kho) {
@@ -120,6 +149,9 @@ export function taoBangXuat(boc, { laySlug, bao, layDoc, chonMon }) {
     const d = await r.json();
     if (!d.ok) {
       nutXuat.disabled = nutKiem.disabled = false;
+      /* Bản chạy thiếu ffmpeg/Chromium thì đừng dừng ở câu báo lỗi — mở đường
+         thoát. Xem mục M5 trong TIEP-THEO.md. */
+      if (d.taiDuoc) return veDuongThoat(slug, d.loi);
       return bao(d.loi, true);
     }
     viecId = d.id;

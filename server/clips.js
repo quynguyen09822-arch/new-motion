@@ -9,7 +9,13 @@
  */
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
-import { PROJ, SCENES, tongThoiLuong } from './proj.js';
+import { PROJ, tongThoiLuong } from './proj.js';
+import { khoCua } from './kho.js';
+
+/* Mặc định là KHO GỐC. Bốn đường ghi/đọc dưới đây đều nhận `kho` ở tham số đầu,
+   nhưng `tools/*.mjs` và bài kiểm gọi thẳng không truyền gì — mặc định phải là
+   kho gốc để 28 bài kiểm cũ không phải sửa một dòng nào. */
+const GOC = () => khoCua(null);
 
 /**
  * Đời cũ: mỗi clip là một file HTML tự chứa ở gốc dự án. TỰ PHÁT HIỆN chứ không
@@ -68,30 +74,49 @@ export function locSlug(raw) {
   return /^[a-z0-9][a-z0-9-]{0,48}$/.test(slug) ? slug : null;
 }
 
-export function duongDanClip(slug) {
-  return path.join(SCENES, `${slug}.json`);
+export function duongDanClip(slug, kho = GOC()) {
+  return path.join(kho.scenes, `${slug}.json`);
 }
 
-export function docClip(slug) {
-  const f = duongDanClip(slug);
+export function docClip(slug, kho = GOC()) {
+  const f = duongDanClip(slug, kho);
   if (!existsSync(f)) return null;
   return { doc: JSON.parse(readFileSync(f, 'utf8')), suaLuc: statSync(f).mtimeMs };
 }
 
-/** Đường dẫn xem thử, tính theo đời clip. Luôn là đường dẫn tương đối của CHÍNH server này. */
-export function duongDanXem(clip) {
-  return clip.doi === 2
+/**
+ * Đường dẫn xem thử, tính theo đời clip. Luôn là đường dẫn tương đối của CHÍNH
+ * server này.
+ *
+ * KHO GỐC GIỮ NGUYÊN `?scene=<tên>` — bộ dựng tự ghép thành `scenes/<tên>.json`
+ * ngay trong dự án clip. Không đổi vì 10 bài kiểm viết cứng dạng đường dẫn ấy,
+ * và vì đổi một thứ đang đúng để cho "đồng bộ" là tự chuốc rủi ro.
+ *
+ * KHO RIÊNG thì kịch bản nằm ngoài dự án clip, bộ dựng không tự tìm tới được.
+ * May là nó nhận cả đường dẫn tuyệt đối (`/^https?:|^\//` trong scene-player),
+ * nên chỉ cần trỏ sang một đường API — KHÔNG phải sửa `scene-player.html` của
+ * dự án chung. Ảnh và video trong clip vẫn giải tương đối theo `/clip/` như cũ
+ * vì trang vẫn là trang đó, chỉ dữ liệu đi đường khác.
+ */
+export function duongDanXem(clip, kho = GOC()) {
+  if (clip.doi !== 2) return `/clip/${clip.file}`;
+  return kho.laGoc
     ? `/clip/scene-player.html?scene=${clip.slug}`
-    : `/clip/${clip.file}`;
+    : `/clip/scene-player.html?scene=/api/kich-ban/${clip.slug}`;
 }
 
-export async function danhSachClip() {
+export async function danhSachClip(kho = GOC()) {
   const ds = [];
 
-  for (const ten of readdirSync(SCENES).sort()) {
+  /* Kho của người mới chưa có thư mục nào — đó là chuyện bình thường, không
+     phải lỗi. Ném ở đây là màn hình "Kho dự án" của họ hiện lỗi đỏ thay vì
+     hiện lời mời tạo dự án đầu tiên. */
+  if (!existsSync(kho.scenes)) return ds;
+
+  for (const ten of readdirSync(kho.scenes).sort()) {
     if (!ten.endsWith('.json')) continue;
     const slug = ten.replace(/\.json$/, '');
-    const f = path.join(SCENES, ten);
+    const f = path.join(kho.scenes, ten);
     try {
       const doc = JSON.parse(readFileSync(f, 'utf8'));
       ds.push({
@@ -102,6 +127,12 @@ export async function danhSachClip() {
         cao: doc?.meta?.height ?? null,
         dung: doc?.meta?.height > doc?.meta?.width,
         soCanh: Array.isArray(doc?.scenes) ? doc.scenes.length : 0,
+        /* Hai màu của chính clip, để trang chào vẽ ảnh đại diện cho từng thẻ.
+           Lấy màu thật chứ không phát màu ngẫu nhiên: nhìn lưới dự án là nhận
+           ra ngay clip nào của chiến dịch nào, mà không phải mở từng cái.
+           `null` nếu clip không khai — thẻ tự rơi về màu chung. */
+        nen: doc?.meta?.bg ?? null,
+        nhan: doc?.meta?.accent ?? null,
         giay: Math.round((await tongThoiLuong(doc)) * 10) / 10,
         file: `scenes/${ten}`,
         suaLuc: statSync(f).mtimeMs,
@@ -112,8 +143,13 @@ export async function danhSachClip() {
     }
   }
 
-  for (const cu of timDoiCu()) {
-    ds.push({ ...cu, doi: 1, suaLuc: statSync(path.join(PROJ, cu.file)).mtimeMs });
+  /* Clip đời cũ là file HTML nằm ở GỐC DỰ ÁN CLIP, không phải trong kho ai cả.
+     Chỉ kho gốc thấy chúng. Bày cho người mới thì họ mở ra, bấm mãi không sửa
+     được, rồi tưởng công cụ hỏng — mà đó còn là clip của người khác. */
+  if (kho.laGoc) {
+    for (const cu of timDoiCu()) {
+      ds.push({ ...cu, doi: 1, suaLuc: statSync(path.join(PROJ, cu.file)).mtimeMs });
+    }
   }
 
   return ds;

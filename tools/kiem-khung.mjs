@@ -165,7 +165,7 @@ try {
 
   /* ---------- 4. giao diện ---------- */
   console.log('\n4. Giao diện');
-  await trang.goto(GOC, { waitUntil: 'domcontentloaded' });
+  await trang.goto(`${GOC}/sua`, { waitUntil: 'domcontentloaded' });
   await trang.waitForSelector('#app[data-trang-thai="san-sang"]', { timeout: 40000 });
   await trang.selectOption('#chon-clip', SLUG);
   await trang.waitForSelector('#app[data-trang-thai="san-sang"]', { timeout: 40000 });

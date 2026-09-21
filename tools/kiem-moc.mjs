@@ -141,7 +141,7 @@ try {
   console.log('\n8. Bảng mốc trong trình sửa');
   const t2 = await trinh.newPage({ viewport: { width: 1500, height: 950 } });
   const loi2 = []; t2.on('pageerror', (e) => loi2.push(String(e)));
-  await t2.goto(GOC, { waitUntil: 'networkidle' });
+  await t2.goto(`${GOC}/sua`, { waitUntil: 'networkidle' });
   await t2.waitForTimeout(2000);
   await t2.selectOption('#chon-clip', 'wireframe-thu');
   await t2.waitForTimeout(2000);

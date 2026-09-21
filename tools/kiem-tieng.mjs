@@ -152,7 +152,7 @@ try {
   console.log('\n6. Bảng rãnh tiếng trong giao diện');
   const t3 = await trinh.newPage({ viewport: { width: 1500, height: 950 } });
   const loi3 = []; t3.on('pageerror', (e) => loi3.push(String(e)));
-  await t3.goto(GOC, { waitUntil: 'networkidle' });
+  await t3.goto(`${GOC}/sua`, { waitUntil: 'networkidle' });
   await t3.waitForTimeout(2000);
   await t3.selectOption('#chon-clip', 'wireframe-thu');
   await t3.waitForTimeout(2000);

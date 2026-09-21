@@ -125,3 +125,53 @@ không. Ba lần phép đo này tự bắt lỗi của chính nó khi làm:
 3. Sửa xong hai điều trên thì phép kiểm **bắt bỏ `video` khỏi danh sách được
    phép rỗng** — vì mặc định của nó có lớp tối `dim`, chưa chọn file vẫn hiện ra
    một mảng tối. Danh sách được phép rỗng cũng có chốt chống mục rữa.
+
+---
+
+# Co theo khổ clip (20/09/2026)
+
+**Vấn đề.** Quý báo: thả bộ dựng sẵn vào clip 16:9 thì ra sai cỡ, phải ngồi vặn
+lại từng núm — tức bộ dựng sẵn không dựng sẵn được gì.
+
+**Nguyên nhân, đo ra chứ không đoán.** Mọi con số px trong kho mẫu viết theo
+đúng MỘT khổ: `chuDan` khai `w: 374, size: 96`, trùng từng số với `vibe-host`
+(720×1280). Cả kho chép khuôn từ đấy.
+
+**Cách chữa.** `themKit` và `themMon` nhân số px theo hệ số:
+
+```
+k = min(rộng/720, cao/1280)     — "vừa khung", cạnh nào chạm trước thì thắng
+```
+
+Kit xếp DỌC (`dir: 'doc'`), nên thứ bó nó lại khi sang khổ ngang là CHIỀU CAO —
+đó là lý do cạnh ngắn thắng, không phải mẹo.
+
+Số đo tự chứng minh công thức: 720×1280 → 1280×720 cho k = 0,5625, và cỡ chữ 96
+thành **54** — trùng đúng cỡ chữ lớn nhất của `kich-ban-thu` và `thu-nghiem`,
+hai clip ngang dựng tay. Lấy theo bề ngang thì ra 171, to gấp ba clip thật.
+
+**Một ngoại lệ, và chỉ một:** `w` của **chữ** đi theo bề ngang khung
+(`heSoRong`). `w` của chữ không phải kích thước hình, nó là **bề ngang ngắt
+dòng** — thứ đáng giữ là phần trăm khung nó chiếm. Co đều thì khối chữ 374 (52%
+khung dọc) thành 210 trong khung ngang 1280, tức 16%, và một câu dẫn bảy chữ gãy
+làm bốn dòng; đã nhìn thấy tận mắt trước khi sửa. Theo bề ngang thì ra 665, vẫn
+đúng 52%.
+
+Ngoại lệ này KHÔNG áp cho món có hình dạng riêng (cửa sổ trình duyệt, khung điện
+thoại, biểu mẫu): co lệch hai chiều là khung điện thoại bẹp thành hình chữ nhật
+nằm ngang.
+
+**Không đụng:** `pad`/`gap` là BẬC 0..7 chứ không phải px (nhân lên là núm nhảy
+khỏi thang và bộ dựng bỏ qua im lặng), `at`/`dur` là giây, `slices` là số lượng,
+`subScale` là tỉ lệ. Danh sách TRẮNG `['w','h','x','y','size']`, không phải danh
+sách đen.
+
+**Ở đúng khổ mẫu thì không đổi một số nào** (k = 1). Chín clip đang có đều dựng
+quanh khổ đó, nên bản vá này không phải là một lần đổi khổ hàng loạt.
+
+**Còn lại, nói thẳng:** cách này bảo đảm KHÔNG TRÀN KHUNG, và nó chọn phía an
+toàn — ở khổ ngang, cửa sổ trình duyệt ra 20% bề ngang thay vì 62% như bản gốc
+dọc. Muốn nó to như một tấm hero thì kéo tay, vì to hơn nữa là cụm dọc tràn
+xuống dưới mép.
+
+Canh bằng `tools/kiem-co-kho.mjs` — 22 mục, Node trần.

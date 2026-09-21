@@ -79,7 +79,10 @@ export function ghiEnv(khoa, giaTri) {
  * rỗng bị coi như chưa đặt và rơi xuống đọc `.env` — nghĩa là không có cách nào
  * tắt mật khẩu bằng biến môi trường khi `.env` đang có mật khẩu. Bài kiểm dựng
  * máy chủ "chưa đặt mật khẩu" vấp đúng chỗ này. */
-const lay = (k) => (k in process.env ? String(process.env[k]) : (docEnv()[k] || ''));
+export const layCauHinh = (k) => (k in process.env ? String(process.env[k]) : (docEnv()[k] || ''));
+/* Tên ngắn dùng trong chính file này; `layCauHinh` là tên cho người ngoài gọi
+   (`kho.js` cần đọc `MOTION_CHU_KHO` theo đúng luật biến-môi-trường-thắng-file). */
+const lay = layCauHinh;
 
 /* ---------- mật khẩu ---------- */
 
@@ -160,9 +163,47 @@ function khoaKy() {
 const b64 = (s) => Buffer.from(s, 'utf8').toString('base64url');
 const ky = (p) => createHmac('sha256', khoaKy()).update(p).digest('base64url');
 
-export function taoVe(email = '') {
-  const p = b64(JSON.stringify({ het: Date.now() + SONG_NGAY * 86400_000, em: email }));
+/**
+ * @param email ai đang cầm vé
+ * @param y.xuat vé CHỈ dùng cho việc xuất video — xem `duocVaoKhiXuat`
+ * @param y.song vé sống bao nhiêu giây
+ */
+export function taoVe(email = '', { xuat = false, song = SONG_NGAY * 86400 } = {}) {
+  const than = { het: Date.now() + song * 1000, em: email };
+  if (xuat) than.xuat = 1;
+  const p = b64(JSON.stringify(than));
   return `${p}.${ky(p)}`;
+}
+
+/**
+ * VÉ NGẮN HẠN CHO VIỆC XUẤT VIDEO.
+ *
+ * Bộ xuất mở khung xem bằng Chromium, và Chromium đó KHÔNG có vé đăng nhập —
+ * nên từ ngày có mật khẩu thì mọi lần xuất trên máy chủ có mật khẩu đều nhận
+ * lại trang đăng nhập và quay ra một video chụp cái trang ấy. Kho riêng chỉ làm
+ * chuyện này lộ ra, vì kho riêng chỉ tồn tại khi đăng nhập đang bật.
+ *
+ * CÁCH VÁ SAI mà ai cũng nghĩ tới đầu tiên: "bỏ qua đăng nhập nếu gọi từ
+ * localhost". Cửa hậu nào rồi cũng có ngày bị bật nhầm trên bản chạy thật —
+ * luật này đã ghi sẵn trong CLAUDE.md và DANG-NHAP.md.
+ *
+ * CÁCH ĐÚNG: máy chủ tự ký một vé sống một giờ, nhét vào đường dẫn đưa cho bộ
+ * xuất. Vé ấy KHÔNG phải một lần đăng nhập — nó chỉ mở đúng những đường cần để
+ * VẼ RA khung hình, và không mở một đường ghi nào. Lỡ có lọt ra ngoài thì thứ
+ * lấy được cũng chỉ là xem clip, trong vòng một giờ.
+ *
+ * Vé vẫn mang theo email, vì bộ dựng phải đọc kịch bản trong ĐÚNG kho của người
+ * bấm nút — không mang thì vé mở ra kho gốc và xuất nhầm clip của người khác.
+ */
+export const SONG_VE_XUAT = 3600;      // một giờ
+export const taoVeXuat = (email) => taoVe(email, { xuat: true, song: SONG_VE_XUAT });
+
+/** Vé xuất video mở được những đường nào — DANH SÁCH TRẮNG, chỉ đủ để vẽ hình. */
+export function duocVaoKhiXuat(duong) {
+  return duong === '/health'
+    || duong.startsWith('/clip/')          // bộ dựng, phông, ảnh, video nguồn
+    || duong.startsWith('/api/kich-ban/')  // kịch bản của kho riêng
+    || duong === '/api/canh-mau';          // cảnh mẫu của ô xem thử
 }
 
 /** Mở vé ra. Trả `null` nếu chữ ký sai hoặc đã hết hạn. */
@@ -195,10 +236,10 @@ export function docCookie(req, ten) {
 
 /** `Secure` chỉ khi thật sự đang chạy qua https — bật bừa thì cookie không bao
  *  giờ được gửi lúc chạy thử ở `http://127.0.0.1`, và đăng nhập thành vòng lặp. */
-export function datCookie(req, ve) {
+export function datCookie(req, ve, song = SONG_NGAY * 86400) {
   const https = String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim() === 'https';
   return `${TEN_COOKIE}=${encodeURIComponent(ve)}; Path=/; HttpOnly; SameSite=Lax; `
-    + `Max-Age=${SONG_NGAY * 86400}${https ? '; Secure' : ''}`;
+    + `Max-Age=${song}${https ? '; Secure' : ''}`;
 }
 
 export function xoaCookie(req) {
@@ -282,9 +323,22 @@ const MO = new Set(['/dang-nhap', '/api/dang-nhap', '/api/dang-xuat', '/api/toi-
    và mọi đoạn bắt đầu bằng dấu chấm, nên không lần ra ngoài thư mục này được. */
 const MO_TIEN_TO = ['/clip/public/fonts/'];
 
-export function duocVao(req, duong) {
+/**
+ * @param veThem vé lấy từ `?ve=` trên đường dẫn — bộ xuất video đưa vào lối này.
+ *               Vẫn phải qua đúng những phép kiểm như vé trong cookie.
+ */
+export function duocVao(req, duong, veThem = null) {
   if (!daDatMatKhau()) return true;          // chưa đặt mật khẩu → không chặn ai
   if (MO.has(duong)) return true;
   if (MO_TIEN_TO.some((t) => duong.startsWith(t))) return true;
-  return veConHan(docCookie(req, TEN_COOKIE));
+
+  for (const ve of [docCookie(req, TEN_COOKIE), veThem]) {
+    const d = ve && moVe(ve);
+    if (!d) continue;
+    /* Vé thường mở mọi đường. Vé xuất video CHỈ mở đường vẽ hình — nó không
+       phải một lần đăng nhập, mà là một chiếc chìa cho đúng một việc. */
+    if (!d.xuat) return true;
+    if (duocVaoKhiXuat(duong)) return true;
+  }
+  return false;
 }

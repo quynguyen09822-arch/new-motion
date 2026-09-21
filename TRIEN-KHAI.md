@@ -26,6 +26,8 @@ Mở `http://máy-chủ:3000`.
 | `MOTION_DUOI_EMAIL` | chỉ email đuôi này vào được. Bỏ trống = nhận mọi email. |
 | `MOTION_MAT_KHAU_HASH` | mật khẩu **dạng băm**. **Để trống = KHÔNG hỏi mật khẩu**, ai có đường dẫn cũng vào sửa clip. |
 | `MOTION_KHOA_PHIEN` | khoá ký vé đăng nhập. |
+| `MOTION_TAI_KHOAN` | danh sách tài khoản được vào, ngăn bằng dấu phẩy. **Cũng là công tắc bật kho riêng** — xem mục dưới. |
+| `MOTION_CHU_KHO` | ai là chủ kho gốc. Bỏ trống thì lấy tài khoản đầu trong `MOTION_TAI_KHOAN`. |
 
 **Sinh băm mật khẩu** (chạy ở máy, trong thư mục dự án):
 
@@ -90,12 +92,38 @@ docker run -d --name motion -p 3000:3000 \
   ... motion
 ```
 
+## Kho riêng theo tài khoản
+
+Từ 20/09/2026 mỗi tài khoản có kho dự án riêng, không nhìn thấy dự án của nhau.
+Chi tiết ở `docs/KHO-RIENG.md`; ở đây chỉ nói phần liên quan tới lúc triển khai.
+
+**`MOTION_TAI_KHOAN` là công tắc.** Bỏ trống thì KHÔNG chia kho — mọi người đăng
+nhập vào đều dùng chung `clip/scenes` y như trước. Đây là mặc định cố ý: đoán bừa
+ai là chủ kho thì người vào trước chiếm mất kho của người khác.
+
+```bash
+docker run -d --name motion -p 3000:3000   -e MOTION_TAI_KHOAN='motion11011,ban.thiet.ke'   -e MOTION_DUOI_EMAIL='@matbao.com'   -v motion-scenes:/app/clip/scenes   -v motion-kho:/app/kho   ... motion
+```
+
+**`/app/kho` BẮT BUỘC phải gắn volume, và nó gấp hơn `/app/clip/scenes` một bậc.**
+Kho gốc (của chủ kho) còn có kho sao lưu và bản chụp hằng ngày làm phao; kho riêng
+thì `/app/kho` là **nơi duy nhất** giữ dự án của những người còn lại. Container bị
+xoá mà không gắn volume là mất hẳn, không có bản nào khác trên đời.
+
+Chưa gắn được volume thì **đừng mời người thứ hai vào dùng thật** — cứ để
+`MOTION_TAI_KHOAN` trống, mọi người dùng chung kho gốc như cũ. Mất dự án một lần
+là mất niềm tin luôn, và đó là thứ không dựng lại được bằng một bản vá.
+
 ## Kiểm tra sau khi triển khai
 
 ```bash
 curl -I  http://máy-chủ:3000/health      # 200
 curl -I  http://máy-chủ:3000/            # 302 → /dang-nhap  (nếu đã đặt mật khẩu)
 curl -I  http://máy-chủ:3000/dang-nhap   # 200
+curl -I  http://máy-chủ:3000/sua         # 302 → /dang-nhap  (trình sửa, không phải `/`)
 ```
+
+> `/` nay là **trang chào**, không còn là trình sửa. Ai đang có bookmark trỏ thẳng
+> vào trình sửa thì đổi sang `/sua?clip=<tên>`.
 
 `/health` cố ý **không** qua cửa đăng nhập, để máy khác biết app còn sống.

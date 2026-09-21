@@ -37,7 +37,7 @@ const loiJS = [];
 trang.on('pageerror', (e) => loiJS.push(String(e)));
 
 try {
-  await trang.goto(GOC, { waitUntil: 'networkidle' });
+  await trang.goto(`${GOC}/sua`, { waitUntil: 'networkidle' });
   await trang.waitForTimeout(2200);
 
   /* ---------- 1. nút nằm đúng chỗ ---------- */

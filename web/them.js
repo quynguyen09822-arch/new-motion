@@ -98,6 +98,84 @@ export const MAU_MON = [
 ];
 
 
+/* ---------- CO GIÃN THEO KHỔ CLIP ----------
+ *
+ * Mọi con số px trong kho mẫu bên dưới đều viết theo MỘT khổ duy nhất, và khổ
+ * đó là 720×1280 — không phải tôi chọn, mà đo ra: `chuDan` khai `w: 374,
+ * size: 96`, đúng từng số của `vibe-host`. Cả kho mẫu chép khuôn từ đấy.
+ *
+ * Nên thả nguyên si vào một clip 1280×720 là sai cỡ: chữ 96 trong khung cao
+ * 720 chiếm gần một phần bảy chiều cao, trong khi chín clip thật đang dùng
+ * 54–72. Người dùng bấm "Mở đầu — logo" rồi phải ngồi vặn lại từng núm — tức là
+ * bộ dựng sẵn không dựng sẵn được gì.
+ *
+ * HỆ SỐ LẤY THEO CẠNH NÀO CHẠM TRƯỚC, đúng phép "vừa khung":
+ *
+ *     k = min(rộng/720, cao/1280)
+ *
+ * Kiểm lại bằng số đo thật: 720×1280 → 1280×720 cho k = 0,5625, và cỡ chữ 96
+ * thành 54 — TRÙNG ĐÚNG cỡ chữ lớn nhất của `kich-ban-thu` và `thu-nghiem`, hai
+ * clip ngang dựng tay. Lấy theo bề ngang thì ra 171, to gấp ba lần clip thật.
+ *
+ * Kit xếp DỌC (`dir: 'doc'`), nên thứ bó nó lại khi sang khổ ngang là CHIỀU CAO.
+ * Đó là lý do cạnh ngắn thắng, và cũng là lý do công thức này không phải mẹo.
+ */
+
+/** Khổ mà mọi con số trong kho mẫu được viết theo. */
+export const KHUNG_MAU = { rong: 720, cao: 1280 };
+
+/* DANH SÁCH TRẮNG những khoá tính bằng px. Không dùng danh sách đen: `pad` và
+   `gap` là BẬC 0..7 chứ không phải px (xem `DEM_TRONG`/`KHE_HO` trong
+   schema.js), nhân chúng lên là núm nhảy khỏi thang và bộ dựng bỏ qua im lặng.
+   `at`/`dur` là giây, `slices` là số lượng — cũng không được đụng. */
+const KHOA_PX = ['w', 'h', 'x', 'y', 'size'];
+
+/** Hệ số co giãn từ khổ mẫu sang khổ của clip đang mở (đều cả hai chiều). */
+export function heSoKho(meta) {
+  const rong = Number(meta?.width);
+  const cao = Number(meta?.height);
+  if (!(rong > 0) || !(cao > 0)) return 1;
+  return Math.min(rong / KHUNG_MAU.rong, cao / KHUNG_MAU.cao);
+}
+
+/** Riêng bề ngang của chữ thì theo bề ngang khung — xem `coTheoKho`. */
+export function heSoRong(meta) {
+  const rong = Number(meta?.width);
+  return rong > 0 ? rong / KHUNG_MAU.rong : 1;
+}
+
+/**
+ * Nhân mọi số px trong một món (và con của nó) lên theo hệ số.
+ *
+ * HAI HỆ SỐ, VÀ ĐÂY LÀ CHỖ DỄ LÀM SAI NHẤT:
+ *
+ *  · Mặc định co ĐỀU cả hai chiều. Bắt buộc với món có hình dạng riêng — cửa sổ
+ *    trình duyệt, khung điện thoại, biểu mẫu. Co lệch hai chiều là cái khung
+ *    điện thoại bẹp thành hình chữ nhật nằm ngang, trông hỏng thấy ngay.
+ *
+ *  · RIÊNG `w` CỦA CHỮ đi theo bề ngang khung. `w` của chữ không phải kích
+ *    thước hình, nó là BỀ NGANG NGẮT DÒNG — nên thứ đáng giữ là phần trăm khung
+ *    nó chiếm, chứ không phải số px. Co đều thì khối chữ 374 (52% khung dọc)
+ *    thành 210 trong khung ngang 1280, tức 16%, và một câu dẫn bảy chữ gãy làm
+ *    bốn dòng. Theo bề ngang thì ra 666, vẫn đúng 52% như bản gốc.
+ *
+ * Chữ không có tỉ lệ hình để mà méo, nên ngoại lệ này không kéo theo cái giá
+ * nào — trong khi áp cho cửa sổ trình duyệt thì có.
+ */
+export function coTheoKho(el, k, kRong = k) {
+  if (!el || (k === 1 && kRong === 1)) return el;
+  const ra = { ...el };
+  for (const khoa of KHOA_PX) {
+    if (typeof ra[khoa] !== 'number') continue;
+    const he = (khoa === 'w' && ra.kind === 'text') ? kRong : k;
+    /* Không để cỡ chữ rơi xuống 0 ở clip tí hon: một món vô hình thì người dùng
+       tưởng lệnh thêm không chạy, và đi bấm thêm lần nữa. */
+    ra[khoa] = khoa === 'size' ? Math.max(1, Math.round(ra[khoa] * he)) : Math.round(ra[khoa] * he);
+  }
+  if (Array.isArray(ra.children)) ra.children = ra.children.map((c) => coTheoKho(c, k, kRong));
+  return ra;
+}
+
 /** Sinh id chưa trùng trong cảnh. */
 function idMoi(canh, goc) {
   const dungRoi = new Set(duyetMon(canh.elements).map((x) => x.el.id));
@@ -112,7 +190,12 @@ export function themMon(doc, canhId, kind, chaId = null) {
   const canh = timCanh(doc, canhId);
   if (!canh) return null;
   const mau = MAU_MON.find((m) => m.kind === kind);
-  const el = { id: idMoi(canh, kind), kind, x: 0, y: 0, ...structuredClone(mau?.mau || {}) };
+  /* Món lẻ cũng co theo khổ, y như bộ dựng sẵn: mẫu `browser` khai 446×321 cho
+     khung dọc 720, thả nguyên si vào clip ngang là một cửa sổ bé tí giữa khung. */
+  const el = coTheoKho(
+    { id: idMoi(canh, kind), kind, x: 0, y: 0, ...structuredClone(mau?.mau || {}) },
+    heSoKho(doc?.meta), heSoRong(doc?.meta),
+  );
 
   // Món ngoài cùng thì cho vào giữa khung cho dễ thấy; món trong cụm thì để
   // flex lo, đặt `place` vào là thừa.
@@ -290,9 +373,11 @@ export function themKit(doc, canhId, kitId, chaId = null) {
   const cha = chaId ? timMon(doc, canhId, chaId)?.el : null;
   const dich = cha && cha.kind === 'group' ? (cha.children ||= []) : canh.elements;
 
+  const k = heSoKho(doc?.meta);
+  const kRong = heSoRong(doc?.meta);
   let dau = null;
   for (const el of kit.dung()) {
-    const e = datLaiId(structuredClone(el));
+    const e = datLaiId(coTheoKho(structuredClone(el), k, kRong));
     // Nằm trong cụm thì để flex lo chỗ, `place` vào là thừa và làm hỏng bố cục.
     if (cha) delete e.place;
     dich.push(e);
@@ -333,6 +418,74 @@ export function nhanBanMon(doc, canhId, monId) {
   const ds = t.cha ? t.cha.children : canh.elements;
   ds.splice(ds.indexOf(t.el) + 1, 0, banSao);
   return banSao.id;
+}
+
+/* ---------- đổi chỗ trong cây lớp ---------- */
+
+/** Mọi id nằm trong một nhánh, kể cả chính gốc nhánh. */
+function hoHang(el) {
+  const ra = new Set([el.id]);
+  const dao = (e) => { for (const c of e.children || []) { ra.add(c.id); dao(c); } };
+  if (el.kind === 'group') dao(el);
+  return ra;
+}
+
+/**
+ * Cú thả này có hợp lệ không. Phải hỏi TRƯỚC khi gọi `kho.sua()`: `sua()` ghi
+ * một bước hoàn tác ngay cả khi việc bên trong không làm gì, nên thả bậy một
+ * cái là người dùng phải bấm hoàn tác một lần cho một chuyện chưa từng xảy ra.
+ *
+ * @param kieu 'truoc' | 'sau' (thành anh em của `dichId`) · 'vao' (thành con của
+ *             cụm `dichId`) · 'cuoi' (xuống cuối danh sách ngoài cùng, `dichId`
+ *             bỏ trống)
+ */
+export function doiChoHopLe(doc, canhId, monId, dichId, kieu) {
+  if (!monId) return false;
+  const t = timMon(doc, canhId, monId);
+  if (!t) return false;
+  if (kieu === 'cuoi') return true;
+  if (!dichId || dichId === monId) return false;
+  const d = timMon(doc, canhId, dichId);
+  if (!d) return false;
+  /* Thả một cụm vào chính con cháu của nó thì cây tự ăn lấy mình: nhánh ấy biến
+     mất khỏi cảnh mà vẫn còn trong bộ nhớ, và `validateScene` không bắt được vì
+     thứ nó soát là cái còn lại. */
+  if (hoHang(t.el).has(dichId)) return false;
+  if (kieu === 'vao' && d.el.kind !== 'group') return false;
+  return true;
+}
+
+/**
+ * Kéo một thành phần sang chỗ khác trong cây lớp.
+ *
+ * Thứ tự trong mảng CHÍNH LÀ thứ tự vẽ: món đứng sau nằm đè lên món đứng trước,
+ * và chỉ số của nó cũng là bậc trễ khi cảnh có `stagger`. Nên đổi chỗ ở đây
+ * không phải chuyện sắp xếp cho gọn mắt — nó đổi cả hình lẫn nhịp.
+ */
+export function doiChoMon(doc, canhId, monId, dichId, kieu) {
+  if (!doiChoHopLe(doc, canhId, monId, dichId, kieu)) return false;
+  const canh = timCanh(doc, canhId);
+  const t = timMon(doc, canhId, monId);
+  const el = t.el;
+
+  /* GỠ TRƯỚC, TÌM CHỖ ĐẶT SAU. Làm ngược lại thì chỉ số đã tính xong bị lệch
+     đúng lúc gỡ, và món nhảy sai một ô — lỗi chỉ lộ ra khi kéo xuống dưới, tức
+     đúng nửa số lần dùng. */
+  const dsCu = t.cha ? t.cha.children : canh.elements;
+  dsCu.splice(dsCu.indexOf(el), 1);
+
+  if (kieu === 'cuoi') { canh.elements.push(el); return true; }
+
+  const d = timMon(doc, canhId, dichId);
+  if (kieu === 'vao') {
+    d.el.children = d.el.children || [];
+    d.el.children.push(el);
+    return true;
+  }
+  const ds = d.cha ? d.cha.children : canh.elements;
+  const i = ds.indexOf(d.el);
+  ds.splice(kieu === 'truoc' ? i : i + 1, 0, el);
+  return true;
 }
 
 /* ---------- cảnh ---------- */

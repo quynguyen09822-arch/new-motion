@@ -109,7 +109,7 @@ try {
       if (/sk_[A-Za-z0-9]{16,}/.test(t)) thay.push(`sk_ trong ${res.url().slice(0, 60)}`);
     } catch { /* thân đã bị tiêu thụ thì bỏ qua */ }
   });
-  await trang.goto(GOC, { waitUntil: 'networkidle' });
+  await trang.goto(`${GOC}/sua`, { waitUntil: 'networkidle' });
   await trang.waitForTimeout(2000);
   await trang.selectOption('#chon-clip', 'wireframe-thu');
   await trang.waitForTimeout(1800);

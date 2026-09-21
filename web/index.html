@@ -17,7 +17,13 @@
          xanh navy đậm, đặt lên giao diện tối gần như mất hút. -->
     <img class="o-hieu" src="/logo/motion-mark.png" alt="" aria-hidden="true" width="28" height="15">
     <div class="hieu"><b>Motion</b> · Sửa clip</div>
-    <select id="chon-clip" class="chon" aria-label="Chọn clip"></select>
+    <!-- Đường về kho dự án. Là THẺ <a> thật chứ không phải nút gọi JS: người
+         dùng phải mở được ở tab mới, và phải thấy đường dẫn khi rê chuột. -->
+    <a id="ve-kho" class="nut nho" href="/" title="Về kho dự án của bạn">
+      <svg viewBox="0 0 16 16" aria-hidden="true" width="12" height="12"><path d="M6.5 3.5L2.5 8l4 4.5"/><path d="M13.5 8h-11"/></svg>
+      Kho dự án
+    </a>
+    <select id="chon-clip" class="chon" aria-label="Chọn dự án"></select>
     <span id="dau-ban" class="dau-ban an">chưa lưu</span>
 
     <div class="day"></div>
@@ -26,6 +32,20 @@
     <!-- Chỗ cho lời nhắc "chưa đặt mật khẩu" và nút Thoát. Ở THANH TRÊN chứ
          không phải thanh dưới: thanh dưới là điều khiển phát phim. -->
     <span id="o-tai-khoan" class="o-tai-khoan"></span>
+
+    <!-- Ẩn/hiện hai cột. Nút nằm ở THANH TRÊN chứ không nằm trong chính cột nó
+         điều khiển: nút nằm trong cột thì ẩn cột xong nút biến mất theo, và
+         người dùng không còn đường nào mở lại ngoài việc đoán ra phím tắt. -->
+    <span class="nhom-nut">
+      <button id="cot-trai-an" class="nut-tron" type="button" aria-pressed="false"
+              title="Ẩn cột trái (\)" aria-label="Ẩn cột trái">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="2"/><path d="M6.5 3v10"/></svg>
+      </button>
+      <button id="cot-phai-an" class="nut-tron" type="button" aria-pressed="false"
+              title="Ẩn cột phải (\)" aria-label="Ẩn cột phải">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="2"/><path d="M9.5 3v10"/></svg>
+      </button>
+    </span>
 
     <span class="nhom-nut">
       <button id="nut-lui" class="nut-tron" type="button" title="Hoàn tác (Ctrl+Z)" aria-label="Hoàn tác"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 4L2.5 7.5 6 11"/><path d="M2.5 7.5h7a4 4 0 0 1 0 8H8"/></svg></button>

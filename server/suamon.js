@@ -21,7 +21,7 @@
  *   4. TRẢ VỀ BẢN VÁ KÈM DANH SÁCH THAY ĐỔI (cũ → mới) để người dùng nhìn thấy
  *      trước khi nhận. "Đã sửa xong" mà không nói sửa gì thì không ai dám bấm.
  */
-import { goiGemini } from './gemini.js';
+import { goiGemini, HAN_GIAY_ANH } from './gemini.js';
 import { soatKichBan } from './proj.js';
 
 /* Trường không bao giờ được AI đổi. `children` cũng nằm đây: sửa một món thì
@@ -145,7 +145,10 @@ export async function suaMon({ doc, canhId, monId, y, anh, mime }) {
   const phan = [{ text: loiNhac(goiMon, kind, truong, meta, y, Boolean(anh)) }];
   if (anh) phan.push({ inline_data: { mime_type: mime || 'image/png', data: anh } });
 
-  const g = await goiGemini(phan, { nong: 0.35, toiDa: 3000, nghi: true });
+  /* Có ảnh thì nới hạn giờ: nhìn ảnh lâu hơn hẳn đọc chữ, và hạn 12 giây mặc
+     định làm cả bốn model quá hạn. Không có ảnh thì giữ hạn ngắn cho nhanh. */
+  const g = await goiGemini(phan, { nong: 0.35, toiDa: 3000, nghi: true,
+    ...(anh ? { hanGiay: HAN_GIAY_ANH } : {}) });
   if (!g.ok) return { ok: false, cau: g.cau };
   const va = bocJSON(g.chu);
   if (!va || typeof va !== 'object') return { ok: false, cau: 'AI trả về thứ không phải JSON.' };

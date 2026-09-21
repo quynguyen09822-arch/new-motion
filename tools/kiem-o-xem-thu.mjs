@@ -43,7 +43,7 @@ trang.on('pageerror', (e) => loiJS.push(String(e)));
 /* ① Cảnh mẫu dùng ĐÚNG gói trong kho */
 console.log('\n① Cảnh mẫu sinh ra đúng');
 const canh = async (q) => (await trang.request.get(`${GOC}/api/canh-mau?${q}`)).json();
-await trang.goto(GOC, { waitUntil: 'load' });
+await trang.goto(`${GOC}/sua`, { waitUntil: 'load' });
 
 const c1 = await canh('mau=the&vao=truot-len');
 const goi = KHO_VAO.find((g) => g.id === 'truot-len');

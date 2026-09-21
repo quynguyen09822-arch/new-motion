@@ -13,6 +13,7 @@
  */
 import { existsSync } from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 /*
  * TÌM DỰ ÁN CLIP Ở ĐÂU — theo thứ tự, dừng ở chỗ đầu tiên thấy được.
@@ -35,7 +36,13 @@ import path from 'node:path';
  * triển khai có thể tự sinh lấy cách chạy, không dùng `Dockerfile` mình viết,
  * lúc đó biến môi trường mình khai không tới được.
  */
-const GOC_UNG_DUNG = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+/* `fileURLToPath`, KHÔNG phải `new URL(...).pathname`. Trên Linux hai cách ra
+   như nhau nên chỗ này im lặng suốt; trên Windows `.pathname` trả về
+   "/C:/Users/..." và `path.resolve` biến nó thành "C:\C:\Users\..." — một
+   đường dẫn không tồn tại, nên bậc 3 (clip gói kèm) không bao giờ tìm thấy và
+   app chết ngay lúc khởi động kèm câu "không tìm thấy dự án clip". Mấy file
+   khác trong thư mục này đều đã dùng `fileURLToPath`; riêng file này sót. */
+const GOC_UNG_DUNG = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CLIP_KEM = path.join(GOC_UNG_DUNG, 'clip');
 const MAC_DINH = '/home/coder/workspace/projects/clipVibehost/hosting-animatic-production';
 
@@ -81,7 +88,11 @@ export function kiemTraDuAn() {
  */
 let _scene = null;
 async function napScene() {
-  if (!_scene) _scene = await import(TYPES_TS);
+  /* `pathToFileURL`, KHÔNG phải đường dẫn trần. Trên Linux `import('/a/b.ts')`
+     chạy được nên chỗ này trông vô hại; trên Windows `import('C:\a\b.ts')` bị
+     bộ nạp ESM từ chối vì nó đọc "c:" thành tên giao thức. Hỏng lặng lẽ: mỗi
+     clip hiện ra với nhãn "Không đọc được" thay vì báo một lỗi nói rõ. */
+  if (!_scene) _scene = await import(pathToFileURL(TYPES_TS).href);
   return _scene;
 }
 

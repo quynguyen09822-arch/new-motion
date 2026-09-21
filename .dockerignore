@@ -24,3 +24,8 @@ tools
 
 # Nhật ký lượt dùng — dữ liệu chạy.
 .nhat-ky/
+
+# Kho dự án riêng của từng tài khoản — dữ liệu người dùng, không phải mã nguồn.
+# Đây là NƠI DUY NHẤT giữ dự án của người không phải chủ kho: mất thư mục này
+# là mất việc của họ, không có git nào cứu được. Xem docs/KHO-RIENG.md.
+kho/

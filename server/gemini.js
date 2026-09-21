@@ -29,9 +29,22 @@ export const CHUOI_MODEL = [
   'gemini-3.6-flash', 'gemini-3-flash-preview', 'gemini-3.1-flash-lite', 'gemini-3.8-flash',
 ];
 
-/* 12 giây: model chạy được trả lời trong 1,5–5 giây, nên 12 đã là gấp đôi khoảng
-   rộng rãi. Để 20 thì mỗi lần tụt model tốn thêm 20 giây chờ vô ích. */
+/* 12 giây CHO VIỆC NGÔN NGỮ NGẮN: model chạy được trả lời trong 1,5–5 giây, nên
+   12 đã là gấp đôi khoảng rộng rãi. Để 20 thì mỗi lần tụt model tốn thêm 20 giây
+   chờ vô ích.
+
+   NHƯNG CON SỐ NÀY CHỈ ĐÚNG CHO VIỆC NGẮN. Đọc một tấm ảnh giao diện rồi dựng
+   lại cả cảnh là việc khác hẳn: model phải nhìn, đo, rồi sinh vài nghìn token
+   JSON. Đo thật trên ảnh 941×1672: CẢ BỐN model đều quá hạn 12 giây, nên
+   `dungCanh` trả về "không model nào dùng được" — trông như AI dở, thật ra nó
+   chưa kịp trả lời lần nào.
+   Vì vậy hạn giờ nhận theo TỪNG VIỆC. Việc nào gửi kèm ảnh thì truyền `hanGiay`
+   rộng ra; đừng nâng con số chung, vì việc ngắn mà chờ 90 giây là hỏng trải
+   nghiệm ở chín chỗ khác. */
 export const HAN_GIAY = 12;
+
+/** Hạn cho việc CÓ GỬI ẢNH — nhìn và đo thì lâu hơn hẳn việc chỉ đọc chữ. */
+export const HAN_GIAY_ANH = 90;
 
 /**
  * Gọi Gemini, tự tụt model khi model đầu bảng bận.
@@ -51,7 +64,8 @@ export const HAN_GIAY = 12;
  *
  * @returns { ok, chu, model, vetXe } hoặc { ok:false, cau }
  */
-export async function goiGemini(loiNhac, { nong = 0.8, toiDa = 2048, nghi = true } = {}) {
+export async function goiGemini(loiNhac, { nong = 0.8, toiDa = 2048, nghi = true,
+  hanGiay = HAN_GIAY } = {}) {
   const kq = khoaGoogle();
   if (!kq.ok) return { ok: false, cau: kq.cau };
 
@@ -67,7 +81,7 @@ export async function goiGemini(loiNhac, { nong = 0.8, toiDa = 2048, nghi = true
   const vetXe = [];
   for (const m of CHUOI_MODEL) {
     const bo = new AbortController();
-    const hen = setTimeout(() => bo.abort(), HAN_GIAY * 1000);
+    const hen = setTimeout(() => bo.abort(), hanGiay * 1000);
     try {
       const r = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${encodeURIComponent(kq.k)}`,
@@ -93,7 +107,7 @@ export async function goiGemini(loiNhac, { nong = 0.8, toiDa = 2048, nghi = true
       }
       vetXe.push(`${m}:${r.status}`);
     } catch (e) {
-      vetXe.push(`${m}:${e.name === 'AbortError' ? `quá ${HAN_GIAY}s` : 'vỡ'}`);
+      vetXe.push(`${m}:${e.name === 'AbortError' ? `quá ${hanGiay}s` : 'vỡ'}`);
     } finally { clearTimeout(hen); }
   }
   return { ok: false, cau: `Cả ${CHUOI_MODEL.length} model của Google AI đều không dùng được lúc này `

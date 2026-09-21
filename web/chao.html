@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Motion — sửa video AI dựng ra, bằng chuột</title>
+<meta name="description" content="Motion mở clip AI dựng ra rồi cho bạn bấm thẳng vào chữ, ảnh, khung hình để sửa — xong thì xuất video. Không cần biết code.">
+<link rel="icon" type="image/png" href="/logo/favicon.png">
+<!-- Bộ chữ tự chứa, không tải gì qua mạng. Cùng một bản với trình sửa và với
+     bộ dựng clip — ba bản chữ khác nhau là ba mặt chữ khác nhau. -->
+<link rel="stylesheet" href="/clip/public/fonts/chu.css">
+<link rel="stylesheet" href="/chao.css">
+</head>
+<body>
+
+<!-- ---------- THANH TRÊN ----------
+     Dính trên đỉnh và có nền mờ: cuộn xuống giữa lưới dự án vẫn còn lối tạo dự
+     án mới và lối thoát, không phải cuộn ngược lên. -->
+<header class="thanh">
+  <a class="hieu" href="/">
+    <img src="/logo/motion-mark.png" alt="" aria-hidden="true" width="30" height="16">
+    <b>Motion</b>
+  </a>
+
+  <nav class="dieu-huong">
+    <a href="#kho">Kho dự án</a>
+    <a href="#cach">Cách dùng</a>
+  </nav>
+
+  <div class="day"></div>
+  <span id="o-tai-khoan" class="o-tai-khoan"></span>
+  <button id="nut-tao-tren" class="nut chinh nho" type="button">Tạo dự án mới</button>
+</header>
+
+<main>
+  <!-- ---------- MỞ ĐẦU ---------- -->
+  <section class="mo-dau">
+    <div class="mo-chu">
+      <span class="huy-hieu"><i class="cham"></i>Trình sửa clip của Mắt Bão</span>
+
+      <h1>Video AI dựng ra,<br><span class="sang">bạn sửa bằng chuột.</span></h1>
+
+      <p class="dan">
+        AI biến ảnh chụp giao diện hay một trang HTML sẵn có thành clip chạy được.
+        Motion mở clip đó ra, cho bạn bấm thẳng vào chữ, ảnh hay khung hình rồi vặn
+        lại cho vừa ý — đổi chữ, dời chỗ, chỉnh màu, đổi cách bay vào — xong thì
+        xuất ra video.
+      </p>
+
+      <div class="nut-hang">
+        <button id="nut-tao" class="nut chinh to" type="button">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3.5v9M3.5 8h9"/></svg>
+          Tạo dự án mới
+        </button>
+        <a class="nut vien to" href="#kho">
+          Kho dự án của bạn
+          <span id="dem-kho" class="dem"></span>
+        </a>
+      </div>
+
+      <ul class="gach-dau">
+        <li>Không cần biết code</li>
+        <li>Không cần phần mềm dựng phim</li>
+        <li>Xuất MP4, WebM, GIF</li>
+      </ul>
+    </div>
+
+    <!-- Hình minh hoạ vẽ TAY bằng SVG, không phải ảnh chụp màn hình.
+         Ảnh chụp thì mỗi lần đổi giao diện lại cũ đi một ít mà không ai nhớ
+         thay, rồi trang chào bày ra một phần mềm không còn tồn tại. Hình vẽ chỉ
+         tả BỐ CỤC — ba cột, khung hình ở giữa, bảng núm bên phải — thứ đã đứng
+         yên từ đầu và sẽ còn đứng yên. Cùng lối `web/hinhmon.js` vẽ 24 sơ đồ. -->
+    <div class="mo-hinh" aria-hidden="true">
+      <svg viewBox="0 0 520 340">
+        <defs>
+          <linearGradient id="sang-nen" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#1b1b1b"/><stop offset="1" stop-color="#0d0d0d"/>
+          </linearGradient>
+          <linearGradient id="sang-clip" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#132a20"/><stop offset="1" stop-color="#0b1a14"/>
+          </linearGradient>
+        </defs>
+
+        <rect x="4" y="4" width="512" height="332" rx="14" fill="url(#sang-nen)" stroke="#2c2c2c"/>
+
+        <!-- thanh cửa sổ -->
+        <circle cx="26" cy="26" r="4.5" fill="#3a3a3a"/>
+        <circle cx="42" cy="26" r="4.5" fill="#3a3a3a"/>
+        <circle cx="58" cy="26" r="4.5" fill="#3a3a3a"/>
+        <rect x="186" y="18" width="148" height="16" rx="8" fill="#1e1e1e"/>
+        <rect x="196" y="24" width="72" height="4" rx="2" fill="#4a4a4a"/>
+        <rect x="452" y="17" width="48" height="18" rx="9" fill="#31d975"/>
+        <rect x="463" y="24" width="26" height="4" rx="2" fill="#06140c"/>
+        <line x1="4" y1="48" x2="516" y2="48" stroke="#2c2c2c"/>
+
+        <!-- cột trái: danh sách cảnh và thành phần -->
+        <rect x="16" y="60" width="112" height="264" rx="10" fill="#161616"/>
+        <rect x="26" y="72" width="44" height="5" rx="2.5" fill="#4a4a4a"/>
+        <rect x="26" y="88" width="92" height="22" rx="6" fill="#31d975" opacity=".16"/>
+        <rect x="34" y="96" width="46" height="5" rx="2.5" fill="#31d975"/>
+        <rect x="26" y="118" width="92" height="22" rx="6" fill="#1e1e1e"/>
+        <rect x="34" y="126" width="58" height="5" rx="2.5" fill="#555"/>
+        <rect x="26" y="148" width="92" height="22" rx="6" fill="#1e1e1e"/>
+        <rect x="34" y="156" width="38" height="5" rx="2.5" fill="#555"/>
+        <rect x="26" y="186" width="56" height="5" rx="2.5" fill="#4a4a4a"/>
+        <rect x="26" y="204" width="92" height="16" rx="5" fill="#1e1e1e"/>
+        <rect x="34" y="210" width="62" height="4" rx="2" fill="#4a4a4a"/>
+        <rect x="26" y="226" width="92" height="16" rx="5" fill="#1e1e1e"/>
+        <rect x="34" y="232" width="48" height="4" rx="2" fill="#4a4a4a"/>
+        <rect x="26" y="248" width="92" height="16" rx="5" fill="#1e1e1e"/>
+        <rect x="34" y="254" width="70" height="4" rx="2" fill="#4a4a4a"/>
+        <rect x="26" y="270" width="92" height="16" rx="5" fill="#1e1e1e"/>
+        <rect x="34" y="276" width="40" height="4" rx="2" fill="#4a4a4a"/>
+
+        <!-- giữa: khung hình clip, có khung chọn đang trỏ vào một món -->
+        <rect x="140" y="60" width="228" height="216" rx="10" fill="url(#sang-clip)" stroke="#232323"/>
+        <rect x="166" y="104" width="130" height="13" rx="4" fill="#e9f7ef"/>
+        <rect x="166" y="124" width="86" height="9" rx="4" fill="#5d6b63"/>
+        <circle cx="316" cy="158" r="26" fill="#31d975" opacity=".2"/>
+        <circle cx="316" cy="158" r="14" fill="#31d975" opacity=".55"/>
+        <rect x="166" y="182" width="74" height="22" rx="11" fill="#31d975"/>
+        <rect x="182" y="191" width="42" height="4" rx="2" fill="#06140c"/>
+
+        <!-- khung chọn: xanh lá, bốn tay nắm góc, y như lớp phủ thật -->
+        <rect x="160" y="98" width="142" height="42" rx="3" fill="none" stroke="#31d975" stroke-width="1.5"/>
+        <rect x="157" y="95" width="6" height="6" rx="1" fill="#31d975"/>
+        <rect x="299" y="95" width="6" height="6" rx="1" fill="#31d975"/>
+        <rect x="157" y="137" width="6" height="6" rx="1" fill="#31d975"/>
+        <rect x="299" y="137" width="6" height="6" rx="1" fill="#31d975"/>
+        <path d="M296 134l0 17 4.6-4.6 3 6.6 3.4-1.6-3-6.4 6.4-0.4z" fill="#fff" stroke="#0b0b0b" stroke-width="1"/>
+
+        <!-- thanh tua -->
+        <rect x="140" y="288" width="228" height="36" rx="10" fill="#161616"/>
+        <circle cx="160" cy="306" r="9" fill="#31d975"/>
+        <path d="M157.5 302.5l5.5 3.5-5.5 3.5z" fill="#06140c"/>
+        <rect x="178" y="304" width="150" height="4" rx="2" fill="#2f2f2f"/>
+        <rect x="178" y="304" width="58" height="4" rx="2" fill="#31d975"/>
+        <circle cx="236" cy="306" r="5" fill="#fff"/>
+        <rect x="340" y="303" width="18" height="5" rx="2.5" fill="#4a4a4a"/>
+
+        <!-- cột phải: bảng thuộc tính -->
+        <rect x="380" y="60" width="124" height="264" rx="10" fill="#161616"/>
+        <rect x="390" y="72" width="34" height="14" rx="7" fill="#31d975" opacity=".16"/>
+        <rect x="396" y="77" width="22" height="4" rx="2" fill="#31d975"/>
+        <rect x="430" y="72" width="30" height="14" rx="7" fill="#1e1e1e"/>
+        <rect x="466" y="72" width="30" height="14" rx="7" fill="#1e1e1e"/>
+
+        <rect x="390" y="100" width="40" height="4" rx="2" fill="#555"/>
+        <rect x="390" y="110" width="104" height="20" rx="6" fill="#1e1e1e"/>
+        <rect x="398" y="118" width="64" height="4" rx="2" fill="#4a4a4a"/>
+
+        <rect x="390" y="142" width="34" height="4" rx="2" fill="#555"/>
+        <rect x="390" y="152" width="104" height="6" rx="3" fill="#2f2f2f"/>
+        <rect x="390" y="152" width="66" height="6" rx="3" fill="#31d975"/>
+        <circle cx="456" cy="155" r="6" fill="#fff"/>
+
+        <rect x="390" y="176" width="46" height="4" rx="2" fill="#555"/>
+        <rect x="390" y="186" width="104" height="6" rx="3" fill="#2f2f2f"/>
+        <rect x="390" y="186" width="34" height="6" rx="3" fill="#31d975"/>
+        <circle cx="424" cy="189" r="6" fill="#fff"/>
+
+        <rect x="390" y="212" width="50" height="4" rx="2" fill="#555"/>
+        <rect x="390" y="222" width="32" height="26" rx="6" fill="#1e1e1e"/>
+        <rect x="426" y="222" width="32" height="26" rx="6" fill="#1e1e1e"/>
+        <rect x="462" y="222" width="32" height="26" rx="6" fill="#1e1e1e"/>
+        <rect x="390" y="222" width="32" height="26" rx="6" fill="#31d975" opacity=".18"/>
+        <rect x="398" y="233" width="16" height="4" rx="2" fill="#31d975"/>
+        <rect x="434" y="233" width="16" height="4" rx="2" fill="#4a4a4a"/>
+        <rect x="470" y="233" width="16" height="4" rx="2" fill="#4a4a4a"/>
+
+        <rect x="390" y="264" width="104" height="24" rx="8" fill="#1e1e1e"/>
+        <rect x="404" y="274" width="76" height="4" rx="2" fill="#4a4a4a"/>
+        <rect x="390" y="296" width="104" height="24" rx="8" fill="#31d975"/>
+        <rect x="416" y="306" width="52" height="4" rx="2" fill="#06140c"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ---------- CÁCH DÙNG ---------- -->
+  <section class="cach" id="cach">
+    <div class="tieu-giua">
+      <h2>Ba bước, không bước nào cần kỹ thuật</h2>
+      <p>Từ lúc mở app tới lúc có file video trong tay.</p>
+    </div>
+
+    <ol class="buoc">
+      <li>
+        <span class="o-hinh">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 9h18M9 9v10"/></svg>
+        </span>
+        <span class="so">Bước 1</span>
+        <b>Chọn dự án</b>
+        <p>Mở một dự án trong kho của bạn, hoặc tạo dự án mới từ trang trắng. Kho
+           của bạn là của riêng bạn — không ai khác nhìn thấy.</p>
+      </li>
+      <li>
+        <span class="o-hinh">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3l14 8-6 1.6L9.6 18z"/><path d="M14 14l5 5"/></svg>
+        </span>
+        <span class="so">Bước 2</span>
+        <b>Bấm rồi vặn</b>
+        <p>Bấm thẳng vào chữ hay ảnh trên khung hình, chỉnh ở cột phải và thấy đổi
+           ngay. Lỡ tay thì Ctrl+Z; mỗi lần lưu đều cất bản cũ lại.</p>
+      </li>
+      <li>
+        <span class="o-hinh">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11"/><path d="M8 10.5l4 4 4-4"/><path d="M4 18v2h16v-2"/></svg>
+        </span>
+        <span class="so">Bước 3</span>
+        <b>Xuất video</b>
+        <p>Chọn khổ hình cho nơi bạn định đăng rồi tải file về — MP4, WebM, GIF
+           hoặc chuỗi ảnh.</p>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ---------- KHO DỰ ÁN ---------- -->
+  <section class="kho" id="kho">
+    <div class="tieu-hang">
+      <div>
+        <h2>Kho dự án của bạn</h2>
+        <span id="ai-kho" class="phu"></span>
+      </div>
+      <button id="nut-tao-2" class="nut vien nho" type="button">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3.5v9M3.5 8h9"/></svg>
+        Dự án mới
+      </button>
+    </div>
+
+    <p id="dang-nap" class="trong">Đang mở kho…</p>
+    <div id="luoi" class="luoi"></div>
+
+    <div id="kho-trong" class="trong-han an">
+      <svg viewBox="0 0 24 24" aria-hidden="true" width="30" height="30"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 9h18"/></svg>
+      <b>Kho của bạn chưa có dự án nào.</b>
+      <p>Đây là kho riêng của tài khoản này — không ai khác nhìn thấy, và bạn
+         cũng không thấy dự án của người khác.</p>
+      <button id="tao-dau" class="nut chinh" type="button">Tạo dự án đầu tiên</button>
+    </div>
+
+    <div id="boc-doi-cu" class="an">
+      <div class="tieu-hang">
+        <div>
+          <h2>Clip đời cũ</h2>
+          <span class="phu">xem và xuất video được, chưa sửa bằng chuột được</span>
+        </div>
+      </div>
+      <div id="luoi-cu" class="luoi"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="chan-trang">
+  <div class="chan-trong">
+    <span><b>Motion</b> · Trình sửa clip của Mắt Bão</span>
+    <span class="phu">Mỗi tài khoản một kho riêng, không đồng bộ với nhau.</span>
+  </div>
+</footer>
+
+<!-- ---------- Ô TẠO DỰ ÁN ----------
+     Dùng <dialog> thật của trình duyệt: nó tự lo phím Esc, tự khoá tiêu điểm
+     trong ô, và tự chặn cuộn nền. Tự dựng lại ba thứ đó bằng tay thì bao giờ
+     cũng sót một. -->
+<dialog id="o-tao" class="o-tao">
+  <form id="phieu" method="dialog">
+    <h3>Dự án mới</h3>
+    <p class="phu-h3">Đặt tên, chọn khổ hình. Sửa lại sau lúc nào cũng được.</p>
+
+    <label class="nhan" for="ten">Tên dự án</label>
+    <input id="ten" class="o" type="text" maxlength="80" required
+           placeholder="Ví dụ: Giới thiệu gói hosting" autocomplete="off">
+    <p class="goi">Tên file: <code id="xem-slug">…</code></p>
+
+    <fieldset class="khokhung">
+      <legend class="nhan">Khổ hình</legend>
+      <div id="kho-hinh" class="kho-hinh"></div>
+    </fieldset>
+
+    <label class="nhan nhan-2" for="mau">Bắt đầu từ</label>
+    <select id="mau" class="o"></select>
+
+    <p id="loi-tao" class="loi an" role="alert" aria-live="polite"></p>
+
+    <div class="cuoi">
+      <button id="thoi" class="nut vien" type="button">Thôi</button>
+      <button id="lam" class="nut chinh" type="submit">Tạo dự án</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="bao" class="bao an" role="status" aria-live="polite"></div>
+
+<script type="module" src="/chao.js"></script>
+</body>
+</html>

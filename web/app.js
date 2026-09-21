@@ -17,7 +17,7 @@ import { taoLopPhu } from './overlay.js';
 import { taoDanhSach } from './layers.js';
 import { taoBang, tenMon } from './inspector/index.js';
 import { ganKeo } from './drag.js';
-import { BO_KIT, BO_MON, KIT, MAU_MON, nhanBanCanh, nhanBanMon, themCanh, themKit, themMon, xoaCanh, xoaMon } from './them.js';
+import { BO_KIT, BO_MON, KIT, MAU_MON, doiChoHopLe, doiChoMon, nhanBanCanh, nhanBanMon, themCanh, themKit, themMon, xoaCanh, xoaMon } from './them.js';
 import { taoBangXuat } from './exportpanel.js';
 import { taoKhung } from './khung.js';
 import { taoBangVideo } from './videos.js';
@@ -49,9 +49,34 @@ const dsLop = taoDanhSach($('ds-lop'), {
   onChon: (c) => datChon(c),
   onRe: (c) => lopPhu.veRe(c.canhId, c.monId),
   onThoiRe: () => lopPhu.xoaRe(),
+  onDoiCho: keoDoiCho,
 });
 
+/**
+ * Kéo đổi chỗ trong cột thành phần.
+ *
+ * HỎI HỢP LỆ TRƯỚC, SỬA SAU. `kho.sua()` ghi một bước hoàn tác ngay cả khi việc
+ * bên trong không làm gì — thả bậy một cái mà vẫn ghi sổ thì người dùng phải
+ * bấm hoàn tác cho một chuyện chưa từng xảy ra, và sổ hoàn tác mất tin cậy.
+ */
+function keoDoiCho({ canhId, monId, dichId, kieu }) {
+  const doc = kho.doc();
+  if (!doc || !doiChoHopLe(doc, canhId, monId, dichId, kieu)) return;
+  const t = timMon(doc, canhId, monId);
+  const ten = t ? tenMon(t.el) : 'thành phần';
+  kho.sua(`kéo ${ten} đổi chỗ`, (d) => doiChoMon(d, canhId, monId, dichId, kieu));
+  /* Chọn lại đúng món vừa kéo: `datChon` cũng là đường vẽ lại danh sách, nên
+     một lời gọi lo cả hai việc. Không chọn lại thì món vừa kéo mất khung chọn
+     và người dùng tưởng mình vừa làm hỏng cái gì. */
+  datChon({ canhId, monId });
+  bao(kieu === 'vao' ? `Đã đưa ${ten} vào cụm.` : `Đã đổi chỗ ${ten}.`);
+}
+
 let clips = [], clipDangMo = null, chon = null, dangKeoThanh = false;
+/* Khai SỚM dù mãi cuối file mới dựng. `datChon` ở ngay dưới đây có hỏi tới nó,
+   mà `const` khai muộn thì `cot?.` vẫn ném ReferenceError chứ không trả
+   `undefined` — optional chaining không cứu được vùng chết của `const`/`let`. */
+let cot = null;
 
 const bangXuat = taoBangXuat($('bang-xuat'), {
   laySlug: () => kho.slug(),
@@ -112,6 +137,12 @@ function veLopPhu() {
 /* ---------- chọn ---------- */
 function datChon(c) {
   chon = c;
+  /* ĐANG DỌN MÀN HÌNH MÀ BẤM CHỌN MỘT MÓN → tự mở lại bảng chỉnh.
+     Không mở thì người dùng bấm trúng món, thấy khung chọn hiện ra, rồi ngồi
+     đợi một bảng núm không bao giờ tới — và không có gì trên màn hình nói cho
+     họ biết bảng ấy đang bị giấu. Chỉ mở CỘT PHẢI: cột trái là danh sách, giấu
+     nó đi không cản trở việc vặn núm. */
+  if (c?.monId && cot?.dangAn('phai')) { cot.datAn('phai', false); veNutCot(); }
   bang.dat(c);
   /* Thẻ "Sửa món" phải hiện đúng món đang chọn. Không báo cho nó biết thì nó
      nói tên món cũ, và người dùng bảo AI sửa nhầm một món khác. */
@@ -619,6 +650,13 @@ async function moClip(slug) {
      * cũ đều phơi) thì MỞ HẲN nút Chạy với thanh tua. Thẻ Khung nhấn vẫn hiện
      * ra để bấm, chỉ không tự nhảy vào nữa.
      */
+    /* GIẤU CỘT TRÁI. Với clip đời cũ, cả hai bảng trong đó đều rỗng — không
+       tách được cảnh, không liệt kê được thành phần — nên nó chỉ còn là 272px
+       báo rằng "ở đây không có gì", kèm một ô tìm kiếm không tìm được gì. Nhìn
+       vào tưởng công cụ hỏng, trong khi clip vẫn chạy đúng. Bỏ đi thì clip được
+       thêm 272px, và màn hình nói đúng việc nó làm được: chiếu và xuất video.
+       Câu giải thích đã có sẵn ở dải báo giữa khung. */
+    document.body.classList.add('doi-cu');
     lopBat.style.display = 'none';
     dsCanhEl.innerHTML = '<li class="khong-the">Clip đời cũ không tách được ra từng cảnh.</li>';
     const laiDuoc = player.san();
@@ -644,6 +682,7 @@ async function moClip(slug) {
     trangThai('san-sang');
     return;
   }
+  document.body.classList.remove('doi-cu');   // trả cột trái lại cho clip đời 2
   $('the-khung').classList.add('an');
 
   lopBat.style.display = '';
@@ -721,9 +760,34 @@ function thoiKhoTho() {
 addEventListener('resize', () => { if (clipDangMo && clipDangMo.doi !== 2) vuaKhoTho(); });
 
 /* ---------- kéo đổi bề rộng hai cột ---------- */
-taoKeoCot($('app'), document.querySelector('.than'), () => {
+cot = taoKeoCot($('app'), document.querySelector('.than'), () => {
   if (clipDangMo && clipDangMo.doi !== 2) vuaKhoTho();
 });
+
+/* ---------- ẩn/hiện hai cột ----------
+ * Hai cột hẹp nhất vẫn chiếm 380px không bao giờ trả lại; trên màn laptop 1280
+ * thì clip còn chưa tới nửa màn hình. Lúc xem lại thành quả thì không cần núm
+ * nào cả — xem `docs/KHONG-GIAN-LAM-VIEC.md`. */
+function veNutCot() {
+  for (const [id, ben] of [['cot-trai-an', 'trai'], ['cot-phai-an', 'phai']]) {
+    const n = $(id);
+    if (!n) continue;
+    const an = cot.dangAn(ben);
+    n.setAttribute('aria-pressed', an ? 'true' : 'false');
+    const ten = ben === 'trai' ? 'cột trái' : 'cột phải';
+    n.title = `${an ? 'Hiện' : 'Ẩn'} ${ten} (\\)`;
+    n.setAttribute('aria-label', `${an ? 'Hiện' : 'Ẩn'} ${ten}`);
+  }
+  /* Cột đổi bề rộng thì khung xem đổi theo, mà lớp phủ vẽ khung chọn nằm ở
+     trang cha và tính theo toạ độ màn hình — không vẽ lại là khung chọn lệch
+     hẳn khỏi món. Cùng lý do `khiDoi` của `taoKeoCot`. */
+  veLopPhu();
+  if (clipDangMo && clipDangMo.doi !== 2) vuaKhoTho();
+}
+veNutCot();
+
+$('cot-trai-an').onclick = () => { cot.doiAn('trai'); veNutCot(); };
+$('cot-phai-an').onclick = () => { cot.doiAn('phai'); veNutCot(); };
 
 /*
  * KHUNG XEM ĐỔI CỠ → VẼ LẠI LỚP PHỦ.
@@ -822,15 +886,51 @@ async function luu() {
 
 nutChay.onclick = () => (player.dangChay() ? player.dung() : player.chay());
 nutLuu.onclick = luu;
-nutLui.onclick = () => { const n = kho.hoanTac(); if (n) { bang.ve(); bao(`Đã hoàn tác: ${n}`); } };
-nutToi.onclick = () => { const n = kho.lamLai(); if (n) { bang.ve(); bao(`Đã làm lại: ${n}`); } };
+/* Hoàn tác / làm lại có thể đổi CẢ HÌNH DẠNG CÂY, không chỉ đổi giá trị núm:
+   lùi một bước "kéo đổi chỗ" hay "xoá thành phần" là danh sách bên trái phải
+   khác đi. Trước đây hai nút này chỉ vẽ lại bảng thuộc tính, nên kịch bản đã lùi
+   đúng mà cột thành phần vẫn bày thứ tự cũ — danh sách nói dối, và người dùng
+   bấm vào một hàng không còn tồn tại.
+
+   Không vẽ lại trong tay nghe chung của kho: tay nghe đó chạy theo TỪNG PHÍM gõ
+   vào ô chữ, mà vẽ lại danh sách là dựng lại tới 156 hàng. Hai nút này người
+   dùng bấm, hiếm, nên vẽ thẳng ở đây là đúng chỗ. */
+function veLaiCot(nhan) {
+  bang.ve();
+  const doc = kho.doc();
+  if (doc && chon?.canhId) {
+    /* Món đang chọn có thể vừa biến mất theo bước hoàn tác — bỏ chọn nó đi chứ
+       đừng giữ một lựa chọn trỏ vào hư không. */
+    if (chon.monId && !timMon(doc, chon.canhId, chon.monId)) chon = { canhId: chon.canhId };
+    dsLop.dat(chon);
+    dsLop.ve(doc, chon.canhId);
+  }
+  veLopPhu();
+  bao(nhan);
+}
+
+nutLui.onclick = () => { const n = kho.hoanTac(); if (n) veLaiCot(`Đã hoàn tác: ${n}`); };
+nutToi.onclick = () => { const n = kho.lamLai(); if (n) veLaiCot(`Đã làm lại: ${n}`); };
 
 thanhTua.oninput = () => { dangKeoThanh = true; player.tua((Number(thanhTua.value) / 1000) * player.thoiLuong()); };
 thanhTua.onchange = () => { dangKeoThanh = false; };
-chonClip.onchange = () => moClip(chonClip.value);
+chonClip.onchange = () => {
+  /* Ghi tên dự án vào đường dẫn để bấm F5 hay gửi link cho người khác thì vẫn
+     mở đúng dự án đang xem. `replaceState` chứ không `pushState`: nút Lùi của
+     trình duyệt phải đưa người ta về trang chào, không phải lùi qua từng dự án
+     đã mở trong phiên. */
+  try {
+    history.replaceState(null, '', `/sua?clip=${encodeURIComponent(chonClip.value)}`);
+  } catch { /* trình duyệt chặn thì thôi, không đáng để hỏng việc mở clip */ }
+  moClip(chonClip.value);
+};
 
 document.addEventListener('keydown', (e) => {
-  const trongO = e.target.matches('input, select, textarea');
+  /* `?.matches?.()` chứ không `e.target.matches()`: đích của một sự kiện bàn
+     phím không phải lúc nào cũng là phần tử (gửi thẳng vào `document` là một
+     ca), và `matches` không có ở đó thì cả bộ bắt phím ném lỗi — nghĩa là
+     Ctrl+S, Ctrl+Z cùng chết im trong lần bấm ấy. */
+  const trongO = Boolean(e.target?.matches?.('input, select, textarea'));
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); return luu(); }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
     e.preventDefault();
@@ -848,6 +948,14 @@ document.addEventListener('keydown', (e) => {
   if (e.code === 'Space') { e.preventDefault(); nutChay.click(); }
   if (e.key === 'ArrowLeft') player.tua(player.giay() - (e.shiftKey ? 1 : 0.1));
   if (e.key === 'ArrowRight') player.tua(player.giay() + (e.shiftKey ? 1 : 0.1));
+  /* Phím gạch ngược dọn sạch màn hình. KHÔNG dùng `Tab`: Tab là đường đi giữa các ô nhập
+     của bảng chỉnh, cướp nó là mất luôn cách dùng bằng bàn phím. */
+  if (e.key === '\\') {
+    e.preventDefault();
+    const trong = cot.doiTrong();
+    veNutCot();
+    return bao(trong ? 'Đã dọn màn hình — bấm phím \\ để lấy lại hai cột.' : 'Đã trả hai cột về chỗ cũ.');
+  }
   if (e.key === 'Escape') datChon({ canhId: chon?.canhId });
   if ((e.key === 'Delete' || e.key === 'Backspace') && chon?.monId) {
     e.preventDefault(); $('mon-xoa').click();
@@ -861,10 +969,21 @@ window.addEventListener('beforeunload', (e) => {
   if (kho.ban()) { e.preventDefault(); e.returnValue = ''; }
 });
 
-/* ---------- chạy ---------- */
+/* ---------- chạy ----------
+ * `/sua?clip=<tên>` mở đúng dự án đó. Trang chào và mọi đường dẫn chia sẻ cho
+ * nhau đều đi lối này — không có tham số thì mới rơi về dự án đầu danh sách.
+ *
+ * Tên không có trong kho thì KHÔNG báo lỗi rồi đứng im: mở dự án đầu tiên và
+ * nói một câu. Người dùng thường tới đây từ một đường dẫn cũ, và một màn hình
+ * trắng thì chẳng chỉ cho họ làm gì tiếp. */
 try {
   await napDanhSach();
-  const dau = clips.find((c) => c.doi === 2 && !c.hong);
+  const muon = new URLSearchParams(location.search).get('clip');
+  const dung = muon && clips.find((c) => c.slug === muon && !c.hong);
+  if (muon && !dung) bao(`Kho của bạn không có dự án "${muon}".`, true);
+  const dau = dung || clips.find((c) => c.doi === 2 && !c.hong);
   if (dau) { chonClip.value = dau.slug; await moClip(dau.slug); }
-  else bao('Không thấy clip nào sửa được trong thư mục scenes/.', true);
+  else if (!muon) {
+    bao('Kho của bạn chưa có dự án nào — bấm "Kho dự án" ở thanh trên để tạo dự án đầu tiên.', true);
+  }
 } catch (e) { bao(e.message, true); }

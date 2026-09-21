@@ -130,7 +130,7 @@ try {
 
   /* ---------- 4. bảng thuộc tính bày đúng núm ---------- */
   console.log('\n4. Bảng thuộc tính bày đúng núm, và vặn thì khung hình đổi thật');
-  await trang.goto(GOC, { waitUntil: 'domcontentloaded' });
+  await trang.goto(`${GOC}/sua`, { waitUntil: 'domcontentloaded' });
   await trang.waitForSelector('#app[data-trang-thai="san-sang"]', { timeout: 40000 });
   await trang.selectOption('#chon-clip', 'kich-ban-thu');
   await trang.waitForSelector('#app[data-trang-thai="san-sang"]', { timeout: 40000 });
