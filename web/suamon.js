@@ -26,12 +26,49 @@ const gon = (v) => {
   return s.length > 52 ? `${s.slice(0, 50)}…` : s;
 };
 
-export function taoSuaMon(boc, { laySlug, layChon, tenMon, bao, nhanVa }) {
+/**
+ * TRẠNG THÁI CỦA NÚT "SỬA THỬ" VÀ DÒNG CHỈ ĐƯỜNG — hàm THUẦN, không đụng DOM.
+ *
+ * Tách rời ra để kiểm được thẳng bằng `node`, không cần dựng trình duyệt. Luật
+ * ở đây từng nằm lẫn trong hàm vẽ, và cái nhánh quan trọng nhất — "clip chưa
+ * lưu" — chỉ chạy đúng một lần trong đời, lúc người dùng gặp lỗi thật.
+ *
+ * VÌ SAO "CHƯA LƯU" LẠI CHẶN:
+ *   Máy chủ đọc clip TỪ ĐĨA rồi mới tìm món. Màn hình thì đang giữ bản trong bộ
+ *   nhớ. Món vừa tạo mà chưa lưu: bảng này ghi đúng tên nó, còn máy chủ trả
+ *   "Không thấy thành phần đang chọn" — câu ấy vô nghĩa với người đang nhìn
+ *   thấy tên món ngay trước mắt. Mà lượt gọi đó vẫn tốn tiền và trừ hạn mức
+ *   ngày. Nên chặn TRƯỚC, và nói rõ phải làm gì.
+ */
+export function trangThaiSua({ coMon, coY, chuaLuu, dangSua }) {
+  const hien = Boolean(coMon && coY);
+  return {
+    hien,
+    canh: hien && Boolean(chuaLuu),
+    chu: !hien ? ''
+      : chuaLuu
+        ? 'Bấm Lưu (Ctrl+S) trước đã — AI đọc bản đã lưu trên máy chủ, nên nó '
+          + 'chưa thấy những gì bạn vừa sửa.'
+        : 'AI sẽ chỉ đổi những núm của riêng món này, không đụng món khác. '
+          + 'Xem xong mới bấm nhận.',
+    khoa: Boolean(dangSua || !coMon || !coY || chuaLuu),
+    nhan: dangSua ? 'AI đang sửa…'
+      : !coMon ? 'Chọn một món trước'
+        : !coY ? 'Nói xem muốn sửa gì'
+          : chuaLuu ? 'Lưu clip trước đã' : 'Sửa thử',
+  };
+}
+
+export function taoSuaMon(boc, { laySlug, layChon, tenMon, bao, nhanVa, chuaLuu }) {
   const muc = el('div', 'muc-dung');
   let ketQua = null;
   let dangSua = false;
 
   const dangChon = el('p', 'sua-chon');
+
+  /* DÒNG CHỈ ĐƯỜNG, ngay dưới ô gõ. Chỉ hiện KHI ĐÃ GÕ — nói trước lúc người ta
+     chưa định làm gì là một dòng chữ thừa. Câu chữ do `trangThaiSua` quyết. */
+  const chiDuong = el('p', 'sua-chi-duong an');
   const kq = el('div', 'dung-kq an');
 
   const oAnh = taoThaAnh({
@@ -57,10 +94,18 @@ export function taoSuaMon(boc, { laySlug, layChon, tenMon, bao, nhanVa }) {
     const c = layChon?.();
     const co = Boolean(c?.monId);
     const cauY = oY.value.trim() || oAnh.lay();
-    nut.disabled = dangSua || !co || !cauY;
-    nut.textContent = dangSua ? 'AI đang sửa…'
-      : !co ? 'Chọn một món trước'
-        : !cauY ? 'Nói xem muốn sửa gì' : 'Sửa thử';
+    /* Chặn TRƯỚC khi gọi, không để nó chạy rồi hỏng: lượt gọi AI tốn tiền và
+       trừ vào hạn mức ngày, mà lượt này thì chắc chắn hỏng. */
+    const t = trangThaiSua({
+      coMon: co, coY: Boolean(cauY), chuaLuu: Boolean(chuaLuu?.()), dangSua,
+    });
+
+    chiDuong.classList.toggle('an', !t.hien);
+    chiDuong.classList.toggle('sua-can', t.canh);
+    if (t.hien) chiDuong.textContent = t.chu;
+
+    nut.disabled = t.khoa;
+    nut.textContent = t.nhan;
   }
 
   function veChon() {
@@ -155,7 +200,7 @@ export function taoSuaMon(boc, { laySlug, layChon, tenMon, bao, nhanVa }) {
 
   const trai = el('div', 'ai-cot');
   const phai = el('div', 'ai-cot');
-  trai.append(dangChon, oY, oAnh.node, oAnh.oFile, nut);
+  trai.append(dangChon, oY, chiDuong, oAnh.node, oAnh.oFile, nut);
   phai.append(kq);
   muc.append(trai, phai);
   boc.appendChild(muc);

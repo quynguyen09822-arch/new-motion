@@ -17,6 +17,8 @@ import { taoLopPhu } from './overlay.js';
 import { taoDanhSach } from './layers.js';
 import { taoBang, tenMon } from './inspector/index.js';
 import { ganKeo } from './drag.js';
+import { ganKeoCo } from './keoco.js';
+import { ganNhapAnh } from './nhapanh.js';
 import { BO_KIT, BO_MON, KIT, MAU_MON, doiChoHopLe, doiChoMon, nhanBanCanh, nhanBanMon, themCanh, themKit, themMon, xoaCanh, xoaMon } from './them.js';
 import { taoBangXuat } from './exportpanel.js';
 import { taoKhung } from './khung.js';
@@ -170,7 +172,7 @@ function datChon(c) {
 
 /* ---------- lớp bắt sự kiện ---------- */
 lopBat.addEventListener('click', (ev) => {
-  if (keo.dangKeo()) return;           // vừa kéo xong thì đừng đổi lựa chọn
+  if (keo.dangKeo() || keoCo.dangCo()) return;   // vừa kéo xong thì đừng đổi lựa chọn
   const { x, y } = player.quyDoi(ev.clientX, ev.clientY);
   const c = ev.altKey ? doMon.doNgoaiCung(x, y) : doMon.do(x, y, chon);
   datChon(c || { canhId: player.canhHienTai()?.id });
@@ -201,6 +203,26 @@ const keo = ganKeo({
   lopBat, player, kho,
   layChon: () => chon,
   sauKhiKeo: () => bang.ve(),
+  bao,
+});
+
+/* Tay nắm co giãn nằm TRÊN lớp phủ, không phải lớp bắt — chúng là thẻ thật có
+   toạ độ riêng, còn lớp bắt thì phải dò ngược từ điểm chuột xuống iframe. */
+const keoCo = ganKeoCo({
+  lopPhu: $('lop-phu'), player, kho,
+  layChon: () => chon,
+  veLai: veLopPhu,
+  sauKhiCo: () => bang.ve(),
+  bao,
+});
+
+/* Dán Ctrl+V hoặc kéo ảnh từ ngoài thả thẳng vào khung hình. Trước đây muốn
+   dùng một tấm ảnh mới thì phải chép file vào máy chủ rồi gõ tay đường dẫn — với
+   người dùng của công cụ này thì coi như không có đường. */
+ganNhapAnh({
+  bocKhung, player, kho,
+  veLai: () => bang.ve(),
+  datChon,
   bao,
 });
 
@@ -525,6 +547,12 @@ const thanhAI = taoThanhAI({
   dungKhungSua: (boc) => taoSuaMon(boc, {
     laySlug: () => kho.slug(),
     layChon: () => chon,
+    /* AI sửa món đọc bản ĐÃ LƯU trên máy chủ, không đọc bản đang mở. Đưa cờ này
+       vào để bảng tự chặn và nói rõ, thay vì để người dùng bấm rồi nhận
+       "Không thấy thành phần đang chọn" trong khi tên món đang hiện ngay trước
+       mắt họ. `kho.ban()` là tên thật của hàm — đừng viết `kho.chuaLuu?.()`,
+       optional chaining sẽ nuốt luôn cái sai. */
+    chuaLuu: () => kho.ban(),
     tenMon: (c) => {
       const t = timMon(kho.doc(), c.canhId, c.monId);
       return t ? tenMon(t.el) : c.monId;

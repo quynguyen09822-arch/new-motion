@@ -47,7 +47,17 @@ ENV PROJ_ROOT=/app/clip
 # sẵn và chown ở đây vì cùng lý do: `COPY` để lại quyền root, mà app chạy bằng
 # người dùng `node`. Thiếu bước này thì người đầu tiên KHÔNG phải chủ kho bấm
 # "Tạo dự án mới" sẽ nhận EACCES.
+#
+# `/app/clip/anh` (ảnh người dùng dán/kéo vào) và `/app/clip/public/voice` (giọng
+# đọc AI) phải được TẠO SẴN ở đây, dù lúc này chúng rỗng.
+#
+# Không phải để cho đẹp: hai thư mục này được khai làm THƯ MỤC DỮ LIỆU BỀN trên
+# Vibe Host. Docker mồi ổ mới từ nội dung thư mục tương ứng trong ảnh — thư mục
+# KHÔNG có trong ảnh thì ổ được tạo rỗng và thuộc về root, còn app thì chạy bằng
+# người dùng `node`. Hậu quả: lần dán ảnh đầu tiên nhận EACCES, và câu báo ấy
+# chẳng nói lên điều gì với người đang dán ảnh.
 RUN mkdir -p /app/.hub-video-backups /app/.drafts /app/kho \
+             /app/clip/anh /app/clip/public/voice \
  && chown -R node:node /app/.hub-video-backups /app/.drafts /app/kho /app/clip
 
 ENV NODE_ENV=production

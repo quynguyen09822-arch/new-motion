@@ -73,6 +73,20 @@ async function luu(goc, ve, slug) {
   return r.status;
 }
 
+/* TẠO một dự án trong kho của CHÍNH người cầm vé.
+   Từ 20/09/2026 mỗi tài khoản có kho riêng, và người không phải chủ kho thì kho
+   TRỐNG — bảo họ lưu một clip của người khác là chắc chắn 404. Muốn đếm được
+   một lượt của người thứ hai thì người đó phải có đồ của mình đã. Tạo dự án đi
+   qua đúng `luuClip`, nên vẫn ghi nhật ký một lượt y như một lần lưu. */
+async function tao(goc, ve, slug) {
+  const r = await fetch(`${goc}/api/du-an`, {
+    method: 'POST',
+    headers: { Cookie: `motion_phien=${ve}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ten: slug, slug, kho: 'ngang' }),
+  });
+  return r.status;
+}
+
 const thongKeQua = (goc, ve) =>
   fetch(`${goc}/api/thong-ke`, { headers: { Cookie: `motion_phien=${ve}` } }).then((r) => r.json());
 
@@ -86,8 +100,12 @@ const thongKeQua = (goc, ve) =>
   const a = await vao(goc, 'nguoi-a@matbao.com', MK);
   const b = await vao(goc, 'nguoi-b@matbao.com', MK);
   dat('hai tài khoản đăng nhập được', Boolean(a && b));
-  const ma = [await luu(goc, a, 'cta'), await luu(goc, a, 'vibe-host'), await luu(goc, b, 'thuong-hieu')];
-  dat('lưu được 3 clip', ma.every((x) => x === 200), ma.join('/'));
+  /* nguoi-a là CHỦ KHO (đứng đầu `MOTION_TAI_KHOAN`) nên dùng thẳng `scenes/`
+     của dự án chung — hai clip dưới đây có sẵn ở đó. nguoi-b thì kho riêng và
+     trống, nên nó phải tự tạo đồ của mình. */
+  const ma = [await luu(goc, a, 'cta'), await luu(goc, a, 'vibe-host'), await tao(goc, b, 'thuong-hieu')];
+  dat('2 lượt lưu của chủ kho + 1 lượt tạo của người kho riêng',
+    ma[0] === 200 && ma[1] === 200 && ma[2] === 201, ma.join('/'));
   const tk = await thongKeQua(goc, a);
   dat('đếm đúng 3 lượt', tk.tong.luot === 3, `${tk.tong.luot} lượt`);
   dat('đếm đúng 2 người', tk.tong.nguoi === 2, `${tk.tong.nguoi} người`);
@@ -114,6 +132,10 @@ const thongKeQua = (goc, ve) =>
 
   mc.kill();
   rmSync(NK, { recursive: true, force: true });
+  /* Dọn kho riêng vừa tạo. Để lại thì lần chạy sau `tao()` trả 409 "đã có dự
+     án", và bài kiểm đỏ vì chính rác của nó lần trước. */
+  const { maKho } = await import(path.join(M, 'server', 'kho.js'));
+  rmSync(path.join(M, 'kho', maKho('nguoi-b@matbao.com')), { recursive: true, force: true });
 }
 
 /* ───────── ⑤ Ghi nhật ký hỏng → LƯU CLIP vẫn phải thành công ─────────

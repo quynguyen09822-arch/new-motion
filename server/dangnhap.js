@@ -203,6 +203,10 @@ export function duocVaoKhiXuat(duong) {
   return duong === '/health'
     || duong.startsWith('/clip/')          // bộ dựng, phông, ảnh, video nguồn
     || duong.startsWith('/api/kich-ban/')  // kịch bản của kho riêng
+    /* Ảnh người dùng dán vào. Thiếu dòng này thì clip xem trên màn hình có ảnh
+       mà video xuất ra thì thủng đúng chỗ đó — im lặng, vì một tấm ảnh 404 chỉ
+       để lại ô trống chứ không báo lỗi gì. */
+    || duong.startsWith('/anh/')
     || duong === '/api/canh-mau';          // cảnh mẫu của ô xem thử
 }
 

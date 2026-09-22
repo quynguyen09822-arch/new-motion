@@ -20,7 +20,7 @@
  *   node tools/kiem-kho-rieng.mjs
  */
 import { spawn } from 'node:child_process';
-import { existsSync, readdirSync, rmSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -225,6 +225,40 @@ try {
      chừng mà vẫn phải dọn, không thì lần chạy sau thấy dự án cũ và đỏ vì một
      lý do khác hẳn. */
   rmSync(KHO_MOI, { recursive: true, force: true });
+}
+
+/* ---------- 9b. cảnh báo "chưa gắn ổ lưu" phải nói ĐÚNG và nói ĐỦ ---------- */
+console.log('\n9b. Cảnh báo ổ lưu');
+{
+  /* Cảnh báo này là thứ DUY NHẤT đứng giữa người dùng và một lần mất sạch dữ
+     liệu — mà nó chỉ chạy thật bên trong container, nên trên máy làm việc nó
+     luôn trả "ổn" và không bài kiểm nào chạm tới luật bên trong được. Kiểm qua
+     `soatOLuu()`, phần thuần đã tách ra khỏi việc đọc `/proc`. */
+  const { GOC_KHO, PHAI_GIU, soatOLuu } = await import(pathToFileURL(path.join(M, 'server', 'kho.js')).href);
+  const dong = (d) => `36 25 0:32 / ${d} rw,relatime shared:1 - ext4 /dev/x rw`;
+  const het = PHAI_GIU.map((x) => dong(x.duong())).join('\n');
+
+  dat('gắn đủ thì báo ổn', soatOLuu(het).hopLe === true);
+  dat('không gắn gì thì báo NGUY', soatOLuu('').hopLe === false);
+  dat('thiếu MỘT chỗ cũng phải báo, và gọi tên đúng chỗ thiếu',
+    soatOLuu(dong(GOC_KHO)).hopLe === false
+      && /anh/.test(soatOLuu(dong(GOC_KHO)).lyDo), soatOLuu(dong(GOC_KHO)).lyDo?.slice(0, 60));
+  /* `/app/kho-cu` cũng chứa chuỗi `/app/kho`. Dò bằng `includes` trên cả file
+     thì một thư mục tên gần giống làm cảnh báo im lặng. */
+  dat('thư mục tên gần giống KHÔNG được tính là đã gắn',
+    soatOLuu(dong(`${GOC_KHO}-cu`)).hopLe === false);
+
+  /* CHỐT CUỐI, và là mục bắt được lỗi thật hôm nay: mỗi thư mục trong
+     `PHAI_GIU` phải có một dòng gắn ổ trong `docker-compose.yml`. Thêm một chỗ
+     ghi dữ liệu mà quên khai ổ lưu là dữ liệu bay sau lần deploy kế tiếp, im
+     lặng. Đối chiếu theo ĐUÔI đường dẫn vì trong container gốc là `/app`. */
+  const compose = readFileSync(path.join(M, 'docker-compose.yml'), 'utf8');
+  for (const x of PHAI_GIU) {
+    const duoi = x.duong().split('/').slice(-2).join('/');   // vd "clip/anh", "matbao-hub-video/kho"
+    const ten = duoi.split('/').pop();
+    dat(`docker-compose.yml có gắn ổ cho "${ten}" (${x.la})`,
+      new RegExp(`:/app/(clip/)?${ten}\\b`).test(compose));
+  }
 }
 
 /* ---------- 10. không để lại dấu vết ---------- */

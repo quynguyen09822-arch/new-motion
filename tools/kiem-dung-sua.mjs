@@ -153,6 +153,34 @@ try {
     boQua.some((b) => /trường khoá/.test(b)) && boQua.some((b) => /không có trường này/.test(b)),
     boQua.join(' · '));
 
+  /* ---------- 3c. dòng chỉ đường + khoá nút khi clip chưa lưu ---------- */
+  console.log('\n3c. Dòng chỉ đường và nút khoá khi clip chưa lưu');
+  /* CHẶN TRƯỚC KHI GỌI. Máy chủ đọc clip từ ĐĨA, màn hình giữ bản trong BỘ NHỚ.
+     Món vừa tạo mà chưa lưu: máy chủ trả "Không thấy thành phần đang chọn" —
+     câu ấy vô nghĩa với người đang nhìn thấy tên món trước mắt, mà lượt gọi vẫn
+     tốn tiền và trừ hạn mức. Nhánh này chỉ chạy đúng lúc người dùng gặp lỗi
+     thật, nên phải kiểm ở đây chứ không đợi gặp ngoài đời. */
+  const { trangThaiSua } = await import(path.join(M, 'web', 'suamon.js'));
+  const T = (o) => trangThaiSua({ coMon: false, coY: false, chuaLuu: false, dangSua: false, ...o });
+
+  const chuaGo = T({ coMon: true });
+  dat('chưa gõ gì thì không hiện dòng nào', !chuaGo.hien && chuaGo.nhan === 'Nói xem muốn sửa gì');
+  dat('chưa chọn món thì cũng không hiện',
+    !T({ coY: true }).hien && T({ coY: true }).nhan === 'Chọn một món trước');
+
+  const sach2 = T({ coMon: true, coY: true });
+  dat('đủ món + đã gõ, clip đã lưu → hiện lời giải thích, nút mở',
+    sach2.hien && !sach2.canh && !sach2.khoa && sach2.nhan === 'Sửa thử');
+  dat('lời giải thích nói đúng phạm vi AI đụng tới',
+    /chỉ đổi những núm của riêng món này/.test(sach2.chu), sach2.chu.slice(0, 50));
+
+  const ban2 = T({ coMon: true, coY: true, chuaLuu: true });
+  dat('clip CHƯA LƯU → cảnh báo đỏ và KHOÁ nút', ban2.hien && ban2.canh && ban2.khoa);
+  dat('cảnh báo nói rõ phải bấm Lưu', /Lưu \(Ctrl\+S\)/.test(ban2.chu), ban2.chu.slice(0, 40));
+  dat('nhãn nút nói ra việc phải làm', ban2.nhan === 'Lưu clip trước đã', ban2.nhan);
+  dat('đang gọi AI thì khoá, kể cả khi mọi thứ hợp lệ',
+    T({ coMon: true, coY: true, dangSua: true }).khoa === true);
+
   /* ---------- 4. sửa món theo lời dặn bình thường ---------- */
   console.log('\n4. Sửa món theo lời dặn');
   const s2 = await goi('/api/sua-mon', {
@@ -193,11 +221,52 @@ try {
     await tr.evaluate(() => document.querySelector('.nut-sua').disabled
       && /Nói xem muốn sửa gì/.test(document.querySelector('.nut-sua').textContent)));
 
+  await tr.evaluate(() => {
+    const o = document.querySelector('.o-sua-y');
+    o.value = 'làm chữ to hơn';
+    o.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await tr.waitForTimeout(250);
+  const cd = await tr.evaluate(() => {
+    const c = document.querySelector('.sua-chi-duong');
+    return { co: Boolean(c), an: c?.classList.contains('an'), chu: (c?.textContent || '').trim() };
+  });
+  dat('gõ xong thì dòng chỉ đường hiện ra, có chữ', cd.co && cd.an === false && cd.chu.length > 20,
+    cd.chu.slice(0, 50));
+  await tr.evaluate(() => {
+    const o = document.querySelector('.o-sua-y');
+    o.value = '';
+    o.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await tr.waitForTimeout(200);
+  dat('xoá hết chữ thì dòng chỉ đường ẩn lại',
+    await tr.evaluate(() => document.querySelector('.sua-chi-duong').classList.contains('an')));
+
   await tr.click('.ai-the >> nth=2');
   await tr.waitForTimeout(400);
-  dat('thẻ Dựng hình: chưa có ảnh thì nút bị khoá',
+  /* Nhãn đổi từ "Chọn ảnh trước đã" sang "Chọn ảnh hoặc dán HTML" khi thêm
+     đường Stitch → Motion: bảng này nay nhận HAI nguồn. Điều bài kiểm canh vẫn
+     y nguyên — chưa có nguồn nào thì nút phải khoá. */
+  dat('thẻ Dựng hình: chưa có nguồn nào thì nút bị khoá',
     await tr.evaluate(() => document.querySelector('.nut-dung').disabled
-      && /Chọn ảnh trước/.test(document.querySelector('.nut-dung').textContent)));
+      && /Chọn ảnh/.test(document.querySelector('.nut-dung').textContent)));
+
+  /* Dán một địa chỉ vào là nút phải MỞ, kể cả khi chưa chọn ảnh — đó là cả
+     điểm của đường HTML. */
+  await tr.evaluate(() => {
+    const o = document.querySelector('.o-dung-html');
+    o.value = 'https://example.com';
+    o.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await tr.waitForTimeout(200);
+  dat('dán địa chỉ trang thì nút mở ra',
+    await tr.evaluate(() => !document.querySelector('.nut-dung').disabled
+      && /Dựng từ trang/.test(document.querySelector('.nut-dung').textContent)));
+  await tr.evaluate(() => {
+    const o = document.querySelector('.o-dung-html');
+    o.value = '';
+    o.dispatchEvent(new Event('input', { bubbles: true }));
+  });
   await tr.setInputFiles('.muc-dung input[type=file]', anhF);
   await tr.waitForTimeout(900);
   dat('chọn ảnh xong thì hiện ảnh xem trước và mở nút',

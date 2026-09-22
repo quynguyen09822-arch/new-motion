@@ -27,6 +27,7 @@ const { chromium } = createRequire(path.join(PROJ, 'tools/'))('playwright');
    tham số thì đụng với những bài nhận tham số khác (kiem-canh nhận TÊN CLIP). */
 const GOC = process.env.MOTION_GOC || process.argv[2] || 'http://127.0.0.1:7803';
 const DOC_THAT = process.env.DOC_THAT === '1';
+const M = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 
 let hong = 0;
 const dat = (ten, ok, them = '') => {
@@ -163,6 +164,38 @@ try {
   await trinh.close();
 
   /* ---------- 5b. AI viết lời ---------- */
+  /* ---------- 5a. dọn lời dẫn — kiểm THẲNG, không phụ thuộc AI có ngoan không ---------- */
+  console.log('\n5a. Dọn lời dẫn của AI ra khỏi lời đọc');
+  {
+    /* Mục 5b ở dưới chỉ bắt được KHI model lỡ trả về lời dẫn — lần nó ngoan thì
+       mục đó xanh mà chẳng chứng minh gì, và lần nó hư thì bài kiểm đỏ vu vơ.
+       Ở đây đưa thẳng những kiểu bẩn đã gặp thật vào bộ dọn: luôn luôn kiểm được,
+       không tốn lượt AI nào.
+
+       Vì sao phải dọn: lời này đi THẲNG vào máy đọc. Một lượt lọt là video có
+       tiếng người đọc to rõ câu "Đây là lời đọc cho clip:", và còn tính tiền
+       theo ký tự cho câu rác ấy. */
+    const { donLoi } = await import(path.join(M, 'server', 'vietloi.js'));
+    const la = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+    dat('bỏ lời dẫn ở đầu',
+      la(donLoi('Đây là lời đọc cho clip:\nMột\nHai\nBa', 3), ['Một', 'Hai', 'Ba']));
+    dat('bỏ cả lời chúc ở cuối',
+      la(donLoi('Dưới đây là bản lời:\nMột\nHai\nChúc bạn thành công!', 2), ['Một', 'Hai']));
+    dat('"Cảnh 1:" thì CẮT TIỀN TỐ, không bỏ cả dòng',
+      la(donLoi('Cảnh 1: Một\nCảnh 2 — Hai', 2), ['Một', 'Hai']),
+      JSON.stringify(donLoi('Cảnh 1: Một\nCảnh 2 — Hai', 2)));
+    dat('bỏ số thứ tự và dấu đậm markdown',
+      la(donLoi('1. **Một**\n2. **Hai**', 2), ['Một', 'Hai']));
+
+    /* HAI CỬA CHẶN QUAN TRỌNG HƠN CẢ VIỆC DỌN SẠCH: dọn quá tay thì clip thiếu
+       lời, mà lỗi ấy chỉ lộ ra lúc đã xuất video xong. */
+    dat('KHÔNG ăn mất lời thật mở đầu bằng "Đây là"',
+      la(donLoi('Đây là chỗ bắt đầu\nHai\nBa', 3), ['Đây là chỗ bắt đầu', 'Hai', 'Ba']));
+    dat('KHÔNG dọn xuống dưới số cảnh, dù dòng đầu trông như lời dẫn',
+      donLoi('Đây là lời đọc:\nMột', 3).length === 2);
+  }
+
   console.log('\n5b. AI viết lời từ brief');
   const sai = await (await fetch(`${GOC}/api/viet-loi`, { method: 'POST',
     headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: 'khong-he-co' }) })).json();
@@ -191,8 +224,13 @@ try {
       dat('lời viết ra xấp xỉ vừa thời lượng clip',
         v.giayDoc > v.giayClip * 0.4 && v.giayDoc < v.giayClip * 1.6,
         `${v.giayDoc}s so với ${v.giayClip}s`);
-      dat('không lẫn số thứ tự hay lời dẫn của AI',
-        !/^\s*(\d+[.)]|cảnh\s*\d|đây là)/im.test(v.loi), v.loi.split('\n')[0].slice(0, 46));
+      /* In ra ĐÚNG DÒNG PHẠM LUẬT, không phải dòng đầu. Bản cũ in `loi[0]` nên
+         khi đỏ vì một dòng ở giữa bài thì câu báo trỏ vào một dòng hoàn toàn
+         lành lặn — nhìn vào không lần ra được gì, và lần đỏ ấy bị bỏ qua. */
+      const banDan = v.loi.split('\n')
+        .find((d) => /^\s*(\d+[.)]|cảnh\s*\d|đây là|dưới đây|lời đọc\s*:)/i.test(d));
+      dat('không lẫn số thứ tự hay lời dẫn của AI', !banDan,
+        banDan ? `dòng bẩn: "${banDan.slice(0, 60)}"` : `${v.soDong} dòng sạch`);
       /* Ngưỡng rộng, và cố ý: đây là cái chặn TREO, không phải phép đo tốc độ.
          Mỗi lần tụt model tốn thêm tới 12 giây chờ, mà việc model nào bận là
          chuyện của nhà cung cấp. Đặt ngưỡng sát quá thì bài kiểm đỏ vì Google

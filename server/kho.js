@@ -157,11 +157,39 @@ export function oLuuBenVung() {
   let mount = '';
   try { mount = readFileSync('/proc/self/mountinfo', 'utf8'); }
   catch { return { hopLe: true, lyDo: 'không đọc được bảng ổ đĩa' }; }
+  return soatOLuu(mount);
+}
 
-  /* Cột thứ 5 của mỗi dòng trong `mountinfo` là ĐIỂM GẮN. So đúng cả dòng, không
+/**
+ * NHỮNG THƯ MỤC MẤT LÀ MẤT HẲN — không có bản sao nào khác trên đời.
+ *
+ * Bản chụp hằng ngày (`.hub-video-backups`) chỉ cứu được kịch bản của kho gốc.
+ * Hai chỗ dưới đây không nằm trong đó.
+ */
+export const PHAI_GIU = [
+  { duong: () => GOC_KHO, la: 'dự án của tài khoản không phải chủ kho' },
+  /* Ảnh dán/kéo vào clip. Lần đầu thêm thư mục này thì `docker-compose.yml`
+     chưa có dòng gắn ổ nào cho nó — và nếu cảnh báo chỉ soi mỗi `kho/` thì nó
+     vẫn báo XANH trong khi ảnh của người ta bay mất sau mỗi lần dựng lại. Kiểu
+     cảnh báo tệ nhất là kiểu nói "ổn" lúc không ổn. */
+  { duong: () => path.join(PROJ, 'anh'), la: 'ảnh dán/kéo vào clip' },
+];
+
+/**
+ * Đọc bảng ổ đĩa ra thành kết luận. Hàm THUẦN — nhận nguyên văn `mountinfo`.
+ *
+ * Tách khỏi `oLuuBenVung()` để kiểm được: hàm kia chỉ chạy THẬT bên trong
+ * container, nên trên máy làm việc nó luôn trả "ổn" và không bài kiểm nào chạm
+ * tới được luật bên trong. Mà đây đúng là luật không được sai — nó là thứ duy
+ * nhất đứng giữa người dùng và một lần mất sạch dữ liệu.
+ */
+export function soatOLuu(mountinfo) {
+  /* Cột thứ 5 của mỗi dòng trong `mountinfo` là ĐIỂM GẮN. So đúng cả cột, không
      dùng `includes` trên cả file: `/app/kho-cu` cũng chứa chuỗi `/app/kho`. */
-  const gan = mount.split('\n').some((dong) => dong.split(' ')[4] === GOC_KHO);
-  return gan
+  const diem = new Set(String(mountinfo || '').split('\n').map((d) => d.split(' ')[4]));
+  const thieu = PHAI_GIU.filter((x) => !diem.has(x.duong()));
+  return thieu.length === 0
     ? { hopLe: true, lyDo: 'đã gắn ổ lưu' }
-    : { hopLe: false, lyDo: `"${GOC_KHO}" chưa gắn ổ lưu` };
+    : { hopLe: false,
+        lyDo: thieu.map((x) => `"${x.duong()}" chưa gắn ổ lưu (${x.la})`).join(' · ') };
 }

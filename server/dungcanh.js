@@ -23,6 +23,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { goiGemini, HAN_GIAY_ANH } from './gemini.js';
 import { PROJ, soatKichBan } from './proj.js';
+import { banDoNen, soatChatLuong, tuongPhan } from '../web/soat.js';
 
 /* 23 loại có mẫu thật trong kho clip. `video` không có mẫu nên không mời AI dùng
    — món đó cần file phim có thật, AI đoán tên file là ra món hỏng. */
@@ -32,9 +33,11 @@ export const LOAI_CHO_PHEP = [
   'wheel', 'calendar', 'hangnhan', 'quydao', 'pointer', 'nen',
 ];
 
-/** Mẫu thật, rút từ chính các clip trong dự án. Đọc một lần rồi nhớ. */
+/** Mẫu thật, rút từ chính các clip trong dự án. Đọc một lần rồi nhớ.
+    Xuất ra để `tuhtml.js` dùng CHUNG — hai kho mẫu khác nhau là hai lời nhắc
+    dạy AI hai hình dạng khác nhau cho cùng một `kind`. */
 let _mau = null;
-function mauThat() {
+export function mauThat() {
   if (_mau) return _mau;
   const thuMuc = path.join(PROJ, 'scenes');
   const mau = {};
@@ -88,6 +91,12 @@ MÀU — ĐỌC THẲNG TỪ ẢNH, đây là việc quan trọng bậc nhất.
     \`ink\`   màu chữ của một khối  (text, và mọi món có chữ bên trong)
   Nền cả khung: nếu ảnh có màu nền rõ rệt, đặt món ĐẦU TIÊN là
     {"kind":"panel","id":"nen-khung","x":0,"y":0,"place":"day","fill":"<màu nền của ảnh>"}
+  TƯƠNG PHẢN LÀ BẮT BUỘC. Trước khi chốt \`ink\` cho một món, nhìn xem PHÍA SAU
+  nó là gì — \`fill\` của khối bọc ngoài, hoặc màu nền khung nếu không có khối
+  nào. Nền TỐI thì chữ phải SÁNG; nền SÁNG thì chữ phải TỐI. Đừng đặt #333 lên
+  #222. Đây là lỗi hay gặp nhất, và nó làm cả cảnh không đọc được dù mọi thứ
+  khác đúng.
+
   Bảng màu sẵn của clip chỉ là ĐƯỜNG LÙI, dùng khi ảnh mờ hoặc không rõ màu:
     nền ${meta.bg} · chữ ${meta.ink} · nhấn ${meta.accent}${meta.accent2 ? ` · nhấn 2 ${meta.accent2}` : ''}${meta.hot ? ` · nóng ${meta.hot}` : ''}
 
@@ -157,7 +166,12 @@ export async function dungCanh({ doc, anh, mime, y }) {
     if (!g.ok) return { loi: g.cau };
     const canh = bocJSON(g.chu);
     if (!canh) return { loi: 'AI trả về thứ không phải JSON.', model: g.model };
-    return { canh, model: g.model };
+    /* Lấp `x`/`y` VẮNG MẶT trước khi soát. Đường HTML đã làm việc này từ đầu,
+       đường ảnh thì quên — và hai đường dùng chung một bộ soát, nên chỗ quên
+       hiện ra thành "phần tử 9: `x` và `y` phải là số", đúng những món nằm
+       trong cụm. Lấp ở ĐÂY chứ không ở ngoài, để cả vòng sửa lại cũng được lấp
+       chứ không riêng lượt đầu. */
+    return { canh: chuanHoaCanh(canh), model: g.model };
   };
 
   let r = await goi();
@@ -167,15 +181,40 @@ export async function dungCanh({ doc, anh, mime, y }) {
      Hai bộ soát khác nhau là sớm muộn cũng lệch, và lúc đó AI sinh ra thứ qua
      được cửa này nhưng không lưu được. */
   const thu = (c) => soatKichBan({ version: 1, meta, scenes: [c] });
+
+  /* TẦNG SOÁT THỨ HAI, đưa vào vòng sửa của AI.
+     `validateScene` chỉ hỏi "kịch bản có HỢP LỆ không". Một cảnh chữ đen đặt
+     trên nền đen thì hợp lệ hoàn toàn — và không đọc được chữ nào. Bảng soát
+     chất lượng của app bắt đúng lỗi đó từ lâu (`CHU_CHIM_NEN`,
+     `TUONG_PHAN_THAP`), chỉ là AI chưa bao giờ được xem. Nay đưa cho nó.
+     Dùng CHÍNH `soatChatLuong` mà bảng bên phải đang dùng — hai bộ soát khác
+     nhau là sớm muộn cũng nói khác nhau, và lúc đó AI sửa xong bảng vẫn kêu.
+     CHỈ lấy nhóm tương phản: lời than về nhịp hay khổ hình thì AI sửa được ít
+     mà dễ làm hỏng chỗ đang đúng. */
+  const soatChu = (c) => {
+    try {
+      return (soatChatLuong({ version: 1, meta, scenes: [c] }).loi || [])
+        .filter((l) => l.ma === 'CHU_CHIM_NEN' || l.ma === 'TUONG_PHAN_THAP')
+        .map((l) => l.cau);
+    } catch { return []; }   // bộ soát hỏng thì đừng kéo cả tính năng theo
+  };
+
   let vanDe = await thu(r.canh);
+  let chimNen = soatChu(r.canh);
   let daSua = false;
 
-  if (vanDe.length) {
-    // Cho đúng MỘT lượt sửa. Sai hai lần thì lượt ba cũng không khá hơn, chỉ tốn thêm thời gian.
-    const r2 = await goi(vanDe, r.canh);
+  if (vanDe.length || chimNen.length) {
+    // Cho đúng MỘT lượt sửa. Sai hai lần thì lượt ba cũng không khá hơn.
+    const r2 = await goi([...vanDe, ...chimNen], r.canh);
     if (!r2.loi && r2.canh) {
       const v2 = await thu(r2.canh);
-      if (v2.length < vanDe.length) { r = r2; vanDe = v2; daSua = true; }
+      const c2 = soatChu(r2.canh);
+      /* Nhận bản sửa khi TỔNG số chỗ hỏng giảm. So riêng từng nhóm thì gặp ca
+         sửa được tương phản mà sinh thêm một lỗi định dạng, và lúc đó không
+         biết chọn bản nào. */
+      if (v2.length + c2.length < vanDe.length + chimNen.length) {
+        r = r2; vanDe = v2; chimNen = c2; daSua = true;
+      }
     }
   }
 
@@ -183,8 +222,84 @@ export async function dungCanh({ doc, anh, mime, y }) {
     ok: vanDe.length === 0,
     canh: r.canh,
     vanDe,
+    chimNen,
     model: r.model,
     daSua,
-    cau: vanDe.length ? `Cảnh AI dựng còn ${vanDe.length} chỗ chưa hợp lệ.` : null,
+    /* `ok` CHỈ nhìn tầng soát định dạng. Tương phản kém vẫn là cảnh hợp lệ, và
+       người dùng có quyền cố tình làm vậy — luật ở mục 5.1 CLAUDE.md: "Tầng hai
+       KHÔNG bao giờ được chặn lưu". Nên chữ chìm chỉ báo ra, không hạ `ok`. */
+    cau: vanDe.length ? `Cảnh AI dựng còn ${vanDe.length} chỗ chưa hợp lệ.`
+      : chimNen.length ? `Dựng xong, nhưng còn ${chimNen.length} chỗ chữ chìm vào nền.`
+        : null,
   };
+}
+
+/**
+ * CHUẨN HOÁ CẢNH AI VỪA SINH, trước khi đem đi soát.
+ *
+ * `validateScene` đòi `x` và `y` là SỐ ở mọi phần tử — kể cả phần tử nằm trong
+ * `group`, nơi hai con số ấy vô nghĩa vì flex tự xếp chỗ (xem mục 5 CLAUDE.md).
+ * Model bỏ quên chúng ở đúng những chỗ đó, và bỏ quên đều đặn: đo trên một lượt
+ * dựng từ HTML thật, ba phần tử con trong cụm đều thiếu.
+ *
+ * Bắt AI nhớ một điều vô nghĩa là cách tốn tiền nhất để có một con số 0. Điền hộ
+ * rẻ hơn, và KHÔNG che giấu lỗi nào: chỉ điền khi trường VẮNG MẶT, sai kiểu thì
+ * vẫn để bộ soát bắt.
+ */
+export function chuanHoaCanh(canh) {
+  if (!canh || typeof canh !== 'object') return canh;
+  const di = (ds) => {
+    for (const e of ds || []) {
+      if (!e || typeof e !== 'object') continue;
+      if (e.x == null) e.x = 0;
+      if (e.y == null) e.y = 0;
+      di(e.children);
+    }
+  };
+  di(canh.elements);
+  return canh;
+}
+
+/** Dưới ngưỡng này thì chữ coi như chìm vào nền. WCAG đòi 4.5 cho chữ nhỏ; ở
+    đây chữ clip thường to nên lấy 3.0 — đủ để bắt ca hỏng thật mà không đi sửa
+    những chỗ người ta cố tình làm mờ. */
+const NGUONG_TUONG_PHAN = 3.0;
+
+/**
+ * VÁ CHỮ CHÌM NỀN, tất định.
+ *
+ * Vòng sửa của AI đã được xem lời than của bộ soát, nhưng đo thật thì nó vẫn sót:
+ * một lượt dựng từ HTML còn đúng một nút chữ đen nằm trên nền tối, và lượt sửa
+ * KHÔNG gỡ được. Nhờ model nhớ một luật số học là cách đắt và không chắc.
+ *
+ * Ở đây tính thẳng: lấy màu nền THẬT dưới từng món (`banDoNen` — chính hàm mà
+ * bảng soát và bảng lớp đang dùng, nên ba nơi không nói khác nhau), đo tương
+ * phản, thấp quá thì đổi `ink` sang trắng hoặc gần đen, chọn bên nào tương phản
+ * hơn.
+ *
+ * KHÔNG đụng tới `fill`: đổi màu nền là đổi thiết kế của người ta. Chỉ đổi màu
+ * CHỮ, vì chữ không đọc được thì không còn là thiết kế nữa.
+ */
+export function vaTuongPhan(canh, meta) {
+  if (!canh || !Array.isArray(canh.elements)) return 0;
+  const nen = banDoNen(canh, meta);
+  let va = 0;
+  const di = (ds) => {
+    for (const e of ds || []) {
+      if (!e || typeof e !== 'object') { continue; }
+      if (typeof e.ink === 'string' && e.id != null) {
+        const duoi = nen.get(e.id)?.mau || meta?.bg;
+        const tp = tuongPhan(e.ink, duoi);
+        if (tp != null && tp < NGUONG_TUONG_PHAN) {
+          const sang = tuongPhan('#ffffff', duoi) || 0;
+          const toi = tuongPhan('#101010', duoi) || 0;
+          e.ink = sang >= toi ? '#ffffff' : '#101010';
+          va++;
+        }
+      }
+      di(e.children);
+    }
+  };
+  di(canh.elements);
+  return va;
 }

@@ -43,6 +43,10 @@ services:
       # mất HẲN dự án của mọi tài khoản không phải chủ kho, không có bản sao nào
       # khác trên đời. App tự dò lúc khởi động và hét lên nếu thiếu dòng này.
       - motion-kho:/app/kho                     # dự án riêng của từng tài khoản
+      # Ảnh người dùng dán/kéo vào clip. Cũng không có bản sao nào khác: ảnh
+      # nằm trong máy người ta, họ dán một lần rồi quên, và lần deploy sau
+      # clip thủng đúng chỗ đó mà không báo gì.
+      - motion-anh:/app/clip/anh                # ảnh mang vào từ ngoài
 
     labels:
       - traefik.enable=true
@@ -58,6 +62,7 @@ services:
 
 volumes:
   motion-kho:
+  motion-anh:
   motion-scenes:
   motion-voice:
   motion-backup:

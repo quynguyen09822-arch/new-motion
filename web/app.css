@@ -78,7 +78,13 @@ body {
   margin: 0;
   background: var(--trang-nen);
   color: var(--chu);
-  font: None var(--chu-vua)/1.5 var(--font);
+  /* KHÔNG có phần đậm nhạt ở đây. Bản trước lọt chữ `None` vào đúng chỗ này
+     (`font: None var(--chu-vua)/1.5 …`) — script đổi hàng loạt ghi ra giá trị
+     rỗng của Python. `font:` rút gọn mà sai một từ là trình duyệt VỨT CẢ DÒNG,
+     nên mất luôn cả cỡ chữ lẫn phông, và cả trình sửa rơi về Times New Roman.
+     Hỏng nhìn thấy ngay mà không ai báo, vì CSS không kêu bao giờ.
+     `tools/kiem-chu.mjs` bắt được ca này. */
+  font: var(--chu-vua)/1.5 var(--font);
   height: 100vh;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
@@ -247,7 +253,13 @@ body:has(.keo-cot.dang-keo) iframe { pointer-events: none; }
   position: relative;
   background: #000;
   border-radius: var(--bo);
-  overflow: hidden;
+  /* KHÔNG `overflow: hidden` Ở ĐÂY.
+     Nó vốn chỉ để bo tròn bốn góc iframe. Nhưng nó cắt luôn tay nắm co giãn:
+     món nào rộng bằng cả khung thì tám tay nắm nằm đúng ngoài mép, bị cắt sạch
+     — bấm vào là trúng sân khấu chứ không trúng tay nắm, và người dùng tưởng
+     tính năng hỏng. Chuyển việc bo góc xuống chính iframe (`#khung`), chỗ duy
+     nhất thật sự cần. Phần tràn vẫn được `#san-clip` cắt, nên phóng to không
+     lem ra ngoài sân khấu. */
   box-shadow: 0 14px 46px rgba(0, 0, 0, .6);
   aspect-ratio: var(--ti-le, 16 / 9);
   max-width: 100%; max-height: 100%;
@@ -257,7 +269,13 @@ body:has(.keo-cot.dang-keo) iframe { pointer-events: none; }
   width: 100%;
   width: min(100cqw, calc(100cqh * var(--ti-le, 16 / 9)));
 }
-#khung { width: 100%; height: 100%; border: 0; display: block; background: #000; }
+#khung {
+  width: 100%; height: 100%; border: 0; display: block; background: #000;
+  border-radius: var(--bo);   /* trước đây do `.boc-khung` cắt hộ */
+}
+/* Đang phóng thì `.boc-khung` bỏ bo góc, iframe cũng phải bỏ theo, không thì
+   ở mức 400% cái bo góc bị phóng thành một đường cong to tướng. */
+.boc-khung.dang-phong #khung { border-radius: 0; }
 
 /* Lớp phủ vẽ khung chọn — LUÔN ở trang cha, không bao giờ chèn vào iframe.
    Chèn vào iframe là làm bẩn đúng cái lát nữa đem đi xuất video. */
@@ -760,6 +778,22 @@ a.nut svg { fill: none; stroke: currentColor; stroke-width: 1.6;
 /* Đang phóng thì bỏ bo góc và bóng đổ: hai thứ đó bị phóng theo, thành ra viền
    dày cộp và bóng loang lổ ở mức 400%. */
 .boc-khung.dang-phong { border-radius: 0; box-shadow: none; }
+
+/* Đang kéo một tấm ảnh từ ngoài vào: nói rõ THẢ VÀO ĐÂY THÌ ĂN. Không có dấu
+   hiệu nào thì người ta thả vào giữa cửa sổ, trình duyệt mở luôn tấm ảnh thay
+   cả trang, và mất hết những gì chưa lưu. */
+.boc-khung.dang-tha-anh { outline: 3px dashed var(--nhan); outline-offset: -3px; }
+.boc-khung.dang-tha-anh::after {
+  content: 'Thả ảnh vào đây';
+  position: absolute; inset: auto 0 14px; text-align: center;
+  font-size: var(--chu-vua); font-weight: 600; pointer-events: none;
+  color: var(--tren-nhan); 
+}
+.boc-khung.dang-tha-anh::before {
+  content: ''; position: absolute; left: 50%; bottom: 10px; translate: -50% 0;
+  width: 160px; height: 30px; border-radius: 999px; background: var(--nhan);
+  pointer-events: none;
+}
 #san-clip.dang-doi { cursor: grabbing; }
 
 /* ---------- ảnh nhỏ của thành phần (kiểu bảng lớp Photoshop) ---------- */
@@ -950,16 +984,44 @@ a.nut svg { fill: none; stroke: currentColor; stroke-width: 1.6;
 .dong-ho { font-size: var(--chu-nho); min-width: 118px; }
 .tien-ich-phai { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
 
-/* ---------- khung chọn trên khung hình: chấm kéo ở bốn góc ---------- */
-/* Bản cũ chỉ có đường viền. Thêm bốn chấm là nói thẳng ra "cái này kéo được" —
-   không phải thử mới biết. */
-.khung-chon[data-kieu="tu"]::before, .khung-chon[data-kieu="tu"]::after,
-.khung-chon[data-kieu="dat"]::before, .khung-chon[data-kieu="dat"]::after {
-  content: ''; position: absolute; width: 7px; height: 7px;
-  background: var(--nhan); border-radius: 50%; box-shadow: 0 0 0 2px rgba(0, 0, 0, .8);
+/* ---------- khung chọn trên khung hình: tám tay nắm co giãn ---------- */
+/* Bản cũ vẽ hai chấm góc bằng ::before/::after — chỉ để NHÌN, bấm không trúng
+   vì cả khung chọn đang pointer-events:none. Nay là thẻ thật, bắt được chuột.
+
+   CHÚNG PHẢI ĂN CHUỘT, KHUNG CHỌN THÌ KHÔNG. Cho cả khung ăn chuột là mọi cú
+   bấm vào giữa món đều bị khung nuốt, và người dùng hết chọn được món nằm
+   dưới. Nên chỉ tám ô vuông này mở, phần còn lại vẫn trong suốt với chuột. */
+.khung-nam {
+  position: absolute; width: 9px; height: 9px; pointer-events: auto;
+  background: var(--nen-2); border: 1.5px solid var(--nhan); border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .55);
 }
-.khung-chon::before { left: -4px; top: -4px; }
-.khung-chon::after { right: -4px; bottom: -4px; }
+/* Vùng chạm rộng hơn ô nhìn thấy: 9px là vừa mắt nhưng khó trúng, nhất là ở
+   mức phóng nhỏ. Lớp đệm trong suốt này nới ra 20px mà không to thêm chấm. */
+.khung-nam::after { content: ''; position: absolute; inset: -6px; }
+
+.khung-nam[data-nam^="t"] { top: -5px; }
+.khung-nam[data-nam^="g"] { top: calc(50% - 4.5px); }
+.khung-nam[data-nam^="d"] { bottom: -5px; }
+.khung-nam[data-nam$="t"] { left: -5px; }
+.khung-nam[data-nam$="g"] { left: calc(50% - 4.5px); }
+.khung-nam[data-nam$="p"] { right: -5px; }
+
+.khung-nam[data-nam="tt"], .khung-nam[data-nam="dp"] { cursor: nwse-resize; }
+.khung-nam[data-nam="tp"], .khung-nam[data-nam="dt"] { cursor: nesw-resize; }
+.khung-nam[data-nam="tg"], .khung-nam[data-nam="dg"] { cursor: ns-resize; }
+.khung-nam[data-nam="gt"], .khung-nam[data-nam="gp"] { cursor: ew-resize; }
+
+/* Vùng đặt sẵn tự tính bề rộng bằng calc() — ghi một con số cứng vào là món
+   thôi co theo khung, và 16:9 với 9:16 lại lệch nhau. Giấu hẳn tay nắm, và
+   `keoco.js` nói ra lý do nếu ai đó vẫn kéo trúng. */
+.khung-chon[data-kieu="dat"] .khung-nam { display: none; }
+
+/* Hộp mỏng thì tay nắm giữa chen vào chỗ dùng để DỜI món; hộp bé cả hai chiều
+   thì giấu hết, kéo cỡ bằng ô "Rộng"/"Cao" ở bảng bên phải. */
+.khung-chon.mong-ngang .khung-nam[data-nam^="g"],
+.khung-chon.mong-doc .khung-nam[data-nam$="g"] { display: none; }
+.khung-chon.be-ti .khung-nam { display: none; }
 .anh-canh svg {
   width: 17px; height: 17px; fill: none; stroke: var(--chu-mo-2);
   stroke-width: 1.3; stroke-linejoin: round;
@@ -1276,3 +1338,11 @@ a.nut svg { fill: none; stroke: currentColor; stroke-width: 1.6;
  */
 body.doi-cu .cot-trai,
 body.doi-cu .keo-cot[data-cot="trai"] { display: none; }
+
+/* Dòng chỉ đường dưới ô gõ của bảng "Sửa món" — chỉ hiện khi người dùng đã gõ.
+   Nói trước lúc họ chưa định làm gì là một dòng chữ thừa. */
+.sua-chi-duong {
+  margin: 6px 2px 0; font-size: var(--chu-nho); line-height: 1.5;
+  color: var(--chu-mo);
+}
+.sua-chi-duong.sua-can { color: #ffb4b4; }
