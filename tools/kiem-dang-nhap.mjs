@@ -278,6 +278,89 @@ try {
   dat('chưa đặt mật khẩu thì NÓI RA ngay trên thanh', /Chưa đặt mật khẩu/.test(l.nhac || ''), l.nhac);
   await t2.close();
 
+  /* ---------- 7b. thanh trên không được đè lên nhau ---------- */
+  console.log('\n7b. Thanh trên: các nút không đè lên nhau');
+  /* PHẢI ĐO TRÊN MÁY CHỦ CÓ MẬT KHẨU. Nút "Thoát" chỉ tồn tại khi đã đặt mật
+     khẩu — trên máy chủ không mật khẩu, chỗ đó là lời nhắc "Chưa đặt mật khẩu".
+     Nên mọi bài kiểm khác (đều chạy không mật khẩu) KHÔNG BAO GIỜ nhìn thấy nút
+     này, và lỗi dưới đây sống sót qua cả bộ kiểm.
+
+     Lỗi thật đã gặp: nút Thoát khai class `rong`, mà `.nut.rong` đặt
+     `width: 100%` — class ấy dành cho nút nằm trong CỘT DỌC. Trên thanh ngang
+     nó phình ra 163px và đè lên nhóm nút ẩn cột 88 pixel, che mất chúng. */
+  {
+    /* CỬA SỔ HẸP, cố ý. Đo ở 1400px thì nút Thoát phình ra vẫn chưa chạm nút
+       bên cạnh và phép quét báo sạch — hỏng thật mà kiểm vẫn xanh. Thanh trên
+       chỉ chật ở cửa sổ hẹp, nên phải đo ở đúng chỗ nó chật. */
+    const t3 = await trinh.newPage({ viewport: { width: 1180, height: 500 } });
+    const loi3 = [];
+    t3.on('pageerror', (e) => loi3.push(String(e)));
+    /* DÙNG LẠI VÉ CỦA MỤC 3, không đăng nhập lại. Mục 5 ngay trên cố tình gõ
+       sai tám lần để thử cửa khoá — nên tới đây mà đăng nhập lại là chắc chắn
+       bị chặn, và mục này đỏ vì một lý do chẳng liên quan gì tới bố cục. */
+    await t3.context().addCookies([{
+      name: 'motion_phien', value: ve, domain: '127.0.0.1', path: '/',
+    }]);
+    await t3.goto(`http://127.0.0.1:${CONG_CO}/sua?clip=cta`, { waitUntil: 'load' });
+    await t3.waitForTimeout(3500);
+
+    const kq = await t3.evaluate(() => {
+      const ra = document.querySelector('.nut-ra');
+      if (!ra) {
+        const o = document.querySelector('#o-tai-khoan');
+        return { thieu: true, duong: location.pathname,
+          oTaiKhoan: o ? (o.textContent || '(rỗng)') : '(không có #o-tai-khoan)',
+          soCon: o ? o.children.length : -1 };
+      }
+      /* Quét tới PHẦN TỬ LÁ, không dừng ở con trực tiếp.
+         Đã mắc: bản đầu chỉ so con trực tiếp của thanh trên, nên khi nút Thoát
+         phình ra nó vẫn nằm gọn trong khai báo của cha `.o-tai-khoan` — cha
+         không tràn, chỉ con tràn ra ngoài cha và đè sang nhóm bên cạnh. Phép
+         kiểm xanh trong khi màn hình hỏng rành rành. */
+      const la = [...document.querySelectorAll('.thanh-tren *')].filter((n) => {
+        const s = getComputedStyle(n);
+        const r = n.getBoundingClientRect();
+        if (s.display === 'none' || r.width <= 0 || r.height <= 0) return false;
+        if (n.classList.contains('day')) return false;   // khoảng đẩy, cố ý co giãn
+        if (n.closest('svg')) return false;              // hình vẽ bên trong nút
+        /* Chỉ lấy lá: cha bọc con thì đương nhiên "chồng" lên con, đếm vào là
+           báo sai hàng loạt. */
+        return ![...n.children].some((c) => {
+          const cr = c.getBoundingClientRect();
+          return cr.width > 0 && cr.height > 0 && getComputedStyle(c).display !== 'none';
+        });
+      });
+      const con = la;
+      const de = [];
+      for (let i = 0; i < con.length; i++) {
+        for (let j = i + 1; j < con.length; j++) {
+          const a = con[i].getBoundingClientRect(); const b = con[j].getBoundingClientRect();
+          const chong = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+          if (chong > 1) {
+            de.push(`${con[i].className || con[i].id}↔${con[j].className || con[j].id}: ${Math.round(chong)}px`);
+          }
+        }
+      }
+      return { thieu: false, lopNutRa: ra.className, rongNutRa: Math.round(ra.getBoundingClientRect().width), de };
+    });
+
+    if (kq.thieu) {
+      dat('thấy nút Thoát để đo', false,
+        `đường ${kq.duong} · ô tài khoản: "${String(kq.oTaiKhoan).slice(0, 70)}" · ${kq.soCon} con`);
+    } else {
+      dat('không cặp phần tử nào trên thanh trên đè nhau',
+        kq.de.length === 0, kq.de.join(' · ') || 'sạch');
+      /* Canh thẳng nguyên nhân gốc, không chỉ canh hậu quả: `rong` mà lọt lại
+         vào đây thì mục trên đỏ, nhưng câu báo sẽ không nói vì sao. */
+      dat('nút Thoát KHÔNG mang class `rong` (class đó dành cho nút trong cột dọc)',
+        !/\brong\b/.test(kq.lopNutRa), kq.lopNutRa);
+      dat('nút Thoát rộng vừa phải, không chiếm cả ô chứa',
+        kq.rongNutRa > 0 && kq.rongNutRa < 120, `${kq.rongNutRa}px`);
+    }
+    dat('không có lỗi JS', loi3.length === 0, loi3.slice(0, 2).join(' | ') || 'sạch');
+    await t3.close();
+  }
+
   /* ---------- 8. không để lại dấu vết ---------- */
   console.log('\n8. Bài kiểm không đụng vào cấu hình thật');
   const env = path.join(M, '.env');

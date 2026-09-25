@@ -1346,3 +1346,15 @@ body.doi-cu .keo-cot[data-cot="trai"] { display: none; }
   color: var(--chu-mo);
 }
 .sua-chi-duong.sua-can { color: #ffb4b4; }
+
+/* ---------- tả bằng lời → Stitch vẽ giao diện ---------- */
+/* Lượt này mất khoảng một phút rưỡi, nên dòng chặng phải ở NGAY DƯỚI nút: người
+   dùng nhìn nó suốt, và nếu nó nằm xa nút thì họ bấm lại lần nữa vì tưởng hỏng. */
+.o-dung-ta { min-height: 52px; }
+.nut-ta { margin-top: 2px; }
+.ta-chang {
+  margin: 0; padding: 6px 8px; border-radius: var(--bo-nho, 6px);
+  background: var(--nen-3); color: var(--chu-mo);
+  font-size: var(--chu-nho); line-height: 1.45;
+}
+.ta-chang.ta-hong { background: rgba(239, 68, 68, .15); color: #fca5a5; }

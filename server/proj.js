@@ -99,7 +99,20 @@ async function napScene() {
 /** Soát một kịch bản. Trả về mảng câu lỗi TIẾNG VIỆT — rỗng là sạch. */
 export async function soatKichBan(doc) {
   const { validateScene } = await napScene();
-  return validateScene(doc);
+  try {
+    return validateScene(doc);
+  } catch (e) {
+    /* `validateScene` là mã MƯỢN của dự án clip — ta không sửa được nó, và nó
+       giả định dữ liệu đúng khuôn (gọi thẳng `scene.elements.flatMap`). Kịch
+       bản méo do AI sinh ra làm nó ném lỗi, và lỗi ấy đi thẳng ra ngoài thành
+       500 kèm stack trace. Đã xảy ra thật trên bản chạy ngày 25/09.
+
+       Bắt lại và trả về như MỘT VẤN ĐỀ: chỗ gọi vốn đã biết xử lý danh sách
+       vấn đề, còn ném thì không chỗ nào xử lý. Kịch bản vẫn KHÔNG lưu được —
+       danh sách không rỗng nghĩa là không hợp lệ — nhưng người dùng nhận một
+       câu đọc được thay vì một vệt stack trace. */
+    return [`Kịch bản méo, bộ soát không đọc nổi: ${e.message}`];
+  }
 }
 
 /** Tổng thời lượng của cả clip, tính bằng giây. */

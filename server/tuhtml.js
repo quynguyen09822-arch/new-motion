@@ -190,7 +190,13 @@ export async function dungTuHtml({ doc, html, url, y }) {
     if (!g.ok) return { loi: g.cau };
     const canh = bocJSON(g.chu);
     if (!canh) return { loi: 'AI trả về thứ không phải JSON.', model: g.model };
-    return { canh: chuanHoaCanh(canh), model: g.model };
+    const sach = chuanHoaCanh(canh);
+    /* Cùng chốt như đường ảnh: cảnh rỗng là dựng hỏng, dù bộ soát bảo sạch. */
+    if (!sach?.elements?.length) {
+      return { loi: 'Không dựng được món nào từ trang này. Thử dặn thêm cho AI '
+        + 'biết cần lấy phần nào.', model: g.model };
+    }
+    return { canh: sach, model: g.model };
   };
 
   let r = await goi();

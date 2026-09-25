@@ -69,6 +69,21 @@ export function taoKeoCot(app, than, khiDoi = () => {}) {
     return Math.round(Math.max(MIN, Math.min(v, MAX, conLai - GIUA_TOI_THIEU)));
   }
 
+  /* KẸP LẠI NGAY LÚC MỞ, theo bề rộng màn HIỆN TẠI.
+   *
+   * Bề rộng cột nhớ trong `localStorage` một bộ cho cả ứng dụng, không theo
+   * từng máy. Kéo rộng hai cột trên màn 2560 rồi mở lại trên laptop là hỏng
+   * nặng — đo thật ở 1100×700 với hai cột 560px: cột giữa bị bóp về **0px**,
+   * khung xem biến mất, và trang tràn ngang 60px nên cuộn sang phải làm cột
+   * trái bị cắt mất.
+   *
+   * `chan()` vốn chỉ chạy lúc KÉO, còn đường đọc từ `localStorage` đi thẳng vào
+   * `ap()` không qua chốt nào. Có một `resize` gọi lại `dat()`, nên cửa sổ đổi
+   * cỡ một cái là tự lành — đúng kiểu lỗi làm người dùng tưởng mình hoa mắt.
+   */
+  rong.trai = chan('trai', rong.trai);
+  rong.phai = chan('phai', rong.phai);
+
   let henBao = null;
   function ap(bao = true) {
     app.style.setProperty('--cot-trai', `${rong.trai}px`);
@@ -134,7 +149,17 @@ export function taoKeoCot(app, than, khiDoi = () => {}) {
   }
 
   // Thu nhỏ cửa sổ có thể làm hai cột chiếm hết chỗ — ép lại cho đúng chặn.
-  addEventListener('resize', () => { dat('trai', rong.trai); dat('phai', rong.phai); });
+  /* Đổi cỡ cửa sổ thì kẹp lại, nhưng CHỈ GHI khi con số thật sự đổi: kéo cạnh
+     cửa sổ bắn ra hàng trăm sự kiện, mỗi cái một lượt ghi `localStorage` đồng
+     bộ là giật thấy rõ. */
+  addEventListener('resize', () => {
+    const t = chan('trai', rong.trai);
+    const p = chan('phai', rong.phai);
+    if (t === rong.trai && p === rong.phai) return;
+    rong.trai = t; rong.phai = p;
+    ghi(rong);
+    ap();
+  });
 
   function datAn(ben, an) {
     rong[ben === 'trai' ? 'anTrai' : 'anPhai'] = Boolean(an);

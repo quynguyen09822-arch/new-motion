@@ -33,3 +33,9 @@ mcp-stitch.json.txt
 # Đây là NƠI DUY NHẤT giữ dự án của người không phải chủ kho: mất thư mục này
 # là mất việc của họ, không có git nào cứu được. Xem docs/KHO-RIENG.md.
 kho/
+
+# Bản cứu clip kéo từ bản chạy thật về — dữ liệu, không phải mã.
+.cuu-tren-web/
+
+# File mật khẩu tạm — xoá ngay sau khi dùng, không bao giờ commit.
+.mat-khau-tam.txt

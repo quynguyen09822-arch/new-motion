@@ -161,6 +161,37 @@ try {
   await trang.waitForTimeout(300);
   dat('bấm đúp về mặc định 272px', (await rong()).trai === 272, `${(await rong()).trai}px`);
 
+  /* ---------- 5b. bề rộng nhớ từ màn TO không được phá màn NHỎ ---------- */
+  console.log('\n5b. Mở lại trên màn nhỏ hơn máy đã kéo');
+  {
+    /* Bề rộng cột nhớ MỘT BỘ cho cả ứng dụng, không theo từng máy. Kéo rộng hai
+       cột trên màn 2560 rồi mở lại trên laptop là hỏng nặng — đo thật trước khi
+       sửa, ở 1100×700 với hai cột 560px: cột giữa bị bóp về 0px, KHUNG XEM BIẾN
+       MẤT, và trang tràn ngang 60px nên cuộn sang phải làm cột trái bị cắt.
+
+       Lỗi này tự lành ngay khi đổi cỡ cửa sổ (có `resize` kẹp lại), nên rất dễ
+       bị bỏ qua: người dùng kêu, mình mở lên thì thấy bình thường. */
+    for (const [w, h] of [[1100, 700], [1024, 640], [900, 600]]) {
+      const ctx = await trinh.newContext({ viewport: { width: w, height: h } });
+      const t = await ctx.newPage();
+      await t.goto(`${GOC}/sua?clip=cta`, { waitUntil: 'domcontentloaded' });
+      await t.evaluate(() => localStorage.setItem('mb-video:cot',
+        JSON.stringify({ trai: 560, phai: 560, anTrai: false, anPhai: false })));
+      await t.reload({ waitUntil: 'load' });
+      await t.waitForTimeout(2500);
+      const r = await t.evaluate(() => {
+        const D = document.documentElement;
+        const be = (s) => Math.round(document.querySelector(s)?.getBoundingClientRect().width || 0);
+        return { tran: Math.round(D.scrollWidth - D.clientWidth),
+          giua: be('.giua'), khung: be('#boc-khung') };
+      });
+      dat(`${w}×${h}: không tràn ngang`, r.tran === 0, `${r.tran}px`);
+      /* Khung xem là lý do cả ứng dụng tồn tại — nó về 0 thì không còn gì để sửa. */
+      dat(`${w}×${h}: khung xem vẫn còn`, r.khung > 0, `giữa ${r.giua}px · khung ${r.khung}px`);
+      await ctx.close();
+    }
+  }
+
   console.log('\n6. Lỗi trên trang');
   dat('không có lỗi JS', loiJS.length === 0, loiJS.slice(0, 2).join(' | ') || 'sạch');
 } finally {

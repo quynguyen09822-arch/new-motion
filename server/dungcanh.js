@@ -177,6 +177,17 @@ export async function dungCanh({ doc, anh, mime, y }) {
   let r = await goi();
   if (r.loi) return { ok: false, cau: r.loi };
 
+  /* CẢNH KHÔNG CÓ MÓN NÀO LÀ DỰNG HỎNG, dù bộ soát bảo "sạch".
+     `validateScene` không đòi cảnh phải có phần tử, nên một cảnh rỗng qua cửa
+     ngon lành. Cộng với việc `chuanHoaCanh` ép `elements` méo thành mảng rỗng,
+     ta có đường đi thẳng tới kết cục tệ nhất: người dùng chờ gần một phút rồi
+     nhận một cảnh TRỐNG TRƠN và không có lấy một câu giải thích. */
+  if (!r.canh?.elements?.length) {
+    return { ok: false,
+      cau: 'AI không dựng được món nào từ ảnh này. Thử ảnh rõ hơn, hoặc dặn thêm '
+        + 'ở ô bên dưới cho nó biết cần lấy phần nào.' };
+  }
+
   /* Soát bằng CHÍNH bộ soát mà nút Lưu dùng — không viết bộ soát riêng cho AI.
      Hai bộ soát khác nhau là sớm muộn cũng lệch, và lúc đó AI sinh ra thứ qua
      được cửa này nhưng không lưu được. */
@@ -248,12 +259,24 @@ export async function dungCanh({ doc, anh, mime, y }) {
  */
 export function chuanHoaCanh(canh) {
   if (!canh || typeof canh !== 'object') return canh;
+
+  /* ÉP `elements` THÀNH MẢNG. `validateScene` gọi thẳng `scene.elements.flatMap`
+     — thiếu trường này hoặc sai kiểu là NỔ giữa bộ soát, API trả 500, và người
+     dùng nhận một vệt stack trace thay vì câu báo tiếng Việt. Đã xảy ra thật
+     trên bản chạy: "list.flatMap is not a function" lúc dựng hình từ ảnh.
+     Ép thành mảng rỗng thì bộ soát báo "cảnh không có phần tử nào" — một câu
+     người đọc hiểu được, và vòng sửa của AI còn cứu lại được. */
+  if (!Array.isArray(canh.elements)) canh.elements = [];
+
   const di = (ds) => {
-    for (const e of ds || []) {
+    for (const e of ds) {
       if (!e || typeof e !== 'object') continue;
       if (e.x == null) e.x = 0;
       if (e.y == null) e.y = 0;
-      di(e.children);
+      /* `flatten` đệ quy vào `el.children` của mọi `group`. Cụm có `children`
+         sai kiểu thì nổ ở đúng chỗ ấy, sâu hơn một tầng và khó lần hơn. */
+      if (e.kind === 'group' && !Array.isArray(e.children)) e.children = [];
+      if (Array.isArray(e.children)) di(e.children);
     }
   };
   di(canh.elements);

@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "meta": {
+    "name": "demo",
+    "width": 1280,
+    "height": 720,
+    "density": 1,
+    "bg": "#0a0b10",
+    "ink": "#f4f6fb",
+    "accent": "#ff6a1f"
+  },
+  "scenes": [
+    {
+      "id": "canh-1",
+      "duration": 4,
+      "stagger": 0.16,
+      "elements": [
+        {
+          "kind": "text",
+          "id": "chu-1",
+          "x": 0,
+          "y": 324,
+          "w": 1280,
+          "align": "center",
+          "size": 72,
+          "text": "demo",
+          "in": {
+            "kind": "rise",
+            "ease": "out",
+            "dur": 0.55
+          }
+        }
+      ]
+    }
+  ]
+}
