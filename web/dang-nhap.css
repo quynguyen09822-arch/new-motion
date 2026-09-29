@@ -59,3 +59,15 @@ form { text-align: left; }
   .hop { animation: len .28s ease-out; }
   @keyframes len { from { opacity: 0; transform: translateY(8px); } }
 }
+
+/* ---------- Đăng nhập bằng Google ---------- */
+.an { display: none !important; }
+.nut-google { display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; padding: 11px 16px; border-radius: 999px; border: 1px solid #dadce0;
+  background: #fff; color: #1f1f1f; font-size: 15px; font-weight: 600;
+  text-decoration: none; transition: background 150ms; }
+.nut-google:hover { background: #f5f6f7; }
+.google-goi { margin: 8px 0 0; font-size: 12px; color: var(--chu-mo, #b3b3b3); text-align: center; }
+.vach-hoac { display: flex; align-items: center; gap: 12px; margin: 18px 0 4px;
+  color: var(--chu-mo-2, #727272); font-size: 12px; }
+.vach-hoac::before, .vach-hoac::after { content: ''; flex: 1; height: 1px; background: var(--vach, #262626); }

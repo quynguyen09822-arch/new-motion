@@ -248,6 +248,18 @@
       <div id="luoi-cu" class="luoi"></div>
     </div>
   </section>
+
+  <!-- ---------- NGƯỜI DÙNG (chỉ người quản trị thấy) ---------- -->
+  <section class="kho an" id="nguoi">
+    <div class="tieu-hang">
+      <div>
+        <h2>Người dùng</h2>
+        <span class="phu">khách hàng và người trong nhóm — mỗi người một kho riêng, không ai thấy dự án của ai</span>
+      </div>
+      <button id="nut-them-nguoi" class="nut chinh nho" type="button">Thêm người</button>
+    </div>
+    <div id="bang-nguoi" class="bang-nguoi"></div>
+  </section>
 </main>
 
 <footer class="chan-trang">
@@ -256,6 +268,47 @@
     <span class="phu">Mỗi tài khoản một kho riêng, không đồng bộ với nhau.</span>
   </div>
 </footer>
+
+<!-- ---------- Ô THÊM NGƯỜI ---------- -->
+<dialog id="o-nguoi" class="o-tao">
+  <form id="phieu-nguoi" method="dialog">
+    <h3>Thêm người dùng</h3>
+    <p class="goi">Người này sẽ có kho dự án riêng, trống trơn. Họ không thấy dự
+       án của bạn, và bạn cũng không thấy của họ.</p>
+    <label class="nhan" for="nguoi-email">Email</label>
+    <input id="nguoi-email" class="o" type="email" required placeholder="khach@congty.com">
+    <label class="nhan" for="nguoi-ten">Tên gọi (không bắt buộc)</label>
+    <input id="nguoi-ten" class="o" type="text" maxlength="80" placeholder="Anh Minh — công ty ABC">
+    <label class="nhan" for="nguoi-mk">Mật khẩu</label>
+    <input id="nguoi-mk" class="o" type="text" minlength="8" maxlength="72"
+           placeholder="Bỏ trống thì máy tự đặt hộ một mật khẩu khó đoán"
+           autocomplete="off" spellcheck="false">
+    <label class="nhan" for="nguoi-vai">Quyền</label>
+    <select id="nguoi-vai" class="o">
+      <option value="nguoi_dung">Người dùng — chỉ làm clip trong kho của mình</option>
+      <option value="quan_tri">Quản trị — thêm và khoá người khác được</option>
+    </select>
+    <p id="nguoi-loi" class="loi an"></p>
+    <div class="hang-nut">
+      <button class="nut" value="thoi" type="submit">Thôi</button>
+      <button id="nguoi-xong" class="nut chinh" value="tao" type="submit">Tạo tài khoản</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ---------- Ô KHOE MẬT KHẨU MỘT LẦN ---------- -->
+<dialog id="o-mat-khau" class="o-tao">
+  <form method="dialog">
+    <h3>Xong — đưa hai dòng này cho họ</h3>
+    <p class="goi">Mật khẩu chỉ hiện <b>đúng lần này</b>. Máy chủ không cất lại
+       bản đọc được, nên quên thì đặt cái mới chứ không xem lại được.</p>
+    <pre id="mk-khoe" class="mk-khoe"></pre>
+    <div class="hang-nut">
+      <button id="mk-chep" class="nut" type="button">Chép</button>
+      <button class="nut chinh" value="xong" type="submit">Đã đưa rồi</button>
+    </div>
+  </form>
+</dialog>
 
 <!-- ---------- Ô TẠO DỰ ÁN ----------
      Dùng <dialog> thật của trình duyệt: nó tự lo phím Esc, tự khoá tiêu điểm

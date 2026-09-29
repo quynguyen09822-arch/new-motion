@@ -38,7 +38,17 @@ import { fileURLToPath } from 'node:url';
 const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 /** Nơi để file CSDL. Nằm cạnh `kho/` nên cùng được một ổ lưu che chở. */
-export const DUONG_MAC_DINH = path.join(GOC, 'kho', 'motion.db');
+/**
+ * CSDL nằm TRONG thư mục kho, nên `MOTION_GOC_KHO` tự cô lập luôn cả nó —
+ * bài kiểm chỉ phải khai một biến. `MOTION_CSDL` đè lên khi cần chỉ đích danh.
+ *
+ * Vì sao cần cô lập: 28/09 ba bài kiểm cùng ghi vào một CSDL. Bài chạy trước
+ * chép danh sách tài khoản của NÓ vào bảng, bài sau khởi động thấy bảng đã có
+ * người nên tài khoản của bài sau thành "không có trong danh sách" — ba bài đỏ
+ * cùng lúc, mà không bài nào sai.
+ */
+export const DUONG_MAC_DINH = (process.env.MOTION_CSDL || '').trim()
+  || path.join((process.env.MOTION_GOC_KHO || '').trim() || path.join(GOC, 'kho'), 'motion.db');
 
 /* ─────────────────────────── LƯỢC ĐỒ ───────────────────────────
  *
@@ -187,4 +197,52 @@ export function nhanViec(db, { worker = 'chinh', giayThue = 120 } = {}) {
     RETURNING *
   `).get(String(giayThue), worker);
   return v || null;
+}
+
+/* ══════════ KẾT NỐI DÙNG CHUNG ══════════
+ *
+ * Mở một lần rồi giữ. Mở/đóng theo từng yêu cầu thì mỗi lượt đăng nhập phải
+ * chạy lại toàn bộ bước di trú — vừa chậm vừa thừa.
+ *
+ * HỎNG THÌ TRẢ `null`, KHÔNG NÉM. Cùng luật với lúc khởi động: ổ đĩa đầy hay
+ * quyền sai thì trình sửa vẫn phải chạy, chỉ là phần tài khoản tạm không dùng
+ * được và đăng nhập quay về đường cũ (danh sách env + mật khẩu chung).
+ */
+let noiChung;
+export function layCSDL() {
+  if (noiChung !== undefined) return noiChung;
+  try { noiChung = moCSDL(); } catch (e) {
+    console.error(`CSDL: không mở được — ${e.message}`);
+    noiChung = null;
+  }
+  return noiChung;
+}
+
+/* ══════════ ĐANG LÀM DỞ Ở ĐÂU ══════════
+ *
+ * Người dùng đóng tab rồi mở lại thì về đúng dự án đang làm, đúng cảnh, đúng
+ * giây. Xem `server/csdl/003-cho-lam-viec.sql`.
+ *
+ * KHÔNG ĐƯỢC LÀM CHẾT ĐƯỜNG NÀO. Đây là tiện nghi, không phải dữ liệu. CSDL
+ * hỏng thì app vẫn phải mở clip bình thường, chỉ là mở dự án đầu danh sách.
+ */
+export function luuChoLam(db, email, { slug, canh = '', giay = 0 }) {
+  if (!db || !email || !slug) return false;
+  try {
+    db.prepare(`INSERT INTO cho_lam_viec (email, slug, canh, giay, sua_luc)
+      VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+      ON CONFLICT(email) DO UPDATE SET slug = excluded.slug, canh = excluded.canh,
+        giay = excluded.giay, sua_luc = excluded.sua_luc`)
+      .run(String(email), String(slug), String(canh || '').slice(0, 80), Number(giay) || 0);
+    return true;
+  } catch { return false; }
+}
+
+export function layChoLam(db, email) {
+  if (!db || !email) return null;
+  try {
+    const r = db.prepare('SELECT slug, canh, giay, sua_luc FROM cho_lam_viec WHERE email = ?')
+      .get(String(email));
+    return r ? { slug: r.slug, canh: r.canh, giay: r.giay, suaLuc: r.sua_luc } : null;
+  } catch { return null; }
 }

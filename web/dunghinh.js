@@ -10,6 +10,7 @@
  *   Người dùng phải quyết định nhận hay bỏ, mà muốn quyết thì phải thấy.
  */
 import { taoThaAnh } from './thaanh.js';
+import { doTrang } from './dotrang.js';
 
 const el = (the, lop, chu) => {
   const n = document.createElement(the);
@@ -18,7 +19,7 @@ const el = (the, lop, chu) => {
   return n;
 };
 
-export function taoDungHinh(boc, { laySlug, bao, nhanCanh, layKieuMay }) {
+export function taoDungHinh(boc, { laySlug, bao, nhanCanh, layKieuMay, layMeta }) {
   const muc = el('div', 'muc-dung');
   let ketQua = null;       // { canh, vanDe, model, daSua }
   let dangDung = false;
@@ -42,7 +43,7 @@ export function taoDungHinh(boc, { laySlug, bao, nhanCanh, layKieuMay }) {
   oHtml.rows = 3;
   oHtml.placeholder = 'Dán mã HTML vào đây, hoặc một địa chỉ https://…';
   oHtml.setAttribute('aria-label', 'Dán HTML hoặc địa chỉ trang');
-  oHtml.oninput = () => { ketQua = null; veKetQua(); veNut(); };
+  oHtml.oninput = () => { ketQua = null; chup = null; phanChon = null; veKetQua(); veNut(); };
 
   /* ---------- TẢ BẰNG LỜI → STITCH VẼ GIAO DIỆN ----------
    * Đây là đường thứ BA vào cùng một việc, và là đường duy nhất không đòi người
@@ -121,7 +122,7 @@ export function taoDungHinh(boc, { laySlug, bao, nhanCanh, layKieuMay }) {
            người dùng vẫn xem lại được, và vẫn phải bấm "Nhận vào clip" ở cuối —
            chỗ chặn thật sự nằm ở đó, không phải ở một nút trung gian. */
         xong();
-        chayDung().then(() => {
+        chayDung({ tuDong: true }).then(() => {
           chuTa.textContent = `Từ lời tả: "${full.tieuDe || 'giao diện mới'}". `
             + 'Xem cây món bên phải rồi bấm "Nhận vào clip".';
         });
@@ -164,9 +165,103 @@ export function taoDungHinh(boc, { laySlug, bao, nhanCanh, layKieuMay }) {
   function veNut() {
     const n = nguon();
     nut.disabled = dangDung || !n;
-    nut.textContent = dangDung ? 'AI đang dựng…'
+    nut.textContent = dangDung ? (n?.loai === 'anh' ? 'AI đang dựng…' : 'Đang làm…')
       : !n ? 'Chọn ảnh hoặc dán HTML'
-        : n.loai === 'anh' ? 'Dựng từ ảnh' : 'Dựng từ trang';
+        : n.loai === 'anh' ? 'Dựng từ ảnh' : 'Chụp trang để xem trước';
+  }
+
+  /* ---------- ô ②: CHỤP TRANG → XEM → CHỌN PHẦN → DỰNG ----------
+   * Máy chủ mở trang bằng trình duyệt thật (`server/chuptrang.js`), chụp cả
+   * trang và từng phần. Người dùng NHÌN THẤY máy đã mở ra cái gì trước khi tốn
+   * một lượt AI — trước đây họ chỉ biết trang hỏng khi AI đã dựng ra "cảnh 7
+   * món" từ trang báo lỗi. */
+  let chup = null;         // { id, tieuDe, phan[], cao, catDuoi }
+  let phanChon = null;
+
+  function veChup() {
+    kq.innerHTML = '';
+    kq.classList.remove('an', 'hong');
+    kq.append(el('p', 'dung-tom', `Đã mở trang${chup.tieuDe ? ` "${chup.tieuDe}"` : ''} — `
+      + `${chup.phan.length} phần. Xem có đúng trang anh muốn không, rồi chọn một phần:`));
+    const ds = el('div', 'chup-ds');
+    const the = (id, loai, ten, anh) => {
+      const b = el('button', 'chup-phan');
+      b.type = 'button';
+      b.setAttribute('aria-pressed', String(phanChon === id));
+      const hinh = el('img');
+      hinh.src = anh; hinh.alt = ''; hinh.loading = 'lazy';
+      const chu = el('span', 'chup-chu');
+      chu.append(el('b', null, loai), el('span', null, ten || ''));
+      b.append(hinh, chu);
+      b.onclick = () => { phanChon = id; veChup(); };
+      return b;
+    };
+    ds.append(the('ca', 'Cả trang', 'dựng cả trang thành một cảnh', `/api/chup-trang/${chup.id}/anh`));
+    for (const p of chup.phan) ds.append(the(p.id, p.loai, p.ten, `/api/chup-trang/${chup.id}/phan/${p.id}`));
+    kq.append(ds);
+    const xem = el('a', 'chup-xem', 'Mở ảnh chụp cả trang ↗');
+    xem.href = `/api/chup-trang/${chup.id}/anh`; xem.target = '_blank'; xem.rel = 'noopener';
+    kq.append(xem);
+    if (chup.catDuoi) kq.append(el('p', 'num-goi', 'Trang rất dài — chỉ chụp tới 9.000px đầu.'));
+    const hang = el('div', 'hang-nut');
+    const dung = el('button', 'nut chinh', phanChon ? 'Dựng cảnh từ phần này' : 'Chọn một phần ở trên');
+    dung.type = 'button';
+    dung.disabled = !phanChon || dangDung;
+    dung.onclick = () => dungPhan();
+    hang.append(dung);
+    kq.append(hang);
+  }
+
+  async function dungPhan() {
+    const slug = laySlug?.();
+    if (!slug) return bao('Mở một clip trước đã.', true);
+    if (!chup || !phanChon || dangDung) return;
+    dangDung = true; veNut();
+    const quay = el('button', 'nut nho rong', '← Chọn phần khác');
+    quay.type = 'button';
+    quay.onclick = () => { ketQua = null; veChup(); };
+    kq.innerHTML = '';
+    kq.classList.remove('hong');
+    kq.append(el('p', 'dung-tom', 'AI đang nhìn ảnh chụp và số đo của phần này để dựng cảnh — thường mất nửa phút đến một phút…'));
+    try {
+      const r = await fetch('/api/tu-html', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug, chupId: chup.id, phanId: phanChon, y: oY.value.trim() }),
+      });
+      const d = await r.json();
+      if (!d.canh) {
+        kq.classList.add('hong'); kq.innerHTML = '';
+        kq.append(el('p', 'dung-loi', d.loi || d.cau || 'AI dựng hỏng.'), quay);
+        return;
+      }
+      ketQua = d; veKetQua();
+      kq.append(quay);
+    } catch (e) {
+      kq.classList.add('hong'); kq.innerHTML = '';
+      kq.append(el('p', 'dung-loi', String(e.message || e).slice(0, 400)), quay);
+    } finally { dangDung = false; veNut(); }
+  }
+
+  /** @returns true nếu đã chụp được (hoặc đã báo lỗi), false nếu máy chủ không có trình duyệt. */
+  async function chupTruoc(n, tuDong) {
+    kq.innerHTML = '';
+    kq.classList.remove('an', 'hong');
+    kq.append(el('p', 'dung-tom', 'Máy đang mở trang bằng trình duyệt thật, chờ trang chạy xong rồi chụp — thường mất 15–40 giây…'));
+    const r = await fetch('/api/chup-trang', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(n.loai === 'url' ? { url: n.url } : { html: n.html }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (d.khongCo) return false;
+    if (!d.ok) {
+      kq.classList.add('hong'); kq.innerHTML = '';
+      kq.append(el('p', 'dung-loi', d.cau || d.loi || 'Không chụp được trang.'));
+      return true;
+    }
+    chup = d;
+    phanChon = tuDong ? 'ca' : null;
+    veChup();
+    return true;
   }
 
   /* ---- cây món, để người dùng thấy AI định thêm gì ---- */
@@ -224,11 +319,27 @@ export function taoDungHinh(boc, { laySlug, bao, nhanCanh, layKieuMay }) {
 
   /* Tách khỏi `nut.onclick` để luồng Stitch gọi lại được. Anh Quý muốn gõ một
      lời tả rồi RA CẢNH, không phải bấm hai nút rồi tự nối hai bước bằng tay. */
-  async function chayDung() {
+  async function chayDung({ tuDong = false } = {}) {
     const slug = laySlug?.();
     const n = nguon();
     if (!n || dangDung) return;
     if (!slug) return bao('Mở một clip trước đã.', true);
+    if (n.loai !== 'anh') {
+      dangDung = true; veNut();
+      let xong = false;
+      try { xong = await chupTruoc(n, tuDong); }
+      catch (e) {
+        kq.classList.add('hong'); kq.innerHTML = '';
+        kq.append(el('p', 'dung-loi', String(e.message || e).slice(0, 400)));
+        xong = true;
+      } finally { dangDung = false; veNut(); }
+      if (xong) {
+        /* Stitch: một màn thiết kế là một cảnh — đi thẳng, không bắt chọn. */
+        if (tuDong && chup) await dungPhan();
+        return;
+      }
+      /* Máy chủ không có trình duyệt → lùi về đo trong trình duyệt này. */
+    }
     dangDung = true; veNut();
     kq.classList.remove('an', 'hong');
     kq.innerHTML = '';
@@ -240,9 +351,20 @@ export function taoDungHinh(boc, { laySlug, bao, nhanCanh, layKieuMay }) {
       : 'Đang mở trang để đo bố cục rồi mới dựng — thường mất 2–3 phút…'));
     try {
       const duong = n.loai === 'anh' ? '/api/dung-canh' : '/api/tu-html';
-      const than = n.loai === 'anh'
-        ? { slug, anh: n.anh.b64, mime: n.anh.mime, y: oY.value.trim() }
-        : { slug, html: n.html, url: n.url, y: oY.value.trim() };
+      let than;
+      if (n.loai === 'anh') {
+        than = { slug, anh: n.anh.b64, mime: n.anh.mime, y: oY.value.trim() };
+      } else {
+        /* ĐO TRANG NGAY TRONG TRÌNH DUYỆT NÀY rồi mới gửi bản đồ lên. Bản triển
+           khai không có Chromium nên máy chủ không tự đo được — gửi thẳng HTML
+           lên là nhận lại "Cannot find module '/app/tools/doc-html.mjs'". */
+        const m = layMeta?.() || { width: 1280, height: 720 };
+        const tomTat = kq.querySelector('.dung-tom');
+        if (tomTat) tomTat.textContent = 'Đang mở trang ngay trong trình duyệt này để đo bố cục…';
+        const banDo = await doTrang({ html: n.html, url: n.url, rong: m.width, cao: m.height });
+        if (tomTat) tomTat.textContent = `Đã đo ${banDo.khoi.length} khối. AI đang dựng thành cảnh — thường mất nửa phút…`;
+        than = { slug, banDo, y: oY.value.trim() };
+      }
       const r = await fetch(duong, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(than),
@@ -256,10 +378,16 @@ export function taoDungHinh(boc, { laySlug, bao, nhanCanh, layKieuMay }) {
       ketQua = d; veKetQua();
     } catch (e) {
       kq.classList.add('hong'); kq.innerHTML = '';
-      kq.appendChild(el('p', 'dung-loi', `AI dựng hỏng — ${String(e.message || e).slice(0, 80)}`));
+      /* KHÔNG gắn "AI dựng hỏng —" và KHÔNG cắt ở 80 ký tự.
+         Lỗi ở đây giờ có thể đến từ bước ĐO TRANG, không phải từ AI — gắn nhãn
+         "AI hỏng" là nói sai chỗ hỏng. Và câu báo của bước đo dặn người dùng
+         phải làm gì tiếp ("chụp màn hình rồi dùng ô ①…") — cắt ở 80 ký tự là cắt
+         đúng trước phần ấy, đo thật trên matbao.net: người dùng chỉ đọc được
+         "…nên chỉ đo được trang bá". */
+      kq.appendChild(el('p', 'dung-loi', String(e.message || e).slice(0, 400)));
     } finally { dangDung = false; veNut(); }
   }
-  nut.onclick = chayDung;
+  nut.onclick = () => chayDung();
 
   /* HAI CỘT: nạp ảnh bên trái, kết quả bên phải. Xếp dọc hết thì ô ảnh đẩy nút
      "Nhận vào clip" ra ngoài tầm nhìn — mà đó là nút người dùng PHẢI bấm. */

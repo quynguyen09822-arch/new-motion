@@ -45,6 +45,7 @@ const kho = taoKho();
 const doMon = taoDo(player);
 const lopPhu = taoLopPhu($('lop-phu'), player);
 const bang = taoBang($('bang-thuoc-tinh'), kho, player);
+bang.khiDoiLop(() => { const d = kho.doc(); if (d && chon?.canhId) dsLop.ve(d, chon.canhId); });
 const anhNho = taoAnhNho(player);
 const dsLop = taoDanhSach($('ds-lop'), {
   anhNho,
@@ -528,6 +529,8 @@ const thanhAI = taoThanhAI({
        khung 9:16 là bố cục ngang phải bóp lại, chữ tụt cỡ và mọi tỉ lệ sai hết
        — đúng cái bệnh mà `docs/DOI-KHO-HINH.md` đã đo và kết luận là không nhân
        co được, phải xếp lại. Chọn đúng kiểu máy ngay từ đầu thì khỏi phải xếp. */
+    /* Khổ clip đang mở — trang cần đo phải được dàn đúng bề rộng này. */
+    layMeta: () => kho.doc()?.meta,
     layKieuMay: () => {
       const m = kho.doc()?.meta;
       return m && m.height > m.width ? 'MOBILE' : 'DESKTOP';
@@ -1009,6 +1012,39 @@ window.addEventListener('beforeunload', (e) => {
   if (kho.ban()) { e.preventDefault(); e.returnValue = ''; }
 });
 
+/* ---------- ĐÓNG TAB THÌ LƯU NỐT ----------
+ *
+ * Nháp tự lưu sau 5 giây rảnh tay. Ai sửa xong rồi đóng tab ngay thì đúng
+ * những sửa đổi CUỐI CÙNG chưa kịp đi — mà đó lại là thứ người ta nhớ rõ nhất
+ * và tiếc nhất khi mất.
+ *
+ * `pagehide` chứ không phải `beforeunload`: `beforeunload` không chạy khi người
+ * dùng chuyển sang app khác trên điện thoại rồi hệ điều hành thu hồi tab.
+ * `sendBeacon` chứ không phải `fetch`: lúc trang đang đóng, `fetch` bị huỷ giữa
+ * chừng, còn beacon thì trình duyệt cam kết gửi xong. Beacon luôn là POST, nên
+ * máy chủ phải nhận cả POST ở hai đường ấy.
+ */
+function luuLucRoiTrang() {
+  const d = kho.doc();
+  const slug = clipDangMo?.slug;
+  if (!slug) return;
+  const goi = (duong, than) => {
+    try {
+      navigator.sendBeacon(duong, new Blob([JSON.stringify(than)], { type: 'application/json' }));
+    } catch { /* trình duyệt không cho thì thôi, nháp 5 giây vẫn còn đó */ }
+  };
+  /* Chỗ đang làm: lưu kể cả khi không sửa gì — chỉ mở ra xem cũng là chỗ họ
+     muốn quay lại. */
+  goi('/api/cho-lam-viec', { slug, canh: chon?.canhId || '', giay: player.giay() });
+  if (d && kho.ban()) goi(`/api/draft/${encodeURIComponent(slug)}`, { doc: d });
+}
+addEventListener('pagehide', luuLucRoiTrang);
+/* Chuyển tab / khoá máy cũng lưu: trên điện thoại, `pagehide` có khi không kịp
+   chạy trước lúc hệ điều hành thu hồi tab. */
+addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') luuLucRoiTrang();
+});
+
 /* ---------- chạy ----------
  * `/sua?clip=<tên>` mở đúng dự án đó. Trang chào và mọi đường dẫn chia sẻ cho
  * nhau đều đi lối này — không có tham số thì mới rơi về dự án đầu danh sách.
@@ -1021,8 +1057,27 @@ try {
   const muon = new URLSearchParams(location.search).get('clip');
   const dung = muon && clips.find((c) => c.slug === muon && !c.hong);
   if (muon && !dung) bao(`Kho của bạn không có dự án "${muon}".`, true);
-  const dau = dung || clips.find((c) => c.doi === 2 && !c.hong);
-  if (dau) { chonClip.value = dau.slug; await moClip(dau.slug); }
+
+  /* KHÔNG CHỈ ĐỊNH DỰ ÁN THÌ VỀ ĐÚNG CHỖ ĐANG LÀM DỞ. Mở dự án đầu danh sách là
+     đúng khi người ta vào lần đầu, nhưng sai với người đang làm dở một clip —
+     họ phải đi tìm lại nó mỗi lần mở app. */
+  let cho = null;
+  if (!dung) {
+    try { cho = (await (await fetch('/api/cho-lam-viec')).json()).cho; } catch { /* thôi vậy */ }
+  }
+  const choCu = cho && clips.find((c) => c.slug === cho.slug && !c.hong);
+  const dau = dung || choCu || clips.find((c) => c.doi === 2 && !c.hong);
+  if (dau) {
+    chonClip.value = dau.slug;
+    await moClip(dau.slug);
+    /* Về đúng giây đang xem dở. Đặt SAU khi mở xong, và chỉ khi còn trong clip —
+       clip bị cắt ngắn đi thì nhảy tới một giây không còn tồn tại là màn hình
+       trắng trơn không ai hiểu vì sao. */
+    if (choCu && cho.giay > 0.05) {
+      const dai = player.thoiLuong();
+      if (dai && cho.giay < dai) player.tua(cho.giay);
+    }
+  }
   else if (!muon) {
     bao('Kho của bạn chưa có dự án nào — bấm "Kho dự án" ở thanh trên để tạo dự án đầu tiên.', true);
   }

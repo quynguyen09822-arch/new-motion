@@ -226,6 +226,30 @@ export function taoAnhNho(player) {
     const sh = o.shadowRoot || o.attachShadow({ mode: 'open' });
     sh.innerHTML = '';
 
+    /*
+     * TẤM MÀU PHỦ KÍN KHUNG (nền riêng của cảnh, kit "Màu trơn") — ô ảnh CHÍNH
+     * LÀ màu ấy. Nhân bản nó rồi đặt giữa ô thì vỡ: bộ dựng căng nó bằng
+     * `left/right/top/bottom`, quy tắc 1 ghi đè `left` là khung co về một chấm,
+     * và ô ra trắng trơn trong khi nền thật màu xanh đậm (đã gặp 28/09).
+     */
+    const W = meta.width || 0, H = meta.height || 0;
+    if (gocNode.classList.contains('k-panel') && W && H
+      && gocNode.offsetWidth >= W * 0.98 && gocNode.offsetHeight >= H * 0.98) {
+      const mau = hex(gocNode.ownerDocument.defaultView.getComputedStyle(gocNode).backgroundColor);
+      if (mau) {
+        const st = document.createElement('style');
+        st.textContent = `:host{display:block;overflow:hidden}
+          .khung{position:absolute;inset:0;background:${mau}}
+          .vien{position:absolute;inset:1px;border:1px dashed rgba(140,164,196,.75);border-radius:3px}`;
+        const khung = document.createElement('div');
+        khung.className = 'khung';
+        /* Quy tắc 5: trùng màu nền trang thì vẫn phải thấy nó nằm đâu. */
+        khung.appendChild(Object.assign(document.createElement('div'), { className: 'vien' }));
+        sh.append(st, khung);
+        return true;
+      }
+    }
+
     const st = document.createElement('style');
     st.textContent = `${css}
       :host{display:block;overflow:hidden}

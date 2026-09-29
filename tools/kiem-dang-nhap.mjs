@@ -18,6 +18,7 @@
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -47,6 +48,10 @@ function moMayChu(cong, them) {
     /* `MOTION_KHOA_PHIEN` truyền vào để `dangnhap.js` KHỎI tự sinh rồi ghi vào
        `.env` thật — bài kiểm không được để lại dấu vết trong cấu hình. */
     env: { ...process.env, PORT: String(cong), MOTION_KHOA_PHIEN: 'khoa-kiem-thu',
+      /* CSDL RIÊNG cho bài này. Ba bài cùng ghi vào một CSDL thì bài chạy
+         trước chép danh sách tài khoản của nó vào bảng, và bài sau không đăng
+         nhập nổi bằng tài khoản của chính nó (28/09). */
+      MOTION_CSDL: path.join(tmpdir(), 'motion-kiem-dang-nhap.db'),
       MOTION_DUOI_EMAIL: DUOI, MOTION_TAI_KHOAN: TK, ...them },
   });
   return con;
@@ -242,7 +247,11 @@ try {
   dat('có ô email', t.coEmail);
   /* Gợi ý phải lấy đuôi TỪ MÁY CHỦ. Viết cứng ở trang thì đổi đuôi trong `.env`
      mà chỗ này vẫn ghi đuôi cũ — tức là nói dối người dùng. */
-  dat('gợi ý email lấy đúng đuôi máy chủ khai', String(t.goiY || '').endsWith(DUOI), t.goiY);
+  /* `includes` chứ không `endsWith`: gợi ý nay còn mách thêm "hoặc gõ mỗi
+     ten.ban" — vì gõ tên trống cũng đăng nhập được (28/09). Điều bài này canh
+     là ĐUÔI CÓ TRONG GỢI Ý, không phải gợi ý dài đúng bằng cái đuôi. */
+  dat('gợi ý email lấy đúng đuôi máy chủ khai', String(t.goiY || '').includes(DUOI), t.goiY);
+  dat('và mách rằng gõ mỗi tên cũng được', /gõ mỗi/i.test(String(t.goiY || '')), t.goiY);
   dat('hai ô rộng bằng nhau', t.rongBang);
   dat('con trỏ nhảy sẵn vào ô đầu', t.troVao === 'email');
   dat('có nút hiện/ẩn mật khẩu', t.hien);

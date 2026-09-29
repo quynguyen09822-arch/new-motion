@@ -7,6 +7,28 @@ FROM node:22-alpine
 
 WORKDIR /app
 
+# CHROMIUM — cho ô ② "Có sẵn mã HTML hoặc địa chỉ trang" (server/chuptrang.js).
+#
+# Trước đây cố ý KHÔNG có, để ảnh nhẹ; đường ấy đo trang trong trình duyệt của
+# người dùng thay thế. Nhưng website thật (matbao.net) nổ trong iframe sandbox và
+# chỉ đo được trang báo lỗi. Máy chủ phải tự mở trang bằng trình duyệt thật.
+# Điều khiển bằng giao thức DevTools qua WebSocket có sẵn của Node — vẫn KHÔNG có
+# gói npm nào. `font-noto` để trang lạ có chữ Việt hiển thị đúng khi chụp.
+#
+# `chromium-headless-shell` chứ không phải `chromium` đầy đủ: đúng việc (chỉ chạy
+# ngầm, không cần giao diện) và ảnh nhẹ hơn 350 MB. Nó KHÔNG nhận cờ `--headless`
+# — `server/chuptrang.js` nhận ra qua tên file mà bỏ cờ ấy đi.
+# THỬ LẠI, VÀ HỎNG THÌ KHÔNG KÉO CẢ BẢN TRIỂN KHAI XUỐNG THEO.
+#
+# Gói này nặng ~300 MB; máy dựng mất mạng giữa chừng là cả lượt triển khai đỏ,
+# trong khi app KHÔNG cần Chromium để chạy — thiếu nó thì riêng ô ② lùi về cách
+# đo trong trình duyệt người dùng (`server/dotrang.js`), mọi thứ khác nguyên vẹn.
+# Đã vấp thật 29/09: lượt triển khai thử lại 3 lần vì "fetch failed" ở bước này.
+RUN apk add --no-cache chromium-headless-shell font-noto \
+ || apk add --no-cache chromium-headless-shell font-noto \
+ || echo '!!! Khong cai duoc Chromium — "Dung tu trang" se dung duong lui trong trinh duyet.'
+ENV MOTION_CHROMIUM=/usr/bin/chromium-headless-shell
+
 # Mã nguồn.
 COPY package.json ./
 COPY server/ ./server/

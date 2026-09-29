@@ -64,7 +64,7 @@ export function mauThat() {
   _mau = mau;
   return mau;
 }
-function loiNhac(meta, y, vanDeCu, canhCu) {
+function loiNhac(meta, y, vanDeCu, canhCu, mayTruoc) {
   const mau = mauThat();
   const viDu = ['text', 'nut', 'panel', 'card', 'group', 'image', 'huyhieu', 'logo', 'browser']
     .filter((k) => mau[k])
@@ -130,6 +130,23 @@ LUẬT
 7. Hiệu ứng vào: \`"in":{"kind":"rise"|"fade"|"pop","ease":"out","dur":0.6}\`.
    Muốn món vào lần lượt thì đặt \`at\` tăng dần (0, 0.12, 0.24…).
 8. \`duration\` khoảng 4–6 giây.
+9. MÁY QUAY. Khai \`"camera": {"x":<số>,"y":<số>,"scale":<số>}\` cho cảnh này,
+   kèm \`"cameraMove":0.8\` và \`"cameraEase":"inOut"\`.
+   Bộ dựng KHÔNG cắt cứng giữa hai cảnh — nó bay mượt từ máy quay cảnh TRƯỚC
+   sang máy quay cảnh này trong \`cameraMove\` giây. Vì vậy con số bạn chọn
+   không phải "đặt máy ở đâu" mà là "bay tới đâu".
+   ${mayTruoc
+     ? `Cảnh TRƯỚC đang ở: x=${mayTruoc.x || 0}, y=${mayTruoc.y || 0}, scale=${mayTruoc.scale ?? 1}. Chọn khác đi thì mới có chuyển động.\n      RÀNG BUỘC: scale của cảnh này phải chênh cảnh trước ÍT NHẤT 0,2 —\n      chênh dưới 0,05 là máy quay ĐỨNG IM và cảnh trông như ảnh tĩnh.\n      Chỉ cố ý để đứng im khi cảnh này là phần tiếp NGUYÊN VẸN của cảnh trước.`
+     : 'Đây là cảnh ĐẦU của clip — không có gì để bay tới, cứ để x=0, y=0, scale=1.'}
+   Ba nhịp dùng được, chọn một:
+     · DỒN VÀO  — có một chi tiết cần người xem đọc: tăng \`scale\` thêm 0,3–0,5
+       và dời \`x\`/\`y\` tới đúng chỗ chi tiết ấy nằm.
+     · LƯỚT NGANG — so sánh hai thứ cạnh nhau: giữ nguyên \`scale\`, chỉ đổi \`x\`.
+     · THỞ RA — kết một đoạn: kéo \`scale\` về 1,0–1,1 và \`x\`/\`y\` về gần 0.
+   \`scale\` giữ trong khoảng 1,0–2,0. Quá 2,0 là vỡ hình vì bộ dựng phóng
+   chính khung hình chứ không vẽ lại.
+   \`x\`/\`y\` là điểm NGẮM tính bằng pixel trên khung ${meta.width}×${meta.height},
+   gốc ở giữa khung: x dương là ngắm sang phải, y dương là ngắm xuống dưới.
 
 ${String(y || '').trim() ? `NGƯỜI DÙNG DẶN THÊM\n${String(y).trim()}\n` : ''}
 CHỈ TRẢ VỀ JSON. Không rào đầu, không giải thích, không dấu \`\`\`.${suaLai}`;
@@ -152,12 +169,16 @@ function bocJSON(chu) {
  */
 export async function dungCanh({ doc, anh, mime, y }) {
   const meta = doc?.meta;
+  /* Máy quay của cảnh CUỐI clip hiện tại. Bộ dựng nội suy từ đó sang cảnh mới,
+     nên AI phải biết nó đang ở đâu mới chọn được điểm tới cho có nhịp — không
+     biết thì nó đặt một con số bất kỳ, và cú bay ra vô nghĩa. */
+  const mayTruoc = doc?.scenes?.length ? (doc.scenes[doc.scenes.length - 1].camera || null) : null;
   if (!meta?.width) return { ok: false, cau: 'Clip chưa có khổ hình.' };
   if (!anh) return { ok: false, cau: 'Chưa chọn ảnh.' };
 
   const goi = async (vanDeCu, canhCu) => {
     const g = await goiGemini(
-      [{ text: loiNhac(meta, y, vanDeCu, canhCu) }, { inline_data: { mime_type: mime, data: anh } }],
+      [{ text: loiNhac(meta, y, vanDeCu, canhCu, mayTruoc) }, { inline_data: { mime_type: mime, data: anh } }],
       /* Hạn rộng vì lượt này GỬI KÈM ẢNH: model phải nhìn, đo, rồi sinh vài nghìn
            token JSON — hạn 12 giây mặc định là cả bốn model đều quá hạn, và người
            dùng chỉ thấy "AI dở" chứ không biết nó chưa kịp trả lời. */

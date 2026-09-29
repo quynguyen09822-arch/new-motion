@@ -100,9 +100,11 @@ tham khảo, và cũng là lý do xem không mệt.
   `panel`** — hai loại đó đọc `fill`.
 - **Chữ dài làm bong bóng tràn khỏi khung.** `nut` nở theo độ dài `label` và
   không tự xuống dòng. Câu dài thì dùng `text` có `w`, hoặc cắt câu ngắn lại.
-- **Không đổi được `meta.bg` giữa chừng** — màu nền là của cả clip. Muốn đoạn
-  đen đoạn trắng như video tham khảo thì đặt một `panel` phủ kín khung ở dưới
-  cùng của cảnh, rồi đổi `fill` của nó theo đoạn.
+- **`meta.bg` là màu của cả clip**, bộ dựng không đổi nó giữa chừng. Muốn đoạn
+  đen đoạn trắng như video tham khảo thì dùng ô **"Nền cảnh này"** (mục "Màu
+  nền" ở bảng bên phải, từ 28/09) — nó đặt một `panel` mã `nen-canh` phủ kín
+  khung ở dưới cùng cảnh. Xem `web/nencanh.js`. Cái giá: cảnh có `stagger` thì
+  mọi món khác vào chậm thêm đúng một nhịp so le, vì tấm nền chiếm chỗ thứ nhất.
 - **Không có nhoè chuyển động thật.** Video tham khảo nhoè vì quay ở 24 hình/giây
   với vật thể bay nhanh; bộ dựng chụp từng khung đứng yên nên không có vệt.
   `soft`/`softIn` là nhoè TĨNH (làm mềm mép), không thay thế được — dùng nó để

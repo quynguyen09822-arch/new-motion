@@ -21,6 +21,7 @@
  */
 import { spawn } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -52,6 +53,10 @@ function moMayChu(cong, them = {}) {
     cwd: M, stdio: ['ignore', 'ignore', 'pipe'],
     env: { ...process.env, PORT: String(cong),
       MOTION_KHOA_PHIEN: 'khoa-kho-kiem',
+      /* CSDL RIÊNG cho bài này. Ba bài cùng ghi vào một CSDL thì bài chạy
+         trước chép danh sách tài khoản của nó vào bảng, và bài sau không đăng
+         nhập nổi bằng tài khoản của chính nó (28/09). */
+      MOTION_CSDL: path.join(tmpdir(), 'motion-kiem-kho-rieng.db'),
       MOTION_MAT_KHAU_HASH: bam(MK),
       MOTION_DUOI_EMAIL: DUOI,
       MOTION_TAI_KHOAN: `chu-kho-kiem,nguoi-moi-kiem`,

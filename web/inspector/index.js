@@ -10,6 +10,7 @@ import { taoNum } from './fields.js';
 import { cungTiLe, doiKhoHinh, khoGoiY } from '../khohinh.js';
 import { huongDanChung } from '../huongdan.js';
 import { duongDanMon, timCanh, timMon } from '../store.js';
+import { NEN_CANH_ID, datNenCanh, layNenCanh } from '../nencanh.js';
 
 const el = (the, lop, chu) => {
   const n = document.createElement(the);
@@ -22,6 +23,7 @@ const g1 = (n) => Number(n).toFixed(1).replace('.', ',');
 
 /** Tên gọi một món cho dễ nhận: "Chữ · Tìm tên miền…" */
 export function tenMon(e) {
+  if (e.id === NEN_CANH_ID) return 'Nền cảnh';
   const loai = TEN_LOAI[e.kind] || e.kind;
   const chu = e.text || e.label || e.title || e.name || e.value || e.url || '';
   const goc = String(chu).replace(/\*|\[\[.*?\]\]|\|/g, ' ').replace(/\s+/g, ' ').trim();
@@ -38,6 +40,8 @@ export function taoBang(boc, kho, player) {
   const cuChi = { mo: () => kho.moCuChi(), dong: () => kho.dongCuChi() };
   let chon = null;      // { canhId, monId } | { canhId } | null
   let goiChonKhac = () => {};
+  /* Bảng này thêm/bớt MÓN (tấm nền cảnh) — danh sách lớp bên trái phải vẽ lại. */
+  let goiDoiLop = () => {};
 
   /* Đổi một trường của món đang chọn. */
   const datMon = (nhan, truong, v) =>
@@ -381,6 +385,46 @@ export function taoBang(boc, kho, player) {
     return m;
   }
 
+  /*
+   * MÀU NỀN — bày ở MỌI bảng (cảnh, món), không chỉ bảng "cả clip".
+   *
+   * Trước đây núm nền chỉ hiện khi KHÔNG chọn gì, mà người dùng gần như lúc nào
+   * cũng đang chọn một món — nên có tính năng mà không ai tìm thấy. Nền riêng
+   * từng cảnh: xem `web/nencanh.js`.
+   */
+  function veMucNen(doc, canhId) {
+    const m = muc('Màu nền');
+    const canh = timCanh(doc, canhId);
+    const oClip = taoNum({ id: 'bg', nhan: 'Nền cả clip', kieu: 'mau', huongDan: HUONG_DAN_MAU.bg },
+      doc.meta.bg, (v) => datMeta('đổi nền', 'bg', v), cuChi);
+    if (canh) {
+      let coRieng = Boolean(layNenCanh(canh));
+      const nutBo = el('button', 'nut nho', 'Bỏ nền riêng — dùng nền cả clip');
+      nutBo.type = 'button';
+      nutBo.style.margin = '2px 0 12px';
+      nutBo.onclick = () => {
+        kho.sua('bỏ nền riêng của cảnh', (d) => datNenCanh(timCanh(d, canhId), null));
+        goiDoiLop();
+        ve();
+      };
+      m.appendChild(taoNum({ id: 'nen-canh', nhan: 'Nền cảnh này', kieu: 'mau',
+        huongDan: { tieuDe: 'Nền riêng cho cảnh này',
+          mota: 'Chỉ đổi nền của cảnh đang chọn, các cảnh khác giữ nguyên. Hợp khi muốn đoạn tối đoạn sáng xen nhau.' } },
+        layNenCanh(canh) || doc.meta.bg,
+        (v) => {
+          if (!/^#[0-9a-f]{6}$/i.test(v || '')) return;
+          kho.sua('đổi nền cảnh', (d) => datNenCanh(timCanh(d, canhId), v));
+          /* Lần đầu là THÊM một món vào cảnh — danh sách lớp phải thấy nó, và
+             nút bỏ phải hiện ra. KHÔNG vẽ lại cả bảng: đang kéo trong ô chọn màu
+             mà vẽ lại là ô ấy bị gỡ khỏi tay người dùng. */
+          if (!coRieng) { coRieng = true; m.insertBefore(nutBo, oClip); goiDoiLop(); }
+        }, cuChi));
+      if (coRieng) m.appendChild(nutBo);
+    }
+    m.appendChild(oClip);
+    return m;
+  }
+
   /* ---------- vẽ toàn bảng ---------- */
   function ve() {
     boc.innerHTML = '';
@@ -431,6 +475,7 @@ export function taoBang(boc, kho, player) {
         goi: 'món sau vào chậm hơn món trước chừng này giây — thứ làm chuyển động bớt máy' },
         canh.stagger ?? 0, (v) => datCanh('đổi độ so le', 'stagger', v), cuChi));
       boc.appendChild(m);
+      boc.appendChild(veMucNen(doc, chon.canhId));
       return;
     }
 
@@ -519,6 +564,7 @@ export function taoBang(boc, kho, player) {
         (v) => datMon(`đổi ${num.nhan.toLowerCase()}`, num.id, v), cuChi));
     }
     boc.appendChild(mH);
+    boc.appendChild(veMucNen(doc, chon.canhId));
   }
 
   return {
@@ -526,5 +572,6 @@ export function taoBang(boc, kho, player) {
     dat(c) { chon = c; ve(); },
     chon: () => chon,
     khiChonKhac(f) { goiChonKhac = f; },
+    khiDoiLop(f) { goiDoiLop = f; },
   };
 }

@@ -7,6 +7,7 @@
  */
 import { TEN_LOAI } from './inspector/schema.js';
 import { tenMon } from './inspector/index.js';
+import { NEN_CANH_ID } from './nencanh.js';
 
 const el = (the, lop, chu) => {
   const n = document.createElement(the);
@@ -117,7 +118,7 @@ export function taoDanhSach(boc, { onChon, onRe, onThoiRe, onDoiCho, anhNho }) {
 
         // Nền và vệt sáng bấm trên khung hình không trúng — đánh dấu để người
         // dùng biết vì sao chỉ chọn được từ đây.
-        if (e.kind === 'nen' || e.kind === 'sweep') {
+        if (e.kind === 'nen' || e.kind === 'sweep' || (e.id === NEN_CANH_ID && !sau)) {
           hang.append(el('span', 'lop-dau', 'chỉ chọn ở đây'));
         }
 

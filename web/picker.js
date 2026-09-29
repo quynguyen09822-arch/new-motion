@@ -13,6 +13,12 @@
  * danh sách thành phần bên trái.
  */
 
+import { NEN_CANH_ID } from './nencanh.js';
+
+/* Tấm nền riêng của cảnh phủ kín khung — bấm chỗ trống mà trúng nó thì không bao
+   giờ bỏ chọn được. Coi nó như chỗ trống; muốn chọn thì dùng danh sách bên trái. */
+const laNen = (n) => n?.dataset?.el === NEN_CANH_ID && !n.parentElement?.closest?.('.el');
+
 export function taoDo(player) {
   return {
     /**
@@ -24,7 +30,7 @@ export function taoDo(player) {
       if (!d) return null;
       const trung = d.elementFromPoint(x, y);
       const mon = trung?.closest?.('.el');
-      if (!mon) return null;
+      if (!mon || laNen(mon)) return null;
 
       const canhId = mon.dataset.scene;
       const monId = mon.dataset.el;
@@ -43,7 +49,7 @@ export function taoDo(player) {
       const d = player.tai();
       const trung = d?.elementFromPoint(x, y);
       let mon = trung?.closest?.('.el');
-      if (!mon) return null;
+      if (!mon || laNen(mon)) return null;
       let tren = mon.parentElement?.closest?.('.el');
       while (tren) { mon = tren; tren = mon.parentElement?.closest?.('.el'); }
       return { canhId: mon.dataset.scene, monId: mon.dataset.el };

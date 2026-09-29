@@ -132,6 +132,34 @@ try {
   }
 
   /* ---------- 3b. bộ lọc bản vá — kiểm THẲNG, không qua AI ---------- */
+  /* ---------- 2b. lời nhắc phải DẠY AI dùng máy quay ---------- */
+  console.log('\n2b. Lời nhắc dạy AI dùng máy quay');
+  {
+    /* Đây là phần kiểm THUẦN VĂN BẢN, cố ý không gọi AI: lời nhắc là thứ quyết
+       định clip có chuyển động hay đứng im, mà nó lại rất dễ bị ai đó rút gọn
+       cho "đỡ tốn token" rồi không ai biết.
+
+       Vì sao cần dạy: bộ dựng KHÔNG cắt cứng giữa hai cảnh — nó bay mượt từ máy
+       quay cảnh trước sang cảnh này. Đo thật 25/09: lời nhắc không nhắc một chữ
+       nào về máy quay, nên AI khai tuỳ hứng. Thêm luật rồi mà chỉ nói "chọn khác
+       đi" thì nó vẫn chọn scale 1,05 cạnh 1,048 — tức đứng im. Phải nêu NGƯỠNG
+       bằng số mới ăn: sau khi thêm "chênh ít nhất 0,2", ba lượt thử liên tiếp
+       đều bay (chênh 0,23 · 0,35 · 0,23). */
+    const { readFileSync } = await import('node:fs');
+    for (const f of ['server/dungcanh.js', 'server/tuhtml.js']) {
+      const chu = readFileSync(path.join(M, f), 'utf8');
+      dat(`${f}: có dạy về máy quay`, /cameraMove/.test(chu) && /MÁY QUAY/.test(chu));
+      dat(`${f}: nói rõ bộ dựng BAY chứ không cắt cứng`,
+        /bay mượt|KHÔNG cắt cứng/i.test(chu));
+      /* Ngưỡng bằng SỐ là thứ duy nhất làm AI chịu đổi máy quay. Bỏ nó đi thì
+         luật vẫn còn nguyên trong lời nhắc mà clip lại đứng im như cũ. */
+      dat(`${f}: nêu NGƯỠNG chênh lệch bằng số`, /ÍT NHẤT 0,2/.test(chu));
+      dat(`${f}: truyền máy quay cảnh TRƯỚC cho AI biết`, /mayTruoc/.test(chu));
+      dat(`${f}: dạy đủ ba nhịp`,
+        /DỒN VÀO/.test(chu) && /LƯỚT NGANG/.test(chu) && /THỞ RA/.test(chu));
+    }
+  }
+
   console.log('\n3b. Bộ lọc bản vá (kiểm thẳng, không phụ thuộc AI có ngoan hay không)');
   /* Mục 3 ở trên chỉ canh được KHI model chịu đề nghị trường bậy. Lần nó ngoan
      thì mục đó xanh mà chẳng chứng minh gì. Ở đây đưa thẳng một bản vá bậy vào
@@ -261,7 +289,7 @@ try {
   await tr.waitForTimeout(200);
   dat('dán địa chỉ trang thì nút mở ra',
     await tr.evaluate(() => !document.querySelector('.nut-dung').disabled
-      && /Dựng từ trang/.test(document.querySelector('.nut-dung').textContent)));
+      && /Chụp trang để xem trước/.test(document.querySelector('.nut-dung').textContent)));
   await tr.evaluate(() => {
     const o = document.querySelector('.o-dung-html');
     o.value = '';

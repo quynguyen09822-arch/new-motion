@@ -11,6 +11,7 @@
  */
 import { spawn } from 'node:child_process';
 import { chmodSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -29,7 +30,12 @@ const traLai = () => {
   rmSync(NK, { recursive: true, force: true });
   if (existsSync(CAT)) renameSync(CAT, NK);
 };
-process.on('exit', traLai);
+/* Máy chủ của bài này PHẢI chết cùng bài. Lần gãy 28/09 để lại một máy chủ
+   sống ở 7808, và nó phá mọi lần chạy sau đó. */
+const dsMayChu = [];
+const dungHet = () => { for (const m of dsMayChu) { try { m.kill(); } catch { /* đã chết */ } } };
+process.on('exit', () => { dungHet(); traLai(); });
+process.on('uncaughtException', (e) => { dungHet(); traLai(); console.error(e); process.exit(1); });
 process.on('SIGINT', () => { traLai(); process.exit(130); });
 
 let hong = 0;
@@ -39,13 +45,38 @@ const dat = (t, ok, them = '') => {
 };
 
 /** Dựng một máy chủ riêng, đợi tới lúc nó trả lời /health. */
+/**
+ * Cổng có ai đang chiếm không.
+ *
+ * ĐÃ NÓI DỐI MỘT LẦN (28/09): một máy chủ cũ của lần chạy trước bị gãy còn nằm
+ * ở cổng 7808. Vòng chờ `/health` thấy có người trả lời là tin luôn, rồi cả bài
+ * đỏ với 401/401/401 — trông y như code vừa hỏng, mà thật ra đang nói chuyện
+ * với một máy chủ hoàn toàn khác. Thà không chạy còn hơn chạy rồi báo sai chỗ.
+ */
+async function congDangBan(cong) {
+  try {
+    const r = await fetch(`http://127.0.0.1:${cong}/health`, { signal: AbortSignal.timeout(800) });
+    return r.ok;
+  } catch { return false; }
+}
+
 async function dungMayChu({ cong, mk, taiKhoan }) {
+  if (await congDangBan(cong)) {
+    console.error(`\n❌ Cổng ${cong} đang có người chiếm — có thể là máy chủ của lần chạy trước bị gãy.`);
+    console.error('   Dọn rồi chạy lại:  kill $(pgrep -f "server/main.js")\n');
+    process.exit(1);
+  }
   const mc = spawn('node', [path.join(M, 'server', 'main.js')], {
     cwd: M, stdio: ['ignore', 'pipe', 'pipe'],
     env: { ...process.env, PORT: String(cong), MOTION_KHOA_PHIEN: 'kiem-nhat-ky',
+      /* CSDL RIÊNG cho bài này. Ba bài cùng ghi vào một CSDL thì bài chạy
+         trước chép danh sách tài khoản của nó vào bảng, và bài sau không đăng
+         nhập nổi bằng tài khoản của chính nó (28/09). */
+      MOTION_CSDL: path.join(tmpdir(), 'motion-kiem-nhat-ky.db'),
            MOTION_MAT_KHAU_HASH: bam(mk), MOTION_DUOI_EMAIL: '@matbao.com',
            MOTION_TAI_KHOAN: taiKhoan },
   });
+  dsMayChu.push(mc);
   let loi = '';
   mc.stderr.on('data', (d) => { loi += d; });
   const goc = `http://127.0.0.1:${cong}`;

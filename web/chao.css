@@ -424,3 +424,18 @@ h3 { font-size: 18px; margin: 0; letter-spacing: -.3px; }
 .nut-xoa:hover { color: #ffb4b4; border-color: rgba(239, 68, 68, .5); }
 .nut-xoa[disabled] { opacity: .5; cursor: default; }
 @media (hover: none) { .nut-xoa { opacity: 1; } }
+
+/* ---------- Người dùng (chỉ người quản trị thấy) ---------- */
+.bang-nguoi { display: grid; gap: 8px; }
+.hang-nguoi { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  flex-wrap: wrap; padding: 11px 13px; border: 1px solid var(--vach);
+  border-radius: var(--bo-khoi); background: var(--nen-2); }
+.hang-nguoi.khoa { opacity: .6; }
+.nguoi-ten { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.nguoi-ten b { font-size: var(--chu-vua); word-break: break-all; }
+.nguoi-nut { display: flex; gap: 6px; flex-wrap: wrap; }
+.nut.xau { color: var(--do); border-color: color-mix(in srgb, var(--do) 45%, transparent); }
+.mk-khoe { padding: 11px 13px; border-radius: var(--bo); background: var(--nen-3);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: var(--chu-vua);
+  white-space: pre-wrap; word-break: break-all; user-select: all; margin: 0 0 12px; }
+.hang-nguoi.cho-duyet { opacity: 1; border-color: color-mix(in srgb, var(--cam) 55%, transparent); }

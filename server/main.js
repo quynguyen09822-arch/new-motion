@@ -19,8 +19,8 @@ import { fileURLToPath } from 'node:url';
 import { PROJ, SCENES, kiemTraDuAn, soatKichBan } from './proj.js';
 import { duocPhucVu, guiFile } from './static.js';
 import { aiDangVao, daDatMatKhau, dangBiKhoa, datCookie, diaChi, dsTaiKhoan, duocVao,
-  duocVaoKhiXuat, duoiEmail, ghiSai, kiemEmail, kiemMatKhau, moVe, SONG_VE_XUAT, taoVe,
-  taoVeXuat, xoaCookie, xoaSai } from './dangnhap.js';
+  chuanEmail, duocVaoKhiXuat, duoiEmail, ghiSai, kiemEmail, kiemMatKhau, moVe, SONG_VE_XUAT, taoVe,
+  taoVeXuat, xoaCookie, xoaSai, docCookie } from './dangnhap.js';
 import { canhMau } from './canhmau.js';
 import { danhSachClip, docClip, duongDanXem, locSlug } from './clips.js';
 import { chuKho, khoCua, oLuuBenVung, soDuAn } from './kho.js';
@@ -34,6 +34,9 @@ import { vietLoi } from './vietloi.js';
 import { hoiAI } from './hoiai.js';
 import { dungCanh } from './dungcanh.js';
 import { dungTuHtml } from './tuhtml.js';
+import { CSP_DO_TRANG, layTrang, luuTrang } from './dotrang.js';
+import { banDoPhan, chupTrang, layChup } from './chuptrang.js';
+import { doCanh } from './docanh.js';
 import { batDauSinh, coKhoa as coKhoaStitch, soatLoiTa, xemViec } from './stitch.js';
 import { daDung, ghiNhat, xin } from './hanmuc.js';
 import { thongKe } from './nhatky.js';
@@ -44,7 +47,11 @@ import { chanDoan, docKhung, suaKhung } from './khung.js';
 import { BO, danhSachVideo } from './videos.js';
 import { docJson, json, khop, loi, moSSE } from './router.js';
 import { duongAnh, luuAnh } from './anh.js';
-import { DUONG_MAC_DINH, moCSDL } from './csdl.js';
+import { DUONG_MAC_DINH, layCSDL, layChoLam, luuChoLam, moCSDL } from './csdl.js';
+import { docDiaChi, voiCSDL } from './pg.js';
+import { batDau as batDauGoogle, coGoogle, nhanVeGoogle, xoaCookieG, TEN_COOKIE_G } from './google.js';
+import { chepTuEnv, coNguoi, doiMatKhau, duyetNguoi, vaoBangGoogle, doiVai, dsNguoi, datHoatDong, khopBam, kiemVao,
+  laQuanTri, layNguoi, themNguoi, xoaNguoi } from './nguoidung.js';
 // Bộ soát nằm trong web/ vì trình duyệt cũng phải tải được nó — xem đầu file đó.
 import { soatChatLuong } from '../web/soat.js';
 
@@ -56,6 +63,26 @@ const CLIP15 = path.join(GOC, 'clip-15s');
 // 7800/7801/7802 (dự án clip, motion-ui-graphic, clipvibe-studio) và 7810
 // (Library-Source), là những cổng đã có chủ trong ~/.claude/mb-ports.tsv.
 const PORT = Number(process.env.PORT) || 7803;
+
+/**
+ * Trang báo cho luồng Google — người dùng đang ở một lượt CHUYỂN TRANG, không
+ * phải một lời gọi API, nên trả JSON là họ nhìn thấy một đống dấu ngoặc.
+ *
+ * Tự chứa, không nạp CSS ngoài: nó phải hiện đúng kể cả khi có chuyện gì đó
+ * đang hỏng. Chèn chữ bằng `escape` chứ đừng nối thẳng — câu báo có thể mang
+ * chữ từ Google gửi về.
+ */
+function trangBaoGoogle(cau) {
+  const an = String(cau).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  return `<!doctype html><html lang="vi"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Đăng nhập — Motion</title>
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#000;color:#fff;
+font-family:system-ui,sans-serif;padding:24px}.h{max-width:420px;text-align:center;background:#121212;
+border:1px solid #262626;border-radius:14px;padding:28px}p{color:#b3b3b3;line-height:1.6;margin:0 0 18px}
+a{display:inline-block;padding:10px 18px;border-radius:999px;background:#31d975;color:#06140c;
+text-decoration:none;font-weight:600}</style></head><body><div class="h">
+<p>${an}</p><a href="/dang-nhap">Quay lại trang đăng nhập</a></div></body></html>`;
+}
 
 kiemTraDuAn();
 
@@ -116,14 +143,33 @@ const server = http.createServer(async (req, res) => {
       const than = await docJson(req);
       /* Khoá đếm gồm CẢ tài khoản: dò một tài khoản từ nhiều máy vẫn bị chặn.
          Đọc thân yêu cầu TRƯỚC khi kiểm khoá vì cần biết đang gõ tài khoản nào. */
-      const tk = `tk:${String(than?.email || '').trim().toLowerCase()}`;
+      /* Ghép đuôi NGAY TỪ ĐẦU: khoá đếm gõ sai, tra CSDL và kiểm danh sách đều
+         phải nói về cùng một người, dù họ gõ `demo12345` hay gõ đủ email. */
+      const emGo = chuanEmail(than?.email);
+      const tk = `tk:${emGo}`;
       const con = dangBiKhoa(ip, tk);
       if (con) return loi(res, 429, `Gõ sai nhiều lần quá. Thử lại sau ${con} phút.`);
       if (!daDatMatKhau()) return loi(res, 400, 'Máy chủ chưa đặt mật khẩu nào.');
 
       /* Email sai khuôn thì báo NGAY và KHÔNG tính vào số lần gõ sai mật khẩu.
          Gõ nhầm địa chỉ là chuyện thường, không phải dấu hiệu ai đó đang dò. */
-      const em = kiemEmail(than?.email);
+      /* BẢNG `nguoi_dung` QUYẾT ĐỊNH, nếu có ai trong đó. Mỗi người một mật
+         khẩu riêng — xem đầu `server/nguoidung.js`. Bảng trống (bài kiểm, máy
+         chạy thử, hoặc CSDL hỏng) thì rơi xuống đường cũ bên dưới. */
+      const db = layCSDL();
+      const theoBang = db ? kiemVao(db, emGo, than?.mk) : null;
+      if (theoBang) {
+        if (!theoBang.ok) {
+          const con3 = ghiSai(ip, tk);
+          return loi(res, 401, con3 > 0 && con3 <= 3 && /chưa đúng/.test(theoBang.cau)
+            ? `${theoBang.cau} Còn ${con3} lần trước khi bị khoá 15 phút.` : theoBang.cau);
+        }
+        xoaSai(ip, tk);
+        res.setHeader('Set-Cookie', datCookie(req, taoVe(theoBang.email)));
+        return json(res, 200, { ok: true, email: theoBang.email, vai: theoBang.vai });
+      }
+
+      const em = kiemEmail(emGo);
       if (!em.ok) return loi(res, 400, em.cau);
 
       if (!kiemMatKhau(than?.mk)) {
@@ -135,6 +181,123 @@ const server = http.createServer(async (req, res) => {
       xoaSai(ip, tk);
       res.setHeader('Set-Cookie', datCookie(req, taoVe(em.email)));
       return json(res, 200, { ok: true, email: em.email });
+    }
+
+    /* ---------- ĐĂNG NHẬP BẰNG GOOGLE ----------
+     * Hai chặng: sang Google xin phép, rồi Google gọi ngược về đây kèm `code`.
+     * Bốn cửa kiểm (state · nonce · chữ ký · email đã xác minh) nằm trong
+     * `server/google.js`. Người mới vào hàng CHỜ DUYỆT, xem `nguoidung.js`.
+     */
+    if (p === '/dang-nhap/google' && req.method === 'GET') {
+      if (!coGoogle()) return loi(res, 503, 'Máy chủ chưa khai khoá Google.');
+      const b = batDauGoogle(req, { quayVe: url.searchParams.get('ve') || '/' });
+      res.setHeader('Set-Cookie', b.cookie);
+      res.writeHead(302, { Location: b.diaChi });
+      return res.end();
+    }
+    if (p === '/dang-nhap/google/tra-ve' && req.method === 'GET') {
+      if (!coGoogle()) return loi(res, 503, 'Máy chủ chưa khai khoá Google.');
+      /* Cookie tạm XOÁ NGAY dù thành hay bại: một `state` chỉ dùng đúng một lần,
+         để lại là dùng lại được. */
+      const vePhu = [xoaCookieG()];
+      const veTrang = (cau, ma = 400) => {
+        res.setHeader('Set-Cookie', vePhu);
+        res.writeHead(ma, { 'Content-Type': 'text/html; charset=utf-8' });
+        return res.end(trangBaoGoogle(cau));
+      };
+      /* Người dùng bấm "Huỷ" bên Google — không phải lỗi, đừng doạ họ. */
+      if (url.searchParams.get('error')) {
+        return veTrang('Bạn đã huỷ đăng nhập bằng Google.', 200);
+      }
+      const kq = await nhanVeGoogle(req, {
+        code: url.searchParams.get('code'), state: url.searchParams.get('state'),
+        cookie: docCookie(req, TEN_COOKIE_G),
+      });
+      if (!kq.ok) return veTrang(kq.cau);
+
+      const db = layCSDL();
+      if (!db) return veTrang('Máy chủ chưa dùng được phần tài khoản (CSDL không mở được).', 503);
+      const vao = vaoBangGoogle(db, kq);
+      if (!vao.ok) return veTrang(vao.cau, vao.choDuyet ? 200 : 403);
+      vePhu.push(datCookie(req, taoVe(vao.email)));
+      res.setHeader('Set-Cookie', vePhu);
+      res.writeHead(302, { Location: kq.ve.startsWith('/') ? kq.ve : '/' });
+      return res.end();
+    }
+
+    /* ---------- NGƯỜI DÙNG ----------
+     * Chủ kho tự thêm khách hàng ngay trong app, thay vì sửa biến môi trường
+     * trên Vibe Host rồi triển khai lại. Xem `server/nguoidung.js`.
+     *
+     * CHỈ NGƯỜI QUẢN TRỊ. Kiểm ở TỪNG đường, không kiểm một chỗ rồi tin: thêm
+     * một đường mới mà quên kiểm là cả bảng tài khoản phơi ra.
+     */
+    if (p.startsWith('/api/nguoi-dung')) {
+      const db = layCSDL();
+      if (!db) return loi(res, 503, 'Chưa dùng được phần tài khoản (CSDL không mở được).');
+      const toi = aiDangVao(req);
+      /* Bảng còn trống thì chưa có ai là quản trị — lúc ấy app đang chạy kiểu
+         cũ, và phần này chưa mở. Nói thẳng chứ đừng để bấm vào rồi im lặng. */
+      if (!coNguoi(db)) return loi(res, 409, 'Máy chủ chưa đặt mật khẩu nên chưa có danh sách tài khoản.');
+      if (!laQuanTri(db, toi)) return loi(res, 403, 'Chỉ người quản trị mới xem được danh sách tài khoản.');
+
+      if (p === '/api/nguoi-dung' && req.method === 'GET') {
+        return json(res, 200, { ok: true, toi, nguoi: dsNguoi(db) });
+      }
+      if (p === '/api/nguoi-dung' && req.method === 'POST') {
+        const than = await docJson(req);
+        const kq = themNguoi(db, { email: than?.email, ten: than?.ten, vai: than?.vai,
+          /* Người quản trị gõ sẵn mật khẩu thì dùng đúng cái đó; bỏ trống thì
+             `themNguoi` sinh hộ. Cách nào cũng chỉ hiện đúng một lần. */
+          matKhau: String(than?.matKhau || '') });
+        if (!kq.ok) return loi(res, 400, kq.cau);
+        /* Mật khẩu trả về ĐÚNG MỘT LẦN, ngay lúc tạo. Không cất lại đâu cả nên
+           không đường nào đọc lại được — quên thì đặt lại cái mới. */
+        return json(res, 200, kq);
+      }
+      /* Biến RIÊNG, không dùng `m` chung của cả hàm: `m` khai bằng `let` ở dưới
+         khối này nên đụng vào đây là "Cannot access before initialization" — lỗi
+         500 cho mọi lượt sửa tài khoản. */
+      const mNg = khop('/api/nguoi-dung/:email', p);
+      if (mNg && req.method === 'DELETE') {
+        const kq = xoaNguoi(db, mNg.email);
+        return kq.ok ? json(res, 200, kq) : loi(res, 400, kq.cau);
+      }
+      if (mNg && req.method === 'PATCH') {
+        const than = await docJson(req);
+        if (than?.duyet) {
+          const kq = duyetNguoi(db, mNg.email);
+          return kq.ok ? json(res, 200, kq) : loi(res, 400, kq.cau);
+        }
+        if (than?.matKhau !== undefined) {
+          const kq = doiMatKhau(db, mNg.email, String(than.matKhau || ''));
+          return kq.ok ? json(res, 200, kq) : loi(res, 400, kq.cau);
+        }
+        if (than?.dangHoatDong !== undefined) {
+          const kq = datHoatDong(db, mNg.email, Boolean(than.dangHoatDong));
+          return kq.ok ? json(res, 200, kq) : loi(res, 400, kq.cau);
+        }
+        if (than?.vai !== undefined) {
+          const kq = doiVai(db, mNg.email, String(than.vai));
+          return kq.ok ? json(res, 200, kq) : loi(res, 400, kq.cau);
+        }
+        return loi(res, 400, 'Không rõ muốn đổi gì.');
+      }
+      return loi(res, 404, `Không có đường dẫn ${p}.`);
+    }
+
+    /* ĐỔI MẬT KHẨU CỦA CHÍNH MÌNH — ai cũng làm được, và phải gõ đúng mật khẩu
+       cũ. Đây là đường để thoát khỏi mật khẩu chung. */
+    if (p === '/api/doi-mat-khau-cua-toi' && req.method === 'POST') {
+      const db = layCSDL();
+      const toi = aiDangVao(req);
+      if (!db || !coNguoi(db)) return loi(res, 409, 'Máy chủ này chưa dùng tài khoản riêng.');
+      if (!toi) return loi(res, 401, 'Chưa đăng nhập.');
+      const than = await docJson(req);
+      const n = layNguoi(db, toi);
+      if (!n || !khopBam(than?.cu, n.mat_khau_bam)) return loi(res, 401, 'Mật khẩu hiện tại không đúng.');
+      const kq = doiMatKhau(db, toi, String(than?.moi || ''));
+      return kq.ok ? json(res, 200, { ok: true }) : loi(res, 400, kq.cau);
     }
 
     if (p === '/api/dang-xuat' && req.method === 'POST') {
@@ -184,6 +347,15 @@ const server = http.createServer(async (req, res) => {
            "Vẽ giao diện từ lời tả" trên một máy chủ không có khoá là để người
            dùng gõ xong một đoạn tả rồi mới nhận lời từ chối. */
         coStitch: coKhoaStitch(),
+        /* Có bày nút "Đăng nhập bằng Google" không — hỏi trước, y như Stitch. */
+        coGoogle: coGoogle(),
+        /* Có phải người quản trị không — để trang chào biết có bày mục "Người
+           dùng" hay không. Hỏi CSDL chứ đừng suy từ email: chủ kho theo env và
+           quản trị theo bảng là hai chuyện, và chúng lệch nhau được. */
+        laQuanTri: (() => {
+          const db = layCSDL();
+          return Boolean(db && coNguoi(db) && laQuanTri(db, aiDangVao(req)));
+        })(),
         hanMuc: daDung(aiDangVao(req)),
       });
     }
@@ -354,7 +526,24 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { ...kq, suaLuc: docClip(slug, kho).suaLuc });
     }
 
-    if ((m = khop('/api/draft/:slug', p)) && req.method === 'PUT') {
+    /* ---------- ĐANG LÀM DỞ Ở ĐÂU ----------
+     * Mở app lên là về đúng dự án đang làm, đúng cảnh, đúng giây. Lưu theo tài
+     * khoản nên đổi máy vẫn theo được. */
+    if (p === '/api/cho-lam-viec' && req.method === 'GET') {
+      return json(res, 200, { ok: true, cho: layChoLam(layCSDL(), aiDangVao(req) || '') });
+    }
+    if (p === '/api/cho-lam-viec' && (req.method === 'PUT' || req.method === 'POST')) {
+      const than = await docJson(req);
+      const slug = locSlug(than?.slug);
+      if (!slug) return loi(res, 400, 'Tên clip không hợp lệ.');
+      luuChoLam(layCSDL(), aiDangVao(req) || '', { slug, canh: than?.canh, giay: than?.giay });
+      return json(res, 200, { ok: true });
+    }
+
+    /* `POST` cũng nhận, không chỉ `PUT`: lúc đóng tab trình duyệt chỉ gửi được
+       bằng `navigator.sendBeacon`, mà beacon thì LUÔN là POST. Thiếu nhánh này
+       thì đúng những sửa đổi cuối cùng — thứ dễ mất nhất — không được lưu. */
+    if ((m = khop('/api/draft/:slug', p)) && (req.method === 'PUT' || req.method === 'POST')) {
       const slug = locSlug(m.slug);
       if (!slug) return loi(res, 400, 'Tên clip không hợp lệ.');
       const than = await docJson(req);
@@ -499,6 +688,50 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, kq);
     }
 
+    /* ---------- ĐO TRANG TRONG TRÌNH DUYỆT NGƯỜI DÙNG ----------
+     * Bản triển khai không có Chromium, nên máy chủ không tự đo được. Thay vào đó:
+     * cất trang lại (tải hộ nếu là địa chỉ), trình duyệt mở nó trong iframe ẩn,
+     * đo bằng `web/dobocuc.js`, rồi gửi bản đồ về `/api/tu-html`.
+     * Xem `server/dotrang.js` về CSP riêng và vì sao không dùng `srcdoc`. */
+    if (p === '/api/do-trang' && req.method === 'POST') {
+      const than = await docJson(req);
+      const kq = await luuTrang({ html: than?.html, url: than?.url, chu: aiDangVao(req) });
+      if (!kq.ok) return loi(res, 400, kq.cau);
+      return json(res, 200, kq);
+    }
+    if ((m = khop('/do-trang/:id', p)) && req.method === 'GET') {
+      const html = layTrang(m.id, aiDangVao(req));
+      if (!html) return loi(res, 404, 'Trang đo đã hết hạn — thử lại.');
+      /* GHI ĐÈ CSP chung của app. Xem ghi chú đầu `server/dotrang.js`. */
+      res.setHeader('Content-Security-Policy', CSP_DO_TRANG);
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+      return res.end(html);
+    }
+
+    /* CHỤP TRANG BẰNG TRÌNH DUYỆT THẬT TRÊN MÁY CHỦ — ô ② của thẻ Dựng hình.
+     * Người dùng XEM ảnh chụp để kiểm đúng trang mình muốn, chọn một phần, rồi
+     * mới gọi AI. Xem `server/chuptrang.js`. Máy không có Chromium thì trả
+     * `khongCo` để trình duyệt lùi về đường đo cũ (`/api/do-trang`). */
+    if (p === '/api/chup-trang' && req.method === 'POST') {
+      const than = await docJson(req);
+      const url = String(than?.url || '').trim();
+      const html = String(than?.html || '');
+      if (url && !/^https?:\/\//i.test(url)) {
+        return loi(res, 400, 'Địa chỉ phải bắt đầu bằng http:// hoặc https://');
+      }
+      const kq = await chupTrang({ url: url || null, html: url ? null : html, chu: aiDangVao(req) });
+      if (!kq.ok) return json(res, kq.khongCo ? 200 : 400, kq);
+      return json(res, 200, kq);
+    }
+    if ((m = khop('/api/chup-trang/:id/anh', p) || khop('/api/chup-trang/:id/phan/:pid', p))
+      && req.method === 'GET') {
+      const v = layChup(m.id, aiDangVao(req));
+      const anh = !v ? null : m.pid ? v.phan.find((x) => x.id === m.pid)?.anh : v.anh;
+      if (!anh) return loi(res, 404, 'Ảnh chụp đã hết hạn — chụp lại trang.');
+      res.writeHead(200, { 'Content-Type': 'image/jpeg', 'Cache-Control': 'private, max-age=900' });
+      return res.end(anh);
+    }
+
     if (p === '/api/tu-html' && req.method === 'POST') {
       const than = await docJson(req);
       {
@@ -512,15 +745,28 @@ const server = http.createServer(async (req, res) => {
       const c = docClip(slug, kho);
       if (!c) return loi(res, 404, `Không thấy clip "${slug}".`);
 
+      /* Đã chụp trên máy chủ và người dùng đã chọn một phần: lấy bản đồ + ảnh
+         của đúng phần ấy. Ảnh đi kèm cho AI NHÌN — số đo vẫn lấy từ bản đồ. */
+      if (than?.chupId) {
+        const v = layChup(than.chupId, aiDangVao(req));
+        if (!v) return loi(res, 404, 'Ảnh chụp trang đã hết hạn — bấm chụp lại.');
+        const bp = banDoPhan(v, String(than.phanId || ''));
+        if (!bp) return loi(res, 400, 'Chưa chọn phần nào của trang.');
+        const email = aiDangVao(req);
+        const d = await dungTuHtml({ doc: c.doc, y: than?.y, banDo: bp.banDo, anh: bp.anh,
+          doThat: (canh) => doCanh({ goc: `http://127.0.0.1:${PORT}`, meta: c.doc.meta, canh, email }) });
+        if (d.cau && !d.canh) return loi(res, 400, d.cau);
+        return json(res, 200, d);
+      }
       const html = String(than?.html || '');
       const url = String(than?.url || '').trim();
-      if (!html && !url) return loi(res, 400, 'Chưa dán HTML hay địa chỉ trang.');
+      if (!html && !url && !than?.banDo) return loi(res, 400, 'Chưa dán HTML hay địa chỉ trang.');
       /* Chỉ nhận http(s). Cho `file:` là mở cửa đọc mọi file trên máy chủ qua
          một đường API ai đăng nhập cũng gọi được. */
       if (url && !/^https?:\/\//i.test(url)) {
         return loi(res, 400, 'Địa chỉ phải bắt đầu bằng http:// hoặc https://');
       }
-      const d = await dungTuHtml({ doc: c.doc, html, url, y: than?.y });
+      const d = await dungTuHtml({ doc: c.doc, html, url, y: than?.y, banDo: than?.banDo });
       if (d.cau && !d.canh) return loi(res, 400, d.cau);
       return json(res, 200, d);
     }
@@ -841,16 +1087,53 @@ server.listen(PORT, '0.0.0.0', () => {
    * thứ trình sửa cần để chạy. Ổ đĩa đầy hay quyền sai mà kéo cả app xuống thì
    * ta vừa đổi một tính năng chưa ai dùng lấy toàn bộ công cụ. */
   try {
-    const db = moCSDL();
+    const db = layCSDL();
+    if (!db) throw new Error('không mở được');
     const bang = db.prepare(
       "SELECT COUNT(*) c FROM sqlite_master WHERE type='table'").get().c;
     const buoc = db.prepare('SELECT COUNT(*) c FROM di_tru').get().c;
-    db.close();
     console.log(`   CSDL:       ${DUONG_MAC_DINH} — ${bang} bảng, ${buoc} bước di trú`);
+    /* Chép danh sách tài khoản cũ (env) vào bảng — một lần, xem
+       `server/nguoidung.js`. Không ai bị đá ra, không ai được thêm quyền. */
+    const chep = chepTuEnv(db, { chuKho: chuKho() });
+    if (chep) console.log(`   Tài khoản:  chép ${chep} tài khoản từ danh sách cũ vào CSDL`);
+    if (coNguoi(db)) {
+      const n = dsNguoi(db);
+      console.log(`   Tài khoản:  ${n.length} người (${n.filter((x) => x.vai === 'quan_tri').length} quản trị)`
+        + `${n.some((x) => x.matKhauChung) ? ` — ${n.filter((x) => x.matKhauChung).length} người còn dùng mật khẩu chung` : ''}`);
+    }
   } catch (e) {
     console.error(`   CSDL:       KHÔNG dựng được — ${e.message}`);
     console.error('               (trình sửa vẫn chạy bình thường; xem docs/CSDL.md)');
   }
+  /* ---------- CSDL NGOÀI (Postgres của Vibe Host) ----------
+   *
+   * Chỉ KIỂM TRA và báo, chưa dùng để chạy. Anh Quý gắn một Postgres vào dự án
+   * (29/09); trước khi chuyển bất cứ thứ gì sang đó thì phải biết chắc nó nối
+   * được, chứ không phải đoán. Xem `docs/CSDL-NGOAI.md`.
+   *
+   * KHÔNG ĐƯỢC LÀM CHẾT APP. Chạy nền, hỏng thì chỉ in một dòng.
+   */
+  (async () => {
+    const dc = (process.env.DATABASE_URL || process.env.POSTGRES_URL || '').trim();
+    if (!dc) return;
+    let ten = '?';
+    try { ten = `${docDiaChi(dc).host}/${docDiaChi(dc).ten}`; } catch { /* địa chỉ méo, báo ở dưới */ }
+    try {
+      const t = Date.now();
+      const kq = await voiCSDL(dc, async (db) => ({
+        ban: (await db.hoi('select version() as v')).dong[0]?.v || '?',
+        bang: (await db.hoi(
+          "select count(*)::int as n from information_schema.tables where table_schema = 'public'")).dong[0]?.n,
+      }));
+      console.log(`   CSDL ngoài: ${ten} — NỐI ĐƯỢC (${Date.now() - t}ms) · ${kq.bang} bảng`);
+      console.log(`               ${String(kq.ban).split(',')[0]}`);
+    } catch (e) {
+      console.error(`   CSDL ngoài: ${ten} — KHÔNG nối được: ${e.message}`);
+      console.error('               (trình sửa vẫn chạy bình thường bằng SQLite)');
+    }
+  })();
+
   {
     const c = chuKho();
     console.log(c

@@ -62,6 +62,10 @@ clip. Node 22 tự lột kiểu file `.ts` nên `types.ts` nạp thẳng đượ
 | `khung.js` | đọc/sửa "khung nhấn" của clip **đời cũ** bằng `node:vm` |
 | `videos.js` + `bo-video.js` | liệt kê `out/`, đo bằng `ffprobe`, xếp theo bộ dự án |
 | `nguonvideo.js` | liệt kê `public/video/`, **đo codec** để biết file nào trình duyệt mở được |
+| `chuptrang.js` | **Chromium trên máy chủ** qua CDP (không gói npm): chụp trang, chia phần, chặn mạng nội bộ — xem `docs/CHUP-TRANG.md` |
+| `nguoidung.js` | **tài khoản khách hàng** trong CSDL: mỗi người một mật khẩu, thêm/khoá/xoá trong app — xem `docs/NGUOI-DUNG.md` |
+| `google.js` | **đăng nhập bằng Google** (OAuth/OIDC viết tay, không gói npm): state một-lần · nonce · chữ ký RS256 · email đã xác minh — xem `docs/DANG-NHAP-GOOGLE.md` |
+| `docanh.js` + `soatvideo.js` | cảnh AI dựng: vẽ thật rồi đo (bị cắt, đè nhau) + soát JSON (chữ nhỏ, ngoài vùng máy quay) |
 
 `server/main.js` có một import đi ngược sang `web/`: `soatChatLuong` từ
 `web/soat.js`. Cố ý — xem mục 5.1.
@@ -297,6 +301,16 @@ cây lớp (kéo thả ở cột thành phần). Thứ tự trong `elements` là
 là bậc trễ của `stagger`, nên một phép đổi chỗ sai không làm gãy gì cả: kịch bản
 vẫn hợp lệ, clip vẫn chạy, chỉ SAI HÌNH — kiểu hỏng không ai bắt được cho tới lúc
 xuất video.
+
+**`node tools/kiem-phien-lam.mjs`** chạy bằng Node trần — canh chuyện "đóng tab
+rồi mở lại về đúng chỗ": dự án của ai nấy giữ, nháp gửi bằng `sendBeacon` (POST,
+không phải PUT), và chỗ làm việc đi theo TÀI KHOẢN chứ không theo vé đăng nhập.
+
+**`node tools/kiem-nguoi-dung.mjs`** chạy bằng Node trần — 36 mục, tự dựng máy
+chủ CÓ mật khẩu ở cổng 7896, canh tài khoản khách hàng: mật khẩu riêng, kho
+riêng, và **không bao giờ khoá hết người quản trị**. CSDL/kho đặt ở thư mục tạm
+qua `MOTION_CSDL`/`MOTION_GOC_KHO` — bản đầu của bài này lỡ ghi một dự án vào
+`scenes/` thật, xem `docs/NGUOI-DUNG.md`.
 
 **`node tools/kiem-kho-rieng.mjs`** cũng chạy bằng Node trần — 44 mục, tự dựng hai
 máy chủ ở cổng 7894/7895, canh chuyện mỗi tài khoản một kho. Luật của chính nó:
