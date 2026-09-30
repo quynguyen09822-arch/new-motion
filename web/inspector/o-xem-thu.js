@@ -1,7 +1,7 @@
 /**
  * Ô XEM THỬ — một ô nhỏ diễn lại đúng một chuyển động hoặc một mức hiệu ứng.
  *
- * Nền của cả đợt `BANG-CHINH-V2.md`: gói chuyển động (Việc 2) và popup hiệu ứng
+ * Nền của cả đợt `docs/ghi-chu/BANG-CHINH-V2.md`: gói chuyển động (Việc 2) và popup hiệu ứng
  * (Việc 1) đều cần đúng thứ này. Viết một lần, hai chỗ xài — viết hai lần là hai
  * lần sai khác nhau.
  *
@@ -34,7 +34,7 @@ const NGHI = 250;
 
 /* Kéo thanh trượt bắn ra vài chục lượt mỗi giây. Không gộp thì mỗi lượt là một
    lần nạp lại cảnh — ô giật và máy chủ bị hỏi liên hồi. 150ms vẫn nằm trong
-   mốc "đổi theo trong khoảng nửa giây" của BANG-CHINH-V2.md. */
+   mốc "đổi theo trong khoảng nửa giây" của docs/ghi-chu/BANG-CHINH-V2.md. */
 const GOP = 150;
 
 /** Công tắc một dòng: đổi `false` là chuyển sang rê-chuột-mới-diễn. */

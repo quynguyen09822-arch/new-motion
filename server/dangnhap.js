@@ -203,7 +203,7 @@ export function taoVe(email = '', { xuat = false, song = SONG_NGAY * 86400 } = {
  *
  * CÁCH VÁ SAI mà ai cũng nghĩ tới đầu tiên: "bỏ qua đăng nhập nếu gọi từ
  * localhost". Cửa hậu nào rồi cũng có ngày bị bật nhầm trên bản chạy thật —
- * luật này đã ghi sẵn trong CLAUDE.md và DANG-NHAP.md.
+ * luật này đã ghi sẵn trong CLAUDE.md và docs/ghi-chu/DANG-NHAP.md.
  *
  * CÁCH ĐÚNG: máy chủ tự ký một vé sống một giờ, nhét vào đường dẫn đưa cho bộ
  * xuất. Vé ấy KHÔNG phải một lần đăng nhập — nó chỉ mở đúng những đường cần để

@@ -24,6 +24,7 @@ import path from 'node:path';
 import { goiGemini, HAN_GIAY_ANH } from './gemini.js';
 import { PROJ, soatKichBan } from './proj.js';
 import { banDoNen, soatChatLuong, tuongPhan } from '../web/soat.js';
+import { chuDocDuoc, loiNhacPhoi } from '../web/phoimau.js';
 
 /* 23 loại có mẫu thật trong kho clip. `video` không có mẫu nên không mời AI dùng
    — món đó cần file phim có thật, AI đoán tên file là ra món hỏng. */
@@ -98,7 +99,7 @@ MÀU — ĐỌC THẲNG TỪ ẢNH, đây là việc quan trọng bậc nhất.
   khác đúng.
 
   Bảng màu sẵn của clip chỉ là ĐƯỜNG LÙI, dùng khi ảnh mờ hoặc không rõ màu:
-    nền ${meta.bg} · chữ ${meta.ink} · nhấn ${meta.accent}${meta.accent2 ? ` · nhấn 2 ${meta.accent2}` : ''}${meta.hot ? ` · nóng ${meta.hot}` : ''}
+${loiNhacPhoi(meta)}
 
 CHỈ ĐƯỢC DÙNG NHỮNG \`kind\` SAU, không được chế thêm:
 ${LOAI_CHO_PHEP.join(', ')}
@@ -335,9 +336,11 @@ export function vaTuongPhan(canh, meta) {
         const duoi = nen.get(e.id)?.mau || meta?.bg;
         const tp = tuongPhan(e.ink, duoi);
         if (tp != null && tp < NGUONG_TUONG_PHAN) {
-          const sang = tuongPhan('#ffffff', duoi) || 0;
-          const toi = tuongPhan('#101010', duoi) || 0;
-          e.ink = sang >= toi ? '#ffffff' : '#101010';
+          /* Thử màu ĐANG CÓ trong bộ phối trước khi rơi về trắng/đen — vá bằng
+             trắng tinh thì đọc được nhưng clip mất tông, và người dùng thấy
+             một chữ trắng lạc lõng giữa bộ màu của họ. `chuDocDuoc` chỉ trả về
+             màu ĐẠT ngưỡng, nên không đánh đổi độ đọc lấy thẩm mỹ. */
+          e.ink = chuDocDuoc(duoi, meta, { coChu: typeof e.size === 'number' ? e.size : 32 });
           va++;
         }
       }

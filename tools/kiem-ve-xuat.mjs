@@ -32,7 +32,7 @@ const KHOA = 'khoa-ve-kiem';
  *     sai, chứ không phải vì mã sai.
  *  2. Quan trọng hơn: không đặt thì `khoaKy()` KHÔNG thấy khoá nào, tự sinh một
  *     cái rồi GHI VÀO `.env` THẬT. Một bài kiểm mà sửa cấu hình thật thì chạy
- *     xong người dùng bị khoá ra ngoài — luật đã ghi trong DANG-NHAP.md. */
+ *     xong người dùng bị khoá ra ngoài — luật đã ghi trong docs/ghi-chu/DANG-NHAP.md. */
 process.env.MOTION_KHOA_PHIEN = KHOA;
 
 const nap = (f) => import(pathToFileURL(path.join(M, 'server', f)).href);

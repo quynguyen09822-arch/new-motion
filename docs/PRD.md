@@ -75,14 +75,14 @@ bằng mắt.
 - Vẽ **sóng âm** để canh khớp bằng mắt
 - Trộn tiếng lúc xuất video
 
-Chi tiết: `RANH-TIENG.md`.
+Chi tiết: `ghi-chu/RANH-TIENG.md`.
 
 ## Mốc chuyển động (17/09)
 
 Trước đó mỗi món chỉ có một hiệu ứng vào và một hiệu ứng ra, chọn từ danh sách
 có sẵn. Giờ tự đặt mốc cho từng thời điểm — vị trí, độ mờ, độ phóng.
 
-Chi tiết: `MOC-CHUYEN-DONG.md`.
+Chi tiết: `ghi-chu/MOC-CHUYEN-DONG.md`.
 
 ## AI hỗ trợ (18/09)
 
@@ -97,7 +97,7 @@ phụ việc, không phải nhân vật chính — người dùng vẫn quyết 
 | Viết lời đọc | cho clip đã dựng xong |
 | Giọng đọc | chọn giọng, **nghe thử**, đọc lời thành file tiếng |
 
-Chi tiết: `THANH-AI.md`, `THIET-KE-AI.md`, `AI-DUNG-SUA.md`, `GIONG-DOC-AI.md`.
+Chi tiết: `ghi-chu/THANH-AI.md`, `ghi-chu/THIET-KE-AI.md`, `ghi-chu/AI-DUNG-SUA.md`, `ghi-chu/GIONG-DOC-AI.md`.
 
 ## Nhiều người dùng chung (18/09)
 
@@ -107,11 +107,11 @@ Chi tiết: `THANH-AI.md`, `THIET-KE-AI.md`, `AI-DUNG-SUA.md`, `GIONG-DOC-AI.md`
 - **Đếm lượt dùng** — trả lời được "công cụ này có ai dùng không, ai dùng nhiều"
 - Logo và trang đăng nhập riêng
 
-Chi tiết: `DANG-NHAP.md`.
+Chi tiết: `ghi-chu/DANG-NHAP.md`.
 
 ## Đưa lên mạng (18/09)
 
-Chạy bằng Docker, đang ở `motion.n1.tinhgon.xyz`. Chi tiết: `TRIEN-KHAI.md`.
+Chạy bằng Docker, đang ở `motion.n1.tinhgon.xyz`. Chi tiết: `ghi-chu/TRIEN-KHAI.md`.
 
 ## Đo thành công — thêm hai câu
 
@@ -133,11 +133,11 @@ Chạy bằng Docker, đang ở `motion.n1.tinhgon.xyz`. Chi tiết: `TRIEN-KHAI
 | Dòng thời gian nhiều lớp | canh nhiều món chồng nhau vẫn khó | — |
 | Chỉnh màu chuyên sâu, đổi khổ khác tỉ lệ | giữ nguyên như bản đầu, cố ý không làm | không làm |
 
-Cột cuối trỏ sang `TIEP-THEO.md`. **M1 (đếm lượt dùng) đã xong 18/09.**
+Cột cuối trỏ sang `ghi-chu/TIEP-THEO.md`. **M1 (đếm lượt dùng) đã xong 18/09.**
 
 Hai dòng ghi `—` chưa có trong lộ trình nào. Riêng **chỗ lưu** là điều kiện đứng
 trước cả M2–M5: chừng nào phần sửa trên mạng còn mất, mấy mục kia làm cũng ít
-tác dụng. `TIEP-THEO.md` có nêu ở đầu ("gắn volume") nhưng nhà cung cấp hiện
+tác dụng. `ghi-chu/TIEP-THEO.md` có nêu ở đầu ("gắn volume") nhưng nhà cung cấp hiện
 không cho gắn ổ lưu — đang chờ mở cơ sở dữ liệu thay thế.
 
 ## Một điều cần nói thẳng

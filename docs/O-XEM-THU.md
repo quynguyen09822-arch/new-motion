@@ -5,7 +5,7 @@
 > vì sao lại thế. Việc đã xong: `server/canhmau.js`, `web/inspector/o-xem-thu.js`,
 > `tools/kiem-o-xem-thu.mjs` (20 phép), trang thử `/thu-o-xem-thu.html`.
 
-> Theo `BANG-CHINH-V2.md`, phần **Hạ tầng**: *"Trước khi code, cho anh xem API
+> Theo `ghi-chu/BANG-CHINH-V2.md`, phần **Hạ tầng**: *"Trước khi code, cho anh xem API
 > của thành phần này (nhận gì, trả gì)."* Đây là bản đó. **Chưa viết dòng mã
 > nào.**
 
@@ -143,7 +143,7 @@ Hai chỗ nữa cũng do phá mà lòi: đo trên `#cam` thay vì `#stage .el` (
 quay đứng yên và không mang `filter`, nên báo oan là "ô không chạy"), và cửa sổ
 lấy mẫu ngắn hơn một vòng diễn (rơi trúng đoạn món đã đứng yên).
 
-## Hai chỗ trong `BANG-CHINH-V2.md` cần sửa lại cho khớp mã
+## Hai chỗ trong `ghi-chu/BANG-CHINH-V2.md` cần sửa lại cho khớp mã
 
 Không phải lỗi lớn, nhưng để nguyên thì prompt giao cho người khác sẽ dẫn sai:
 
@@ -166,6 +166,6 @@ cố ý để yên vì nó là *tốc độ đẩy máy* chứ không phải *đ
 
 1. `server/canhmau.js` + đường `GET /api/canh-mau`, mượn `validateScene`
 2. `web/inspector/o-xem-thu.js` theo đúng API trên
-3. `tools/kiem-o-xem-thu.mjs` — ba mốc nghiệm thu trong `BANG-CHINH-V2.md`:
+3. `tools/kiem-o-xem-thu.mjs` — ba mốc nghiệm thu trong `ghi-chu/BANG-CHINH-V2.md`:
    cùng token thì ô xem thử và clip thật **trùng chuyển động**, 10 ô không giật,
    đổi giá trị thì ô đổi theo trong nửa giây

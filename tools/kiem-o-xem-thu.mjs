@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * KIỂM Ô XEM THỬ — ba mốc nghiệm thu trong `BANG-CHINH-V2.md`, cộng bốn chỗ
+ * KIỂM Ô XEM THỬ — ba mốc nghiệm thu trong `docs/ghi-chu/BANG-CHINH-V2.md`, cộng bốn chỗ
  * dễ hỏng ngầm.
  *
  * Ba phép mạnh nhất:

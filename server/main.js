@@ -1106,17 +1106,26 @@ server.listen(PORT, '0.0.0.0', () => {
     console.error(`   CSDL:       KHÔNG dựng được — ${e.message}`);
     console.error('               (trình sửa vẫn chạy bình thường; xem docs/CSDL.md)');
   }
-  /* ---------- CSDL NGOÀI (Postgres của Vibe Host) ----------
+  /* ---------- CSDL NGOÀI (Postgres) — CHỈ KHI ĐƯỢC BẢO ----------
    *
-   * Chỉ KIỂM TRA và báo, chưa dùng để chạy. Anh Quý gắn một Postgres vào dự án
-   * (29/09); trước khi chuyển bất cứ thứ gì sang đó thì phải biết chắc nó nối
-   * được, chứ không phải đoán. Xem `docs/CSDL-NGOAI.md`.
+   * Trình sửa chạy bằng SQLite. Postgres ở đây mới chỉ là chỗ để soi thử.
+   *
+   * PHẢI BẬT BẰNG `MOTION_DUNG_PG=1`, KHÔNG tự chạy khi thấy `DATABASE_URL`.
+   * Nền tảng triển khai TỰ TIÊM biến ấy vào mỗi khi có ai gắn một CSDL vào dự
+   * án — tức sự có mặt của nó nói lên ý của nền tảng, không phải ý của app.
+   * Tự ý nối rồi trượt thì để lại một dòng lỗi mỗi lần khởi động, và bảng điều
+   * khiển gắn cờ "phụ thuộc không với tới được" cho một dịch vụ mà app KHÔNG
+   * dùng. Đã xảy ra thật 29–30/09.
    *
    * KHÔNG ĐƯỢC LÀM CHẾT APP. Chạy nền, hỏng thì chỉ in một dòng.
    */
   (async () => {
+    if (!/^(1|true|có|co)$/i.test((process.env.MOTION_DUNG_PG || '').trim())) return;
     const dc = (process.env.DATABASE_URL || process.env.POSTGRES_URL || '').trim();
-    if (!dc) return;
+    if (!dc) {
+      console.error('   CSDL ngoài: đã bật MOTION_DUNG_PG nhưng không thấy DATABASE_URL.');
+      return;
+    }
     let ten = '?';
     try { ten = `${docDiaChi(dc).host}/${docDiaChi(dc).ten}`; } catch { /* địa chỉ méo, báo ở dưới */ }
     try {

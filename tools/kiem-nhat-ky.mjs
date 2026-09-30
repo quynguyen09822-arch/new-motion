@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * KIỂM NHẬT KÝ LƯỢT DÙNG (mục M1 trong TIEP-THEO.md).
+ * KIỂM NHẬT KÝ LƯỢT DÙNG (mục M1 trong docs/ghi-chu/TIEP-THEO.md).
  *
  * Chạy bằng Node trần, KHÔNG cần Chromium. Nó tự dựng máy chủ riêng ở cổng
  * 7808/7809 với mật khẩu tạm, nên không đụng máy chủ thật lẫn `.env` thật.

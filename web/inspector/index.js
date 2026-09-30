@@ -5,7 +5,8 @@
  * "nó viết gì" → "nó bay vào thế nào" → "lúc nào nó hiện" → "nó nằm đâu".
  */
 import { veMocChuyenDong } from './keyframe.js';
-import { DEM_TRONG, HUONG_DAN_CHUNG, HUONG_DAN_MAU, KHE_HO, KHO_CHO, KHO_DA, KHO_RA, KHO_VAO, MAU_MAT_BAO, NHAN_KHE_HO, NUM_HIEU_UNG, NUM_MAU, NUM_RIENG, TEN_LOAI } from './schema.js';
+import { BO_PHOI } from '../phoimau.js';
+import { DEM_TRONG, HUONG_DAN_CHUNG, HUONG_DAN_MAU, KHE_HO, KHO_CHO, KHO_DA, KHO_RA, KHO_VAO, NHAN_KHE_HO, NUM_HIEU_UNG, NUM_MAU, NUM_RIENG, TEN_LOAI } from './schema.js';
 import { taoNum } from './fields.js';
 import { cungTiLe, doiKhoHinh, khoGoiY } from '../khohinh.js';
 import { huongDanChung } from '../huongdan.js';
@@ -441,13 +442,22 @@ export function taoBang(boc, kho, player) {
         m.appendChild(taoNum({ ...c, kieu: 'mau', huongDan: HUONG_DAN_MAU[c.id] }, doc.meta[c.id],
           (v) => datMeta(`đổi ${c.nhan.toLowerCase()}`, c.id, v), cuChi));
       }
-      const nut = el('button', 'nut nho', 'Áp bộ màu Mắt Bão');
-      nut.type = 'button';
-      nut.onclick = () => {
-        kho.sua('áp bộ màu Mắt Bão', (d) => Object.assign(d.meta, MAU_MAT_BAO));
-        ve();
-      };
-      m.appendChild(nut);
+      /* BỘ PHỐI PHA SẴN. Sáu ô màu rời là việc của người làm thiết kế; người
+         dựng clip cần "chọn một cái nhìn được ngay". Mỗi bộ đã đo đạt chuẩn
+         đọc được — xem `web/phoimau.js`. */
+      const hangBo = el('div', 'hang-phoi');
+      for (const b of BO_PHOI) {
+        const nut = el('button', 'nut nho', b.ten);
+        nut.type = 'button';
+        nut.title = b.moTa;
+        nut.onclick = () => {
+          kho.sua(`áp bộ màu ${b.ten}`, (d) => Object.assign(d.meta, b.mau));
+          ve();
+        };
+        hangBo.appendChild(nut);
+      }
+      m.appendChild(hangBo);
+      m.appendChild(el('p', 'num-goi', 'Mỗi bộ đã đo chuẩn đọc được — chọn một cái là cả clip ăn khớp.'));
       boc.appendChild(m);
 
       const m2 = muc('Khổ hình');

@@ -29,19 +29,20 @@ RUN apk add --no-cache chromium-headless-shell font-noto \
  || echo '!!! Khong cai duoc Chromium — "Dung tu trang" se dung duong lui trong trinh duyet.'
 ENV MOTION_CHROMIUM=/usr/bin/chromium-headless-shell
 
-# Mã nguồn.
-COPY package.json ./
-COPY server/ ./server/
-COPY web/ ./web/
+# Mã nguồn — `--chown=node:node` vì app chạy bằng USER node, mà COPY mặc định
+# tạo file thuộc root. Thiếu cái này thì `node server/main.js` nhận EACCES.
+COPY --chown=node:node package.json ./
+COPY --chown=node:node server/ ./server/
+COPY --chown=node:node web/ ./web/
 
 # Hai công cụ bản chạy thật cần. `.dockerignore` bỏ cả `tools/` rồi mở lại đúng
 # hai file này — chép cả thư mục là mang theo 28 bài kiểm Playwright vô dụng.
-COPY tools/xuat-nhanh.mjs tools/dat-mat-khau.mjs ./tools/
+COPY --chown=node:node tools/xuat-nhanh.mjs tools/dat-mat-khau.mjs ./tools/
 
 # SỐ LIỆU LƯỢT DÙNG đã gộp. Phải mang theo: container không giữ file giữa hai
 # lần triển khai (vibehost không có chỗ gắn ổ lưu), nên thiếu thư mục này là
 # mỗi lần deploy lại con số "có ai dùng không" về 0.
-COPY so-lieu/ ./so-lieu/
+COPY --chown=node:node so-lieu/ ./so-lieu/
 
 # DỮ LIỆU CLIP gói kèm.
 #
@@ -52,7 +53,7 @@ COPY so-lieu/ ./so-lieu/
 # Chỉ mang thứ 11 clip THỰC SỰ dùng: bộ dựng, kịch bản, và đúng 5 tệp ảnh.
 # Cả thư mục `public/` của dự án gốc nặng 147 MB, nhưng đo ra thì các clip chỉ
 # chạm tới 1,6 MB trong đó — phần còn lại là video nguồn chưa clip nào dùng.
-COPY clip/ ./clip/
+COPY --chown=node:node clip/ ./clip/
 ENV PROJ_ROOT=/app/clip
 
 # HAI THƯ MỤC PHẢI GHI ĐƯỢC.

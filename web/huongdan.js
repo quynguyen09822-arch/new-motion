@@ -7,7 +7,7 @@
  * khi người dùng hỏi tới.
  *
  * NỘI DUNG NẰM TRONG `schema.js`, KHÔNG nằm ở đây. Đây chỉ là cái khung để bày.
- * Theo đúng §6.1 của ARCHITECTURE.md: "Thêm property mới = sửa schema, không
+ * Theo đúng §6.1 của docs/ghi-chu/ARCHITECTURE.md: "Thêm property mới = sửa schema, không
  * đụng UI code." Thêm hướng dẫn cho một núm mới = khai thêm `huongDan` trong
  * schema, không phải sửa file này.
  *

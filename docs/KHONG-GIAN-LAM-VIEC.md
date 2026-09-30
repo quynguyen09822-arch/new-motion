@@ -185,7 +185,7 @@ Chụp màn hình trước/sau cùng một clip để đối chiếu.
 
 ## Việc 3 · Bảng chỉnh chỉ hiện thứ đang cần `[P1 · 1–2 ngày]`
 
-**Cái này TRÙNG với `BANG-CHINH-V2.md` — cố ý.** Nguyên tắc 2 của tài liệu đó
+**Cái này TRÙNG với `ghi-chu/BANG-CHINH-V2.md` — cố ý.** Nguyên tắc 2 của tài liệu đó
 ("Chỉ hiện thứ đang cần") chính là thuốc cho bí bách. Khác biệt: ở đây mục tiêu
 không phải dạy người mới, mà là **bớt thứ đập vào mắt** cho người dùng hằng ngày.
 

@@ -11,6 +11,7 @@
  * gửi link cho đồng nghiệp được. Ba thứ đó mất sạch nếu dựng bằng ô bấm giả.
  */
 import { ganTen } from '/tenfile.js';
+import { goiJSON } from '/goi.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -393,13 +394,9 @@ $('mk-chep').onclick = async () => {
   } catch { bao('Trình duyệt không cho chép tự động — bôi đen rồi Ctrl+C.', true); }
 };
 
-async function goi(duong, cach, than) {
-  const r = await fetch(duong, { method: cach,
-    ...(than ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(than) } : {}) });
-  const d = await r.json().catch(() => ({}));
-  if (!d.ok) throw new Error(d.loi || d.cau || `Máy chủ trả mã ${r.status}.`);
-  return d;
-}
+/* Cửa chung `web/goi.js`: nó dịch cả trang lỗi của cổng proxy sang tiếng người,
+   thay vì để "Unexpected token '<'" văng ra màn hình. */
+const goi = (duong, cach, than) => goiJSON(duong, { cach, than });
 
 function veNguoi(ds, toi) {
   const boc = $('bang-nguoi');

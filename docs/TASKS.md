@@ -32,5 +32,5 @@
 
 ## Nợ kỹ thuật
 
-Xem [`../FIX-BACKLOG.md`](../FIX-BACKLOG.md). F2 đã xong; F1 (bước-frame khi xuất)
+Xem [`ghi-chu/FIX-BACKLOG.md`](ghi-chu/FIX-BACKLOG.md). F2 đã xong; F1 (bước-frame khi xuất)
 đã đo sẵn bảy điểm, chưa làm.

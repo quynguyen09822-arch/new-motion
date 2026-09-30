@@ -11,6 +11,7 @@
  */
 import { taoThaAnh } from './thaanh.js';
 import { doTrang } from './dotrang.js';
+import { goiJSON } from './goi.js';
 
 const el = (the, lop, chu) => {
   const n = document.createElement(the);
@@ -79,12 +80,8 @@ export function taoDungHinh(boc, { laySlug, bao, nhanCanh, layKieuMay, layMeta }
     chuTa.classList.remove('an', 'ta-hong');
     chuTa.textContent = 'Đang gửi lời tả…';
     try {
-      const r = await fetch('/api/stitch', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ y: oTa.value.trim(), kieuMay: layKieuMay?.() || 'DESKTOP' }),
-      });
-      const d = await r.json();
-      if (!d.ok) throw new Error(d.loi || d.cau || 'Không bắt đầu được.');
+      const d = await goiJSON('/api/stitch', { cach: 'POST',
+        than: { y: oTa.value.trim(), kieuMay: layKieuMay?.() || 'DESKTOP' } });
       await hoiToiXong(d.id);
     } catch (e) {
       chuTa.classList.add('ta-hong');
@@ -224,11 +221,11 @@ export function taoDungHinh(boc, { laySlug, bao, nhanCanh, layKieuMay, layMeta }
     kq.classList.remove('hong');
     kq.append(el('p', 'dung-tom', 'AI đang nhìn ảnh chụp và số đo của phần này để dựng cảnh — thường mất nửa phút đến một phút…'));
     try {
-      const r = await fetch('/api/tu-html', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug, chupId: chup.id, phanId: phanChon, y: oY.value.trim() }),
-      });
-      const d = await r.json();
+      let d;
+      try {
+        d = await goiJSON('/api/tu-html', { cach: 'POST',
+          than: { slug, chupId: chup.id, phanId: phanChon, y: oY.value.trim() } });
+      } catch (e) { d = { loi: e.message }; }
       if (!d.canh) {
         kq.classList.add('hong'); kq.innerHTML = '';
         kq.append(el('p', 'dung-loi', d.loi || d.cau || 'AI dựng hỏng.'), quay);
@@ -247,11 +244,10 @@ export function taoDungHinh(boc, { laySlug, bao, nhanCanh, layKieuMay, layMeta }
     kq.innerHTML = '';
     kq.classList.remove('an', 'hong');
     kq.append(el('p', 'dung-tom', 'Máy đang mở trang bằng trình duyệt thật, chờ trang chạy xong rồi chụp — thường mất 15–40 giây…'));
-    const r = await fetch('/api/chup-trang', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(n.loai === 'url' ? { url: n.url } : { html: n.html }),
-    });
-    const d = await r.json().catch(() => ({}));
+    let d;
+    try { d = await goiJSON('/api/chup-trang', { cach: 'POST',
+      than: n.loai === 'url' ? { url: n.url } : { html: n.html } }); }
+    catch (e) { d = { ok: false, cau: e.message }; }
     if (d.khongCo) return false;
     if (!d.ok) {
       kq.classList.add('hong'); kq.innerHTML = '';
@@ -365,11 +361,12 @@ export function taoDungHinh(boc, { laySlug, bao, nhanCanh, layKieuMay, layMeta }
         if (tomTat) tomTat.textContent = `Đã đo ${banDo.khoi.length} khối. AI đang dựng thành cảnh — thường mất nửa phút…`;
         than = { slug, banDo, y: oY.value.trim() };
       }
-      const r = await fetch(duong, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(than),
-      });
-      const d = await r.json();
+      /* Qua `goiJSON`: đường này chạy 30–180 giây, và cổng proxy đứng trước
+         app trả về TRANG HTML khi nó cắt giữa chừng. `r.json()` gặp trang ấy
+         thì văng "Unexpected token '<'" ra thẳng màn hình — xem `web/goi.js`. */
+      let d;
+      try { d = await goiJSON(duong, { cach: 'POST', than }); }
+      catch (e) { d = { loi: e.message }; }
       if (!d.canh) {
         kq.classList.add('hong'); kq.innerHTML = '';
         kq.appendChild(el('p', 'dung-loi', d.loi || d.cau || 'AI dựng hỏng.'));

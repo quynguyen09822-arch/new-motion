@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * KIỂM SỔ HOÀN TÁC — §9 của ARCHITECTURE.md ("history.test", không được fail).
+ * KIỂM SỔ HOÀN TÁC — §9 của docs/ghi-chu/ARCHITECTURE.md ("history.test", không được fail).
  *
  * Luật R5 nói mọi thay đổi đi qua một cổng duy nhất. Thứ chứng minh luật ấy còn
  * đứng vững là: làm N việc rồi hoàn tác N lần thì kịch bản phải về ĐÚNG TỪNG

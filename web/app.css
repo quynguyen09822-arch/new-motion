@@ -1373,3 +1373,5 @@ body.doi-cu .keo-cot[data-cot="trai"] { display: none; }
 .chup-chu b { font-size: var(--chu-vua); }
 .chup-chu span { color: var(--chu-mo); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chup-xem { display: inline-block; margin-bottom: 8px; font-size: var(--chu-nho); color: var(--nhan); }
+.hang-phoi { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.hang-phoi .nut { flex: 1 1 calc(50% - 3px); }

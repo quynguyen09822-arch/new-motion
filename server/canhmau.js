@@ -2,7 +2,7 @@
  * CẢNH MẪU CHO Ô XEM THỬ — một kịch bản tí hon, một món, sinh theo yêu cầu.
  *
  * Ô xem thử trong bảng chỉnh phải diễn bằng CHÍNH bộ dựng thật (luật trong
- * `BANG-CHINH-V2.md`). Bộ dựng nạp kịch bản qua `?scene=…`, và chỗ đó nhận cả
+ * `docs/ghi-chu/BANG-CHINH-V2.md`). Bộ dựng nạp kịch bản qua `?scene=…`, và chỗ đó nhận cả
  * đường dẫn tuyệt đối:
  *
  *     const url = /^https?:|^\/​/.test(name) ? name : `scenes/${name}.json`;

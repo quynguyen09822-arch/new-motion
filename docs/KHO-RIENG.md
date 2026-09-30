@@ -165,4 +165,4 @@ chiếu lại: chạy xong `scenes/` phải y nguyên từng tên file.
 - **Vẫn một mật khẩu chung.** Chia kho là chia *chỗ để đồ*, không phải chia
   quyền: ai biết mật khẩu và có tên trong `MOTION_TAI_KHOAN` đều đăng nhập được
   thành bất kỳ ai trong danh sách đó. Muốn thật sự tách quyền thì phải mỗi người
-  một mật khẩu — xem `DANG-NHAP.md`.
+  một mật khẩu — xem `ghi-chu/DANG-NHAP.md`.

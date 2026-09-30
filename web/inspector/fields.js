@@ -26,7 +26,7 @@ export function taoNum(num, giaTri, doi, cuChi) {
   const boc = el('div', 'num');
   const nhan = el('label', 'num-nhan', num.nhan);
   // Nút hỏi dựng TỰ ĐỘNG từ schema — thêm hướng dẫn cho một núm là khai thêm
-  // `huongDan` trong `schema.js`, không phải sửa file này (§6.1 ARCHITECTURE.md).
+  // `huongDan` trong `schema.js`, không phải sửa file này (§6.1 docs/ghi-chu/ARCHITECTURE.md).
   /*
    * Núm chung (`at`, `dur`, `pad`…) do bảng thuộc tính tự thêm cho MỌI loại phần
    * tử, nên không khai được trong `NUM_RIENG`. Tra theo `id` ở đây thay vì đi sửa

@@ -1,7 +1,7 @@
 # ARCH — Kiến trúc triển khai
 
 > Kiến trúc **sản phẩm** (luồng dữ liệu, các tầng, quy ước) nằm ở
-> [`../ARCHITECTURE.md`](../ARCHITECTURE.md) và [`../CLAUDE.md`](../CLAUDE.md).
+> [`ghi-chu/ARCHITECTURE.md`](ghi-chu/ARCHITECTURE.md) và [`../CLAUDE.md`](../CLAUDE.md).
 > File này chỉ nói phần **triển khai**.
 
 ## Hình dạng

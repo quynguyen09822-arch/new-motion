@@ -23,6 +23,7 @@
  */
 import { goiGemini, HAN_GIAY_ANH } from './gemini.js';
 import { soatKichBan } from './proj.js';
+import { loiNhacPhoi } from '../web/phoimau.js';
 
 /* Trường không bao giờ được AI đổi. `children` cũng nằm đây: sửa một món thì
    không được âm thầm thay cả cây con bên trong nó. */
@@ -74,7 +75,7 @@ function loiNhac(mon, kind, truong, meta, y, coAnh) {
 
 KHUNG HÌNH: ${meta.width}×${meta.height} px.
 MÀU CỦA CLIP (dùng lại, đừng chế màu mới):
-  nền ${meta.bg} · chữ ${meta.ink} · nhấn ${meta.accent}${meta.accent2 ? ` · nhấn 2 ${meta.accent2}` : ''}${meta.hot ? ` · nóng ${meta.hot}` : ''}
+${loiNhacPhoi(meta)}
 
 THÀNH PHẦN ĐANG CHỌN (loại \`${kind}\`):
 ${JSON.stringify(mon, null, 2)}

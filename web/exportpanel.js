@@ -75,7 +75,7 @@ export function taoBangXuat(boc, { laySlug, bao, layDoc, chonMon }) {
    * ĐƯỜNG THOÁT khi bản chạy này không dựng được video.
    *
    * Bản trong Docker không có ffmpeg lẫn Chromium (ảnh sẽ phình từ ~90 MB lên
-   * khoảng 1 GB — xem TRIEN-KHAI.md). Câu báo lỗi vốn đã viết tử tế, nhưng
+   * khoảng 1 GB — xem docs/ghi-chu/TRIEN-KHAI.md). Câu báo lỗi vốn đã viết tử tế, nhưng
    * người dùng vẫn đi vào ngõ cụt: họ muốn cái video, còn công cụ chỉ nói "hãy
    * mở dự án trên máy làm việc" mà không đưa cho họ thứ gì để mang đi.
    *
@@ -150,7 +150,7 @@ export function taoBangXuat(boc, { laySlug, bao, layDoc, chonMon }) {
     if (!d.ok) {
       nutXuat.disabled = nutKiem.disabled = false;
       /* Bản chạy thiếu ffmpeg/Chromium thì đừng dừng ở câu báo lỗi — mở đường
-         thoát. Xem mục M5 trong TIEP-THEO.md. */
+         thoát. Xem mục M5 trong docs/ghi-chu/TIEP-THEO.md. */
       if (d.taiDuoc) return veDuongThoat(slug, d.loi);
       return bao(d.loi, true);
     }

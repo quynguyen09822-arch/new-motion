@@ -19,6 +19,8 @@
  * khuyên thêm, không phải cửa chặn.
  */
 import { taoVeXuat } from './dangnhap.js';
+import { tuongPhan } from '../web/soat.js';
+import { nguongCho } from '../web/phoimau.js';
 import { moChromium, noiCDP, chanNoiBo, timChromium, traCho, xinCho } from './chuptrang.js';
 
 /** Chạy TRONG trang bộ dựng. Tự chứa — không tham chiếu biến ngoài. */
@@ -34,8 +36,26 @@ function doTrongTrang() {
     if (!chu) continue;
     const r = n.getBoundingClientRect();
     if (r.width < 2 || r.height < 2) continue;
+    /* MÀU THẬT, không đoán từ JSON.
+       Nền của một chữ là màu đặc đầu tiên tìm thấy khi đi ngược lên cây — đúng
+       thứ mắt người nhìn thấy. Đoán từ JSON thì con nằm trong cụm `place` là
+       chịu (bộ dựng mới biết nó rơi vào đâu), và đó chính là chỗ cảnh AI dựng
+       hay bạc màu mà mọi phép kiểm đều im. */
+    let nen = null;
+    for (let t = n; t && t !== document.body; t = t.parentElement) {
+      const m = getComputedStyle(t).backgroundColor;
+      const p = m.match(/rgba?\(([^)]+)\)/);
+      if (p) {
+        const [, , , a = '1'] = [0, ...p[1].split(',').map((x) => x.trim())];
+        if (Number(a) >= 0.5) { nen = m; break; }
+      }
+    }
     ra.push({ id: n.dataset.el, chu: chu.slice(0, 40),
-      x: (r.left - st.left) / W, y: (r.top - st.top) / H, w: r.width / W, h: r.height / H });
+      x: (r.left - st.left) / W, y: (r.top - st.top) / H, w: r.width / W, h: r.height / H,
+      mauChu: cs.color,
+      nen: nen || getComputedStyle(document.getElementById('stage')).backgroundColor,
+      coChu: parseFloat(cs.fontSize) || 0,
+      dam: Number(cs.fontWeight) >= 600 });
   }
   return ra;
 }
@@ -99,6 +119,14 @@ export async function doCanh({ goc, meta, canh, email }) {
   }
 }
 
+/** `rgb(10, 20, 30)` → `#0a141e`. Trả null nếu đọc không ra. */
+function hex(m) {
+  const p = String(m || '').match(/rgba?\(([^)]+)\)/);
+  if (!p) return /^#[0-9a-f]{6}$/i.test(m || '') ? m : null;
+  const [r, g, b] = p[1].split(',').map((x) => Math.round(parseFloat(x)));
+  return `#${[r, g, b].map((n) => (n || 0).toString(16).padStart(2, '0')).join('')}`;
+}
+
 /** Phần tính — tách ra để bài kiểm gọi thẳng không cần trình duyệt. */
 export function danhGia(mon) {
   const ra = [];
@@ -122,6 +150,26 @@ export function danhGia(mon) {
   }
   if (de.length) {
     ra.push(`VẼ THẬT RA THÌ CHỮ ĐÈ LÊN NHAU: ${de.slice(0, 4).join('; ')}. Xếp lại cho chúng không chồng.`);
+  }
+
+  /* ĐỌC ĐƯỢC KHÔNG — đo trên MÀU THẬT sau khi vẽ.
+     Đây là thứ `soat.js` không với tới được: nó suy nền từ hình học trong JSON,
+     mà con nằm trong cụm `place` thì JSON không nói được nó rơi lên khối nào.
+     Cảnh anh Quý gửi 29/09 bạc màu đúng vì vậy — mọi phép kiểm đều im. */
+  const nhat = [];
+  for (const m of mon) {
+    if (!m.mauChu || !m.nen) continue;
+    const a = hex(m.mauChu), b = hex(m.nen);
+    if (!a || !b) continue;
+    const tp = tuongPhan(a, b);
+    if (tp == null) continue;
+    const nguong = nguongCho(m.coChu || 32, m.dam);
+    if (tp < nguong) nhat.push(`${m.id} ("${m.chu}") ${a} trên ${b} = ${tp.toFixed(1)}:1, cần ${nguong}:1`);
+  }
+  if (nhat.length) {
+    ra.push(`VẼ THẬT RA THÌ CHỮ KHÔNG ĐỌC ĐƯỢC: ${nhat.slice(0, 6).join('; ')}. `
+      + 'Dùng đúng cặp màu an toàn của bộ màu clip — đặt `fill` cho thẻ thì phải đặt `ink` '
+      + 'của chữ bên trong theo cặp.');
   }
   return ra;
 }

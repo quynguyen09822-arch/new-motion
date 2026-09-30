@@ -32,7 +32,7 @@ Trong `web/inspector/schema.js`, ba bảng:
 | `HUONG_DAN_MAU` | sáu màu của cả clip | `bg`, `ink`, `accent`… |
 
 **Thêm hướng dẫn cho một núm = viết thêm một dòng ở `schema.js`, không đụng UI
-code.** Đây đúng là §6.1 của `ARCHITECTURE.md` ("Thêm property mới = sửa schema,
+code.** Đây đúng là §6.1 của `ghi-chu/ARCHITECTURE.md` ("Thêm property mới = sửa schema,
 không đụng UI code"): `fields.js` tự dựng nút hỏi từ schema.
 
 Khoá `HUONG_DAN` gõ sai tên sẽ **kêu lên trong console** chứ không trôi mất im

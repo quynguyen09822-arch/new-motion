@@ -27,6 +27,7 @@ import { luuClip } from './save.js';
    hai bản luật đặt tên thì sớm muộn cũng lệch. Cùng cách `main.js` mượn
    `soatChatLuong` từ `web/soat.js`. */
 import { ganTen } from '../web/tenfile.js';
+import { MAU_MAC_DINH } from '../web/phoimau.js';
 
 /** Khổ dựng sẵn. Tên gọi theo chỗ đăng, không gọi theo con số. */
 export const KHO_HINH = [
@@ -58,7 +59,12 @@ export function duAnTrang(ten, rong, cao) {
   return {
     version: 1,
     meta: { name: ten, width: rong, height: cao, density: 1,
-      bg: '#0a0b10', ink: '#f4f6fb', accent: '#ff6a1f' },
+      /* Bộ "Đen · cam" của `web/phoimau.js` — nền ĐEN THUẦN, và khai luôn
+         `paper`/`line` để thẻ có màu riêng. Không khai thì bộ dựng tự suy ra
+         một lớp trắng mờ trên nền, tức mọi thẻ cùng một sắc xám và clip nhìn
+         bạc màu (ảnh anh Quý gửi 29/09). Lấy THẲNG từ `phoimau.js`, không gõ
+         lại — hai nơi khai sáu màu là hai nơi lệch nhau. */
+      ...MAU_MAC_DINH },
     scenes: [{
       id: 'canh-1',
       duration: 4,

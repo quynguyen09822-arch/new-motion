@@ -423,9 +423,9 @@ từ khối hình học và chạy bốn phép kiểm bố cục (`kiem_trong`, 
 - `nen` và `sweep` được đặt `pointer-events:none` ⇒ chỉ chọn được từ danh sách
   thành phần bên trái.
 
-## 10. `ARCHITECTURE.md` — đã đối chiếu, đây là kết quả
+## 10. `docs/ghi-chu/ARCHITECTURE.md` — đã đối chiếu, đây là kết quả
 
-`ARCHITECTURE.md` (chưa vào git) là bản thiết kế **chủ đích** của chủ dự án, viết
+`docs/ghi-chu/ARCHITECTURE.md` (chưa vào git) là bản thiết kế **chủ đích** của chủ dự án, viết
 cho một hệ khác: 5 lớp, Remotion + React, Zod, JSON Patch, agent pipeline,
 chunking video dài. Repo này là JS thuần không gói phụ thuộc, nên phần lớn tài
 liệu ấy **không áp vào đây được** — nhưng nguyên tắc thì áp được, và đã áp.
