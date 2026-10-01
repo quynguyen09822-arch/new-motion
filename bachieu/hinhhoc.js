@@ -95,6 +95,47 @@ export function matCuaTru({ ban = 110, cao = 240, soMat = 24 } = {}) {
 }
 
 /**
+ * Sinh mặt cho một KHỐI CẦU — vẫn là mặt phẳng, chỉ nhiều hơn.
+ *
+ * Cùng mẹo với ống trụ, nhưng chia theo HAI chiều: `vong` mặt quanh trục đứng,
+ * `tang` vành chồng từ đỉnh xuống đáy. Mỗi ô là một mảnh phẳng tiếp tuyến với
+ * mặt cầu tại tâm ô ấy.
+ *
+ * ĐÁNH ĐỔI PHẢI BIẾT. Một quả cầu 10×6 tốn 60 thẻ DOM; ghép một nhân vật là
+ * ngót nghét 500. Khác hẳn ống trụ (28 thẻ). Nên hàm này nhận số thấp mặc định
+ * và chỗ gọi phải tự cân: thứ to thì chia mịn, thứ nhỏ như con mắt thì 6×4 là
+ * đủ, chia mịn chỉ tốn thẻ chứ mắt không thấy.
+ *
+ * Vành sát hai cực hẹp dần nên vẫn hở một chút ở đỉnh và đáy. Chấp nhận được
+ * vì các bộ phận luôn cắm vào nhau che mất cực — và bịt cực tử tế thì phải
+ * dựng ô tam giác, tức thêm một nhánh vẽ chỉ để lo hai cái chấm.
+ */
+export function matCuaCau({ ban = 100, vong = 12, tang = 8 } = {}) {
+  const N = Math.max(4, Math.min(32, Math.round(vong)));
+  const M = Math.max(2, Math.min(20, Math.round(tang)));
+  const mat = [];
+  const caoVanh = 2 * ban * Math.sin(Math.PI / (2 * M)) + 1;
+  for (let j = 0; j < M; j++) {
+    /* Tâm vành, tính theo độ cao so với xích đạo: +90 là đỉnh, -90 là đáy. */
+    const e = 90 - (180 * (j + 0.5)) / M;
+    const banVanh = ban * Math.cos(rad(e));
+    const rongO = 2 * banVanh * Math.sin(Math.PI / N) + 1;
+    for (let i = 0; i < N; i++) {
+      const g = (i * 360) / N;
+      const a = rad(g), b = rad(e);
+      mat.push({
+        id: `o-${j}-${i}`,
+        /* Khớp đúng thứ tự CSS bên dưới: rotateY rồi rotateX rồi đẩy ra. */
+        n: [Math.cos(b) * Math.sin(a), -Math.sin(b), Math.cos(b) * Math.cos(a)],
+        w: rongO, h: caoVanh,
+        bien: `rotateY(${g}deg) rotateX(${e}deg) translateZ(${ban}px)`,
+      });
+    }
+  }
+  return mat;
+}
+
+/**
  * Pháp tuyến SAU KHI khối đã quay.
  *
  * Phải khớp đúng thứ tự mà `ve.js` ghi ra CSS: `rotateX(doc) rotateY(ngang)`.
@@ -282,6 +323,8 @@ export const NGUONG_CHIEM = 0.5;
  * qua luôn lần nó kêu đúng.
  */
 export function beRongChiem(khoi = {}) {
+  /* Linh vật rộng nhất ở hai chụp tai: ±146 cộng bán kính 46, nhân hệ số to nhỏ. */
+  if (khoi.loai === 'nhan-vat') return 384 * (khoi.co ?? 1);
   if (khoi.loai === 'tru') return 2 * (khoi.ban ?? 110);
   if (khoi.loai === 'bieu-do') {
     const n = Math.max(1, Math.min(12, khoi.cot?.length ?? 4));

@@ -42,6 +42,25 @@ nhau, rồi bài kiểm đọc một nơi còn người dùng nhận nơi kia.
 | Logo khối | dấu hiệu thương hiệu trên cả sáu mặt |
 | **Ống trụ** | cột, đồng xu, vòng tròn |
 | **Biểu đồ cột** | khoe con số tăng trưởng |
+| **Nhân vật** | linh vật Mắt Bão, ghép từ cầu và trụ |
+
+### Linh vật — nói rõ đây là cái gì
+
+**Không phải bản sao của hình gốc.** Hình gốc là bản dựng 3D mặt cong hữu cơ;
+ghép mặt phẳng không nặn lại được thứ đó. Đây là bản **kiểu đồ chơi**: giữ đúng
+tỉ lệ, dáng và màu nên nhận ra ngay là ai, nhưng mềm mại thì không bằng.
+
+25 bộ phận, 1.180 mặt, vẽ lại một khung mất ~16 ms (tức thừa sức 60 hình/giây).
+Màu **trích thẳng từ ảnh gốc bằng thống kê màu trội**, không chọn bằng mắt —
+chọn bằng mắt là mỗi lần mở lại ra một tông khác.
+
+Toạ độ mắt, lông mày đặt bằng **phép tính bám mặt cầu khuôn mặt**, không đặt mò:
+`z = z₀ + √(r² − dx² − dy²)`. Đặt mò thì chúng nổi lơ lửng trước mặt, mà nhìn
+thẳng từ trước lại không thấy sai — chỉ lộ ra khi xoay ngang.
+
+Ánh nền để **0,72** chứ không dùng mức mặc định 0,42: linh vật là đồ nhựa bóng
+chụp trong hộp sáng, không phải tượng đá ngoài trời. Để nền thấp là nó thành
+một cục đất sét đỏ.
 
 **"Ống trụ" trông tròn nhưng vẫn là mặt phẳng.** Ghép 28 mặt hẹp quanh một trục
 thì mắt thấy tròn — đứng cách màn hình một bước chân là không phân biệt được với
@@ -91,7 +110,7 @@ hai lần xuất ra hai phim khác nhau. Bộ dựng clip đã theo đúng luậ
 node tools/kiem-ba-chieu.mjs     # hoặc: npm run kiem -- ba-chieu
 ```
 
-Chín mục. Đã **thử bẻ gãy 10 kiểu** để chắc không có mục nào xanh dễ dãi — và
+Mười mục. Đã **thử bẻ gãy 10 kiểu** để chắc không có mục nào xanh dễ dãi — và
 lần thử ấy bắt được một chỗ xanh giả thật: mọi phép thử pháp tuyến đều dùng
 vector có `x = 0`, nên một lỗi đảo dấu ở đúng số hạng chứa `x` thì không ai
 thấy. Nay đã có phép thử "quay đi rồi quay về phải trở lại chỗ cũ".

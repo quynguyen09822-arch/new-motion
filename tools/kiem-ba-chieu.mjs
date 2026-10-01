@@ -122,6 +122,36 @@ console.log('\n①b Ống trụ — hình tròn dựng bằng toàn mặt phẳn
   })());
 }
 
+console.log('\n①c Khối cầu — mặt cong dựng bằng mặt phẳng, chia theo hai chiều');
+{
+  const mat = H.matCuaCau({ ban: 100, vong: 12, tang: 8 });
+  dat('đủ số ô: vòng × tầng', mat.length === 96, `${mat.length} ô`);
+  dat('pháp tuyến nào cũng dài đúng 1',
+    mat.every((m) => gan(Math.hypot(...m.n), 1, 1e-12)));
+  /* Vành trên cùng phải chĩa LÊN (y âm vì +y xuống). Lộn dấu là quả cầu lộn
+     từ trong ra ngoài, và đèn chiếu vào đúng nửa khuất. */
+  dat('vành trên cùng chĩa lên trời', mat[0].n[1] < -0.9, mat[0].n[1].toFixed(3));
+  dat('vành dưới cùng chĩa xuống đất', mat[mat.length - 1].n[1] > 0.9);
+  /* Ô ở xích đạo phải rộng nhất, ô sát cực hẹp nhất — đó chính là hình dạng
+     quả cầu. Rộng bằng nhau hết nghĩa là đang dựng cái ống. */
+  const xichDao = mat.filter((m) => Math.abs(m.n[1]) < 0.25).map((m) => m.w);
+  const ganCuc = mat.filter((m) => Math.abs(m.n[1]) > 0.9).map((m) => m.w);
+  dat('ô ở xích đạo rộng hơn hẳn ô sát cực',
+    Math.min(...xichDao) > Math.max(...ganCuc) * 1.8,
+    `${Math.max(...xichDao).toFixed(1)} so với ${Math.min(...ganCuc).toFixed(1)}`);
+  dat('mọi ô đều có bề rộng dương', mat.every((m) => m.w > 0 && m.h > 0));
+  dat('số vòng và tầng vô lý thì bị kẹp lại',
+    H.matCuaCau({ vong: 1, tang: 1 }).length >= 8
+    && H.matCuaCau({ vong: 999, tang: 999 }).length <= 32 * 20);
+  /* Chia mịn hơn thì tổng diện tích các ô tiệm cận diện tích mặt cầu thật. */
+  dat('chia càng mịn càng sát mặt cầu thật', (() => {
+    const dt = (v, t) => H.matCuaCau({ ban: 100, vong: v, tang: t })
+      .reduce((s, m) => s + (m.w - 1) * (m.h - 1), 0);
+    const that = 4 * Math.PI * 100 * 100;
+    return Math.abs(dt(24, 16) - that) < Math.abs(dt(8, 5) - that);
+  })());
+}
+
 console.log('\n③ Đèn');
 {
   const den = { ngang: 0, cao: 0, nen: 0.3 };  // đèn chiếu thẳng từ phía người xem
@@ -316,6 +346,47 @@ console.log('\n⑦ Bố cục năm loại khối');
       khong.length === 3 && khong.every((c) => Number.isFinite(c.cao) && c.cao > 0));
     dat('quá nhiều cột thì bị kẹp lại',
       K.boCuc({ loai: 'bieu-do', cot: Array(50).fill(10) }).khoiCon.length <= 12);
+  }
+  {
+    /* LINH VẬT. Đây KHÔNG phải bản sao của hình gốc — hình gốc toàn mặt cong
+       hữu cơ. Đây là bản 3D kiểu đồ chơi, nên thứ phải canh là TỈ LỆ và việc
+       các bộ phận có đúng chỗ không, chứ không phải nó giống tới mấy phần trăm. */
+    const nv = K.khoiMoi('nhan-vat');
+    const con = K.boCuc(nv).khoiCon;
+    dat('nhân vật: đủ bộ phận', con.length >= 20, `${con.length} bộ phận`);
+    dat('nhân vật: bộ phận nào cũng có màu riêng',
+      con.every((c) => c.mauRieng), con.filter((c) => !c.mauRieng).map((c) => c.id).join(', ') || 'đủ cả');
+    dat('nhân vật: dùng cả cầu, trụ và hộp',
+      new Set(con.map((c) => c.hinh)).size === 3,
+      [...new Set(con.map((c) => c.hinh))].join(' '));
+    /* Mới sinh ra đã phải nằm trong luật 50% của chính nó. Để nó ra đời đã vượt
+       mốc thì lời nhắc kêu ngay lần đầu mở, và người dùng học cách bỏ qua. */
+    dat('nhân vật: cỡ mặc định nằm trong mốc 50%',
+      H.soatBeRong(nv, 1080).length === 0,
+      `${Math.round(H.beRongChiem(nv))}px = ${Math.round(H.beRongChiem(nv) / 1080 * 100)}% khung`);
+    dat('nhân vật: kéo to lên thì lời nhắc kêu',
+      H.soatBeRong({ ...nv, co: 2 }, 1080).length === 1);
+    dat('nhân vật: núm độ lớn ăn vào mọi bộ phận', (() => {
+      const to = K.boCuc({ ...nv, co: 2 }).khoiCon;
+      return to.every((c, i) => {
+        const g = con[i], ti = nv.co / 2;
+        return gan((c.ban ?? c.rong) * ti, (g.ban ?? g.rong), 1e-9);
+      });
+    })());
+    /* Hai mắt phải ĐỐI XỨNG. Lệch một bên là nhân vật nhìn như bị méo mặt, mà
+       soi bằng mắt thì rất khó thấy lệch mấy pixel. */
+    const cau = con.filter((c) => c.hinh === 'cau');
+    const trai = cau.filter((c) => c.x < -1), phai = cau.filter((c) => c.x > 1);
+    dat('nhân vật: hai bên đối xứng', trai.length === phai.length
+      && trai.every((t) => phai.some((f) => gan(f.x, -t.x) && gan(f.y, t.y) && gan(f.ban, t.ban))),
+      `${trai.length} bên trái / ${phai.length} bên phải`);
+    /* Mặt phải NẰM TRONG mũ trùm. Lọt ra ngoài là mất hẳn dáng mũ. */
+    dat('nhân vật: khuôn mặt nằm gọn trong mũ trùm', (() => {
+      const mu = con.find((c) => c.mauRieng === K.MAU_LINH_VAT.doTuoi && c.ban > 150);
+      const mt = con.find((c) => c.mauRieng === K.MAU_LINH_VAT.da);
+      if (!mu || !mt) return false;
+      return mt.ban < mu.ban && Math.abs(mt.y - mu.y) < mu.ban;
+    })());
   }
   dat('thẻ lật thì mỏng, không thành hộp', K.boCuc(K.khoiMoi('the-lat')).khoiCon[0].day <= 16);
   dat('logo khối đặt dấu hiệu lên cả sáu mặt',

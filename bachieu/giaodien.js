@@ -147,6 +147,9 @@ const NUM_THEO_LOAI = {
     ['canh', 'Cạnh khối', 60, 700, 10, true],
     ['coChu', 'Cỡ dấu hiệu', 20, 220, 2, true],
   ],
+  'nhan-vat': [
+    ['co', 'Độ lớn', 0.3, 2, 0.05, true],
+  ],
   tru: [
     ['ban', 'Bề ngang (nửa)', 30, 400, 5, true],
     ['cao', 'Bề cao', 20, 700, 10, true],

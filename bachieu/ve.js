@@ -14,7 +14,8 @@
  * Chạy thì vẫn chạy, nhưng tới lúc có năm khối trên sân là bắt đầu giật, mà
  * triệu chứng lại giống hệt "máy chủ yếu" — đi sai hướng cả buổi.
  */
-import { matCuaHop, matCuaTru, phapTuyen, doSang, mauTheoSang, gocTai, DEN_MAC_DINH } from './hinhhoc.js';
+import { matCuaHop, matCuaTru, matCuaCau, phapTuyen, doSang, mauTheoSang, gocTai,
+  DEN_MAC_DINH } from './hinhhoc.js';
 import { boCuc } from './khoi.js';
 
 const the = (lop, kieu) => {
@@ -65,10 +66,12 @@ export function dung(cha, khoi) {
     const hop = the('bc-hop', {
       transform: `translate3d(${con.x}px, ${-con.y}px, ${con.z}px)`,
     });
-    /* Hộp hay ống trụ — chỉ khác nhau ở bộ mặt. Phần dựng thẻ, chiếu đèn và
-       nhuộm màu dùng chung hết, nên thêm hình mới sau này chỉ là thêm một hàm
-       sinh mặt chứ không phải thêm một nhánh vẽ. */
-    for (const m of (con.hinh === 'tru' ? matCuaTru(con) : matCuaHop(con))) {
+    /* Hộp, ống trụ hay khối cầu — chỉ khác nhau ở BỘ MẶT. Phần dựng thẻ, chiếu
+       đèn và nhuộm màu dùng chung hết, nên thêm hình mới chỉ là thêm một hàm
+       sinh mặt chứ không phải thêm một nhánh vẽ. Đúng chỗ này là lý do ghép
+       được cả một nhân vật mà `ve.js` gần như không phình ra. */
+    const sinhMat = con.hinh === 'tru' ? matCuaTru : con.hinh === 'cau' ? matCuaCau : matCuaHop;
+    for (const m of sinhMat(con)) {
       const f = the('bc-mat', {
         width: m.w + 'px',
         height: m.h + 'px',
@@ -84,12 +87,17 @@ export function dung(cha, khoi) {
         const s = the('bc-chu', {
           fontSize: (khoi.coChu ?? Math.round(Math.min(m.w, m.h) * 0.3)) + 'px',
           ...(con.chuODuoi ? { alignSelf: 'end', paddingBottom: '6px' } : null),
+          /* Mặc định chữ là màu đen mờ cho hợp nhãn trên thẻ. Dấu hiệu thương
+             hiệu thì phải đúng màu của nó, nên cho đặt riêng. */
+          ...(con.mauChu ? { color: con.mauChu } : null),
         });
         s.textContent = chu;
         f.appendChild(s);
       }
       hop.appendChild(f);
-      matDS.push({ el: f, n: m.n, pha: con.pha ?? 1 });
+      /* `mauRieng` để mỗi bộ phận một màu. Không có nó thì cả nhân vật một
+         màu, và nó thành một cục đỏ chứ không ra hình người. */
+      matDS.push({ el: f, n: m.n, pha: con.pha ?? 1, mau: con.mauRieng || null });
     }
     goc.appendChild(hop);
   }
@@ -112,7 +120,7 @@ export function veTai(dat, khoi, t = 0) {
 
   for (const m of dat.matDS) {
     const s = doSang(phapTuyen(m.n, ngang, doc), den) * m.pha;
-    m.el.style.background = mauTheoSang(mau, s);
+    m.el.style.background = mauTheoSang(m.mau || mau, s);
   }
 
   for (const c of dat.chuDS) {

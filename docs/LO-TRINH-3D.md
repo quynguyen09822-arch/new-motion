@@ -116,8 +116,13 @@ phẳng. Hoá ra **tròn xoay cũng làm được**: ghép 28 mặt hẹp quanh 
 thấy tròn, nên có cột, đồng xu, vòng, biểu đồ — những thứ bản đầu của lộ trình
 này xếp vào Giai đoạn 2.
 
-Thứ **vẫn** chưa làm được là hình cong tự do: quả địa cầu có lục địa, con người,
-xe cộ. Mấy thứ đó mới thật sự cần máy vẽ 3D.
+Thứ **vẫn** chưa làm được là hình cong tự do: quả địa cầu có lục địa, xe cộ,
+người thật. Mấy thứ đó mới thật sự cần máy vẽ 3D.
+
+**Nhân vật thì nằm ở giữa.** Linh vật Mắt Bão ghép được từ cầu + trụ + hộp (25
+bộ phận) và nhận ra ngay là ai — nhưng là bản *kiểu đồ chơi*, không phải bản sao
+của hình gốc. Muốn đúng từng nếp áo choàng thì vẫn phải chờ Giai đoạn 5a: nặn
+bằng Blender thật rồi mang `.glb` vào.
 
 **Luồng người dùng:**
 ```
@@ -269,7 +274,7 @@ Nói trước cho khỏi kỳ vọng sai:
 
 | GĐ | Được gì | Phụ thuộc | Rủi ro |
 |---|---|---|---|
-| **1** ✅ | Khối nổi: hộp, thẻ lật, chữ nổi, giá máy chủ, logo khối, **ống trụ, biểu đồ cột** | không | **xong 01/10** |
+| **1** ✅ | Khối nổi: hộp, thẻ lật, chữ nổi, giá máy chủ, logo khối, **ống trụ, biểu đồ cột, linh vật** | không | **xong 01/10** |
 | **2** | Kho ~20 vật thể thật, chọn–đặt–chiếu đèn | **cần quyết mục 5** | vừa |
 | **3** | Máy quay xoay/lia/đẩy, dùng lại keyframe cũ | GĐ 2 | thấp |
 | **4** | AI tự bày cảnh 3D từ một câu | GĐ 2 | vừa |

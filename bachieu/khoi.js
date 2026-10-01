@@ -38,7 +38,25 @@ export const KHO_LOAI = [
   { id: 'logo-khoi',   ten: 'Logo khối',    mo: 'dấu hiệu thương hiệu trên cả sáu mặt' },
   { id: 'tru',         ten: 'Ống trụ',      mo: 'khối tròn xoay — cột, đồng xu, vòng tròn' },
   { id: 'bieu-do',     ten: 'Biểu đồ cột',  mo: 'khoe con số tăng trưởng bằng cột có bề dày' },
+  { id: 'nhan-vat',    ten: 'Nhân vật',     mo: 'linh vật Mắt Bão, ghép từ cầu và trụ' },
 ];
+
+/**
+ * MÀU CỦA LINH VẬT — trích thẳng từ ảnh gốc bằng thống kê màu trội, không chọn
+ * bằng mắt. Chọn bằng mắt là mỗi lần mở lại ra một tông khác.
+ */
+export const MAU_LINH_VAT = {
+  doTuoi: '#D81212',   // mũ trùm, bụng dưới
+  doSam:  '#A30B2A',   // thân áo
+  doChan: '#B00A20',   // chân
+  xanhDen:'#121224',   // áo choàng, găng, giày
+  da:     '#EAC6B4',   // mặt
+  trangMat:'#F2F2F2',
+  trongMat:'#12123A',
+  longMay:'#15151C',
+  vang:   '#E0A22E',   // khoá thắt lưng
+  thatLung:'#2A1A1F',
+};
 
 /** Khối mới sinh ra đã phải đẹp sẵn — không bắt người dùng vặn mới xem được. */
 export function khoiMoi(loai = 'hop', mauId = 'den-cam') {
@@ -68,6 +86,13 @@ export function khoiMoi(loai = 'hop', mauId = 'den-cam') {
     case 'tru':
       return { ...chung, ban: 130, cao: 330, soMat: 28,
         dong: { kieu: 'xoay-vong', chuKy: 10 }, xoayNgang: 0, xoayDoc: 16 };
+    case 'nhan-vat':
+      /* Ánh nền CAO (0,72) chứ không dùng mức mặc định 0,42. Linh vật là đồ
+         nhựa bóng chụp trong hộp sáng, không phải tượng đá ngoài trời — để ánh
+         nền thấp thì mặt và áo tối sầm, và nó thành một cục đất sét đỏ. */
+      return { ...chung, co: 1.35,
+        den: { ngang: -30, cao: 34, nen: 0.72 },
+        dong: { kieu: 'lac-nhe', chuKy: 7 }, xoayNgang: -14, xoayDoc: 6 };
     case 'bieu-do':
       /* Bốn cột tăng dần: đây là hình hay dùng nhất trong clip quảng bá, nên
          bày sẵn đúng dáng ấy thay vì bốn cột bằng nhau. */
@@ -127,6 +152,75 @@ export function boCuc(khoi = {}) {
         { id: 'khoi', x: 0, y: 0, z: 0, rong, cao, day, dauMoiMat: khoi.chu || '◆' },
       ] };
 
+    case 'nhan-vat': {
+      /* LINH VẬT GHÉP TỪ KHỐI CƠ BẢN.
+       *
+       * Nói thẳng điều này ra: đây KHÔNG phải bản sao của hình gốc. Hình gốc là
+       * mặt cong hữu cơ, thứ mà ghép mặt phẳng không nặn lại được. Đây là bản
+       * 3D kiểu ĐỒ CHƠI — giữ đúng tỉ lệ, dáng và màu, nên nhận ra ngay là ai,
+       * nhưng mềm mại thì không bằng.
+       *
+       * Tỉ lệ chibi: đầu chiếm gần một nửa chiều cao. Đo từ ảnh gốc chứ không
+       * ước lượng — sai tỉ lệ đầu/thân là mất ngay cái "dễ thương".
+       *
+       * Số mặt chia theo ĐỘ TO TRÊN MÀN HÌNH, không chia đều: mũ trùm 12×7 vì
+       * nó to nhất, con mắt 7×4 vì chia mịn hơn cũng không ai thấy, chỉ tốn thẻ.
+       */
+      const M = MAU_LINH_VAT;
+      const k = khoi.co ?? 1;
+      const C = (x, y, z, ban, mau, vong, tang, pha) =>
+        ({ id: `c${x}-${y}-${ban}`, hinh: 'cau', x: x * k, y: y * k, z: z * k,
+          ban: ban * k, vong, tang, mauRieng: mau, ...(pha ? { pha } : null) });
+      const T = (id, x, y, z, ban, cao, mau, vong) =>
+        ({ id, hinh: 'tru', x: x * k, y: y * k, z: z * k,
+          ban: ban * k, cao: cao * k, soMat: vong, mauRieng: mau });
+      const H = (id, x, y, z, rong, cao, day, mau, chu, mauChu) =>
+        ({ id, hinh: 'hop', x: x * k, y: y * k, z: z * k,
+          rong: rong * k, cao: cao * k, day: day * k, mauRieng: mau,
+          ...(chu ? { chuMat: { truoc: chu }, mauChu: mauChu || null } : null) });
+
+      return { kieu: 'hop', khoiCon: [
+        /* --- áo choàng: dựng TRƯỚC để nó nằm sau lưng trong thứ tự vẽ --- */
+        H('choang-trai', -140, -96, -98, 156, 282, 14, M.xanhDen),
+        H('choang-phai', 140, -96, -98, 156, 282, 14, M.xanhDen),
+
+        /* --- chân và giày --- */
+        T('chan-trai', -52, -208, 0, 30, 104, M.doChan, 10),
+        T('chan-phai', 52, -208, 0, 30, 104, M.doChan, 10),
+        H('giay-trai', -56, -276, 14, 88, 58, 118, M.xanhDen),
+        H('giay-phai', 56, -276, 14, 88, 58, 118, M.xanhDen),
+
+        /* --- thân --- */
+        C(0, -118, 0, 108, M.doTuoi, 14, 8),          // bụng dưới, đỏ tươi
+        C(0, -36, 0, 130, M.doSam, 16, 9),            // ngực, đỏ sẫm
+        T('that-lung', 0, -74, 0, 124, 26, M.thatLung, 20),
+        H('khoa', 0, -74, 118, 52, 38, 14, M.vang),
+        /* Dấu xoáy trên ngực: đặt bằng CHỮ trên một tấm mỏng, không vẽ hình —
+           vẽ xoáy bằng mặt phẳng thì tốn cả trăm thẻ cho một chi tiết bé. */
+        H('dau-nguc', 0, -14, 132, 78, 78, 4, M.doSam, '◉', '#FFFFFF'),
+
+        /* --- tay --- */
+        C(-152, -20, 10, 46, M.xanhDen, 10, 6),
+        C(152, -20, 10, 46, M.xanhDen, 10, 6),
+
+        /* --- đầu --- */
+        C(0, 150, 0, 150, M.doTuoi, 18, 10),           // mũ trùm
+        C(-146, 146, -6, 46, M.doTuoi, 10, 6),         // chụp tai trái
+        C(146, 146, -6, 46, M.doTuoi, 10, 6),          // chụp tai phải
+        C(0, 124, 62, 104, M.da, 16, 10),              // mặt, đẩy ra trước
+        C(-40, 150, 142, 33, M.trangMat, 10, 6),
+        C(40, 150, 142, 33, M.trangMat, 10, 6),
+        C(-43, 146, 167, 15, M.trongMat, 8, 5),
+        C(43, 146, 167, 15, M.trongMat, 8, 5),
+        H('may-trai', -44, 182, 130, 62, 14, 9, M.longMay),
+        H('may-phai', 44, 182, 130, 62, 14, 9, M.longMay),
+
+        /* --- chóp mũ --- */
+        T('can-chop', 0, 322, 0, 5, 42, M.doTuoi, 8),
+        C(0, 352, 0, 16, M.doTuoi, 8, 5),
+      ] };
+    }
+
     case 'tru':
       return { kieu: 'hop', khoiCon: [
         { id: 'tru', hinh: 'tru', x: 0, y: 0, z: 0,
@@ -168,6 +262,7 @@ export function boCuc(khoi = {}) {
 
 /** Chiều cao thật của cả khối — để sân biết phải chừa bao nhiêu chỗ. */
 export function caoTong(khoi = {}) {
+  if (khoi.loai === 'nhan-vat') return 700 * (khoi.co ?? 1);
   if (khoi.loai === 'bieu-do') return khoi.caoMax ?? 300;
   if (khoi.loai === 'gia-may-chu') {
     const tang = Math.max(1, Math.min(12, khoi.tang ?? 5));
