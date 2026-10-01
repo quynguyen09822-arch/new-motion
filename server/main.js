@@ -58,6 +58,9 @@ import { soatChatLuong } from '../web/soat.js';
 const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const WEB = path.join(GOC, 'web');
 const CLIP15 = path.join(GOC, 'clip-15s');
+// Xưởng khối nổi — dự án RIÊNG trong repo này, không dính gì tới phần dựng clip.
+// Xem bachieu/README.md. Gỡ cả dự án = xoá thư mục `bachieu/` + khối route dưới.
+const BACHIEU = path.join(GOC, 'bachieu');
 
 // Skill /port sẽ truyền PORT vào. Số dự phòng chỉ dùng khi chạy tay — tránh
 // 7800/7801/7802 (dự án clip, motion-ui-graphic, clipvibe-studio) và 7810
@@ -1040,6 +1043,45 @@ const server = http.createServer(async (req, res) => {
      *
      * Trình sửa dời sang `/sua`, mở đúng dự án bằng `?clip=<tên>`. 21 bài kiểm
      * đã đổi theo — chúng mở `/` để lấy trình sửa. */
+    /* ---------- XƯỞNG KHỐI NỔI (dự án riêng, xem bachieu/README.md) ----------
+     * Đứng tách hẳn khỏi trình sửa clip: thư mục riêng, trang riêng, bài kiểm
+     * riêng. Ở chung máy chủ chỉ vì không đáng dựng thêm một máy chủ thứ hai
+     * cho một trang tĩnh — và vì nó phải nằm sau cùng một cổng đăng nhập.
+     *
+     * Lối `/web/` bên dưới KHÔNG phải để tiện: `bachieu/` mượn bảng màu bằng
+     * `../web/phoimau.js`, nên trình duyệt sẽ đòi đúng đường đó. Không mở lối
+     * này thì phải chép bảng màu sang — tức là tạo ra cái bẫy hai-nơi-lệch-nhau
+     * mà CLAUDE.md dặn tránh.
+     */
+    if (p === '/ba-chieu') {
+      /* BẮT BUỘC có gạch chéo cuối. Không có nó thì trình duyệt hiểu `/ba-chieu`
+         là một TỆP, nên `./giaodien.js` trong trang sẽ bị đòi ở `/giaodien.js`
+         — tức gốc web/ — và trả 404. Trang mở ra trắng trơn mà không báo gì.
+         Đã sập một lần đúng kiểu này. */
+      res.writeHead(302, { Location: '/ba-chieu/' });
+      return res.end();
+    }
+    if (p === '/ba-chieu/') {
+      if (guiFile(req, res, path.join(BACHIEU, 'index.html'))) return;
+      return loi(res, 404, 'Không thấy xưởng khối nổi.');
+    }
+    if (p.startsWith('/ba-chieu/')) {
+      const r = decodeURIComponent(p.slice('/ba-chieu/'.length));
+      if (r.includes('..') || r.split('/').some((d) => d.startsWith('.'))) {
+        return loi(res, 403, 'Đường dẫn không hợp lệ.');
+      }
+      if (guiFile(req, res, path.join(BACHIEU, r))) return;
+      return loi(res, 404, 'Không thấy tệp của xưởng khối nổi.');
+    }
+    if (p.startsWith('/web/')) {
+      const r = decodeURIComponent(p.slice('/web/'.length));
+      if (r.includes('..') || r.split('/').some((d) => d.startsWith('.'))) {
+        return loi(res, 403, 'Đường dẫn không hợp lệ.');
+      }
+      if (guiFile(req, res, path.join(WEB, r))) return;
+      return loi(res, 404, 'Không thấy tệp.');
+    }
+
     if (p === '/' || p === '/kho' || p === '/kho/') {
       if (guiFile(req, res, path.join(WEB, 'chao.html'))) return;
       return loi(res, 404, 'Không thấy trang chào.');

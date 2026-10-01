@@ -439,3 +439,25 @@ h3 { font-size: 18px; margin: 0; letter-spacing: -.3px; }
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: var(--chu-vua);
   white-space: pre-wrap; word-break: break-all; user-select: all; margin: 0 0 12px; }
 .hang-nguoi.cho-duyet { opacity: 1; border-color: color-mix(in srgb, var(--cam) 55%, transparent); }
+
+/* ---------- XƯỞNG KHỐI NỔI (lối vào, xem bachieu/README.md) ---------- */
+.xuong-3d { padding-top: var(--doc-4); }
+.x3-hop {
+  display: flex; align-items: center; gap: 20px;
+  background: linear-gradient(135deg, var(--nen-2), var(--nen));
+  border: 1px solid var(--vach-sang); border-radius: 16px; padding: 22px 24px;
+}
+.x3-hinh { flex: none; width: 58px; height: 58px; display: grid; place-items: center;
+  background: var(--nhan-nhe); border-radius: 14px; }
+.x3-hinh svg { width: 30px; height: 30px; fill: none; stroke: var(--nhan);
+  stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.x3-chu { flex: 1; min-width: 0; }
+.x3-chu h2 { font-size: var(--chu-h2); margin: 4px 0 6px; }
+.x3-chu p { color: var(--chu-mo); font-size: 14px; line-height: 1.55; margin: 0; max-width: 62ch; }
+.x3-nhan { display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--nhan); background: var(--nhan-nhe);
+  border-radius: 99px; padding: 3px 9px; }
+@media (max-width: 720px) {
+  .x3-hop { flex-direction: column; align-items: flex-start; }
+  .x3-hop .nut { width: 100%; justify-content: center; }
+}

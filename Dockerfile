@@ -35,6 +35,13 @@ COPY --chown=node:node package.json ./
 COPY --chown=node:node server/ ./server/
 COPY --chown=node:node web/ ./web/
 
+# XƯỞNG KHỐI NỔI — dự án riêng, nhưng PHẢI chép vào ảnh.
+#
+# Thiếu dòng này thì ở máy chạy ngon mà bản triển khai hỏng theo kiểu khó chịu
+# nhất: trang chào vẫn bày nút "Mở xưởng", bấm vào ra 404. Hỏng lặng lẽ, và
+# người phát hiện ra lại là người dùng chứ không phải mình.
+COPY --chown=node:node bachieu/ ./bachieu/
+
 # Hai công cụ bản chạy thật cần. `.dockerignore` bỏ cả `tools/` rồi mở lại đúng
 # hai file này — chép cả thư mục là mang theo 28 bài kiểm Playwright vô dụng.
 COPY --chown=node:node tools/xuat-nhanh.mjs tools/dat-mat-khau.mjs ./tools/

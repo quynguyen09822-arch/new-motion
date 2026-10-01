@@ -7,7 +7,7 @@
 |---|---|
 | **Vấn đề** | Clip quảng bá của Mắt Bão dựng bằng kịch bản JSON. Sửa một chữ, dời một khối, đổi một màu — đều phải mở file JSON gõ tay. Người viết nội dung không làm được; mỗi lần đổi một dòng lại phải nhờ người kỹ thuật. |
 | **Lời giải** | Mở clip → bấm vào thành phần trên khung hình → vặn núm ở cột phải → lưu → xuất video. Thêm bốn lối để AI dựng hộ: từ ảnh chụp màn hình, từ một trang web, từ lời tả, hoặc sửa từng món bằng câu lệnh. |
-| **Quy mô** | 138 commit trong 33 ngày · 17.288 dòng JS · **47 bài kiểm tự động** · 30 tài liệu · **0 gói phụ thuộc** |
+| **Quy mô** | 138 commit trong 33 ngày · 17.288 dòng JS · **49 bài kiểm tự động** · 30 tài liệu · **0 gói phụ thuộc** |
 
 ---
 
@@ -64,7 +64,7 @@ nhau. Đăng nhập bằng mật khẩu riêng hoặc bằng Google (người m�
 
 Không phải danh sách tính năng, mà là **cách phòng cho nó khỏi hỏng lặng lẽ**.
 
-### 47 bài kiểm, gần như bài nào cũng sinh ra từ một lỗi thật
+### 49 bài kiểm, gần như bài nào cũng sinh ra từ một lỗi thật
 
 ```bash
 npm run kiem              # chạy cả bộ, tự dựng máy chủ riêng ở cổng 7804
@@ -113,15 +113,20 @@ canh khuôn viết, không phải tự nhớ.
 
 ## Trong repo này có gì
 
-Repo chứa **hai phần mềm**, và đó là chủ ý — người mới nhìn vào hay tưởng nhầm
-là hai dự án lẫn lộn:
+Repo chứa **ba phần mềm**, và đó là chủ ý — người mới nhìn vào hay tưởng nhầm
+là mấy dự án lẫn lộn:
 
 | Thư mục | Là gì | Nặng |
 |---|---|---|
 | `server/` + `web/` | **Motion** — trình sửa clip. Đây là dự án chính. | 1,3 MB |
 | `clip/` | **Bộ dựng** — `scene-player.html` biến kịch bản JSON thành hình, kèm clip mẫu và công cụ xuất video | 41 MB |
-| `tools/` | 48 bài kiểm tự động + công cụ sinh kịch bản | |
+| `bachieu/` | **Xưởng khối nổi** — dựng hình 3D bằng chính trình duyệt, đứng tách hẳn. Mở ở `/ba-chieu/` | 40 KB |
+| `tools/` | 49 bài kiểm tự động + công cụ sinh kịch bản | |
 | `docs/` | tài liệu kỹ thuật · `docs/ghi-chu/` là sổ tay làm việc, không cần đọc | |
+
+`bachieu/` đứng riêng: vào từ nút trên trang chào, và trình sửa clip không nạp
+mã của nó. Xem [`bachieu/README.md`](bachieu/README.md) và
+[`docs/LO-TRINH-3D.md`](docs/LO-TRINH-3D.md).
 
 Vì sao `clip/` nằm trong đây: nó vốn là dự án riêng ở máy, nhưng máy chủ trên
 mạng không có nó — thiếu là app chết ngay lúc khởi động. Nên nó được gói kèm
