@@ -111,9 +111,13 @@ vẽ mà cả bộ dựng đang dùng.
 tốc độ cũ**, và nó phủ phải tới ~70% nhu cầu clip quảng bá thật. Rẻ nhất mà được
 nhiều nhất.
 
-**Giới hạn thật:** chỉ ra được hình **có mặt phẳng** (hộp, thẻ, chữ). Không ra
-được hình cong, hình phức tạp — không làm được quả địa cầu, không làm được con
-người.
+**Giới hạn thật — đã co lại một nấc.** Ban đầu tôi tưởng chỉ ra được hình có mặt
+phẳng. Hoá ra **tròn xoay cũng làm được**: ghép 28 mặt hẹp quanh một trục thì mắt
+thấy tròn, nên có cột, đồng xu, vòng, biểu đồ — những thứ bản đầu của lộ trình
+này xếp vào Giai đoạn 2.
+
+Thứ **vẫn** chưa làm được là hình cong tự do: quả địa cầu có lục địa, con người,
+xe cộ. Mấy thứ đó mới thật sự cần máy vẽ 3D.
 
 **Luồng người dùng:**
 ```
@@ -146,7 +150,11 @@ nguyên nhân ngay tại chỗ sửa.
 
 **Đây là chỗ phải quyết một việc** (xem mục 5): lấy máy vẽ 3D ở đâu.
 
-**Ra được cái gì:** một kho ~20 vật thể dựng sẵn, đúng nghề của Mắt Bão:
+**Kho này đã nhỏ đi.** Giai đoạn 1 nhận thêm ống trụ và biểu đồ cột, nên những
+thứ tròn xoay (ổ cứng, đồng xu, vòng tiến trình, biểu đồ) **không cần** chờ máy
+vẽ 3D nữa. Còn lại đúng những hình cong tự do:
+
+**Ra được cái gì:** một kho vật thể dựng sẵn, đúng nghề của Mắt Bão:
 
 > tủ máy chủ · đám mây · quả địa cầu · ổ cứng · lá chắn bảo mật · thùng hàng ·
 > laptop · điện thoại · biển tên miền · ổ khoá · tên lửa · biểu đồ cột nổi
@@ -261,7 +269,7 @@ Nói trước cho khỏi kỳ vọng sai:
 
 | GĐ | Được gì | Phụ thuộc | Rủi ro |
 |---|---|---|---|
-| **1** ✅ | Khối nổi: hộp, thẻ lật, chữ nổi, giá máy chủ, logo khối | không | **xong 01/10** |
+| **1** ✅ | Khối nổi: hộp, thẻ lật, chữ nổi, giá máy chủ, logo khối, **ống trụ, biểu đồ cột** | không | **xong 01/10** |
 | **2** | Kho ~20 vật thể thật, chọn–đặt–chiếu đèn | **cần quyết mục 5** | vừa |
 | **3** | Máy quay xoay/lia/đẩy, dùng lại keyframe cũ | GĐ 2 | thấp |
 | **4** | AI tự bày cảnh 3D từ một câu | GĐ 2 | vừa |

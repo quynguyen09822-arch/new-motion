@@ -14,7 +14,7 @@
  * Chạy thì vẫn chạy, nhưng tới lúc có năm khối trên sân là bắt đầu giật, mà
  * triệu chứng lại giống hệt "máy chủ yếu" — đi sai hướng cả buổi.
  */
-import { matCuaHop, phapTuyen, doSang, mauTheoSang, gocTai, DEN_MAC_DINH } from './hinhhoc.js';
+import { matCuaHop, matCuaTru, phapTuyen, doSang, mauTheoSang, gocTai, DEN_MAC_DINH } from './hinhhoc.js';
 import { boCuc } from './khoi.js';
 
 const the = (lop, kieu) => {
@@ -65,18 +65,26 @@ export function dung(cha, khoi) {
     const hop = the('bc-hop', {
       transform: `translate3d(${con.x}px, ${-con.y}px, ${con.z}px)`,
     });
-    for (const m of matCuaHop(con)) {
+    /* Hộp hay ống trụ — chỉ khác nhau ở bộ mặt. Phần dựng thẻ, chiếu đèn và
+       nhuộm màu dùng chung hết, nên thêm hình mới sau này chỉ là thêm một hàm
+       sinh mặt chứ không phải thêm một nhánh vẽ. */
+    for (const m of (con.hinh === 'tru' ? matCuaTru(con) : matCuaHop(con))) {
       const f = the('bc-mat', {
         width: m.w + 'px',
         height: m.h + 'px',
         marginLeft: -m.w / 2 + 'px',
         marginTop: -m.h / 2 + 'px',
         transform: m.bien,
+        /* Nắp ống trụ là một hình vuông bo tròn thành đĩa. */
+        ...(m.tron ? { borderRadius: '50%' } : null),
       });
       /* Chữ chỉ đặt lên mặt được chỉ định. Logo khối thì đặt lên cả sáu. */
       const chu = con.dauMoiMat ?? con.chuMat?.[m.id];
       if (chu) {
-        const s = the('bc-chu', { fontSize: (khoi.coChu ?? Math.round(Math.min(m.w, m.h) * 0.3)) + 'px' });
+        const s = the('bc-chu', {
+          fontSize: (khoi.coChu ?? Math.round(Math.min(m.w, m.h) * 0.3)) + 'px',
+          ...(con.chuODuoi ? { alignSelf: 'end', paddingBottom: '6px' } : null),
+        });
         s.textContent = chu;
         f.appendChild(s);
       }

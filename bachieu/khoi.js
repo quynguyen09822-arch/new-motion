@@ -19,10 +19,15 @@ export { BO_PHOI };
 /* ---------------------------------------------------------------------------
  * NĂM LOẠI KHỐI
  *
- * Chỉ nhận hình GHÉP TỪ MẶT PHẲNG. Trình duyệt dựng được hình như vậy bằng
- * `transform-style: preserve-3d`, tức không mượn thư viện nào, và xuất phim
- * chạy đúng tốc độ cũ. Hình cong (quả địa cầu, ấm trà) phải chờ Giai đoạn 2 —
- * cố nặn hình cong bằng mặt phẳng thì ra thứ nhìn như đồ gấp giấy hỏng.
+ * Tất cả đều GHÉP TỪ MẶT PHẲNG, dựng bằng `transform-style: preserve-3d` của
+ * chính trình duyệt — không mượn thư viện nào, và xuất phim chạy đúng tốc độ cũ.
+ *
+ * "Ống trụ" trông tròn nhưng vẫn là mặt phẳng: 24 mặt hẹp ghép quanh một trục
+ * thì mắt thấy tròn. Nhờ mẹo đó mà có cột, đồng xu, vòng — những thứ lộ trình
+ * từng xếp vào Giai đoạn 2.
+ *
+ * Thứ VẪN chưa làm được là hình cong tự do (quả địa cầu có lục địa, người, xe).
+ * Cố nặn bằng mặt phẳng thì ra thứ nhìn như đồ gấp giấy hỏng.
  * ------------------------------------------------------------------------- */
 
 export const KHO_LOAI = [
@@ -31,6 +36,8 @@ export const KHO_LOAI = [
   { id: 'chu-noi',     ten: 'Chữ nổi',      mo: 'chữ có bề dày, như chữ khắc' },
   { id: 'gia-may-chu', ten: 'Giá máy chủ',  mo: 'nhiều tầng xếp chồng, nhìn chéo' },
   { id: 'logo-khoi',   ten: 'Logo khối',    mo: 'dấu hiệu thương hiệu trên cả sáu mặt' },
+  { id: 'tru',         ten: 'Ống trụ',      mo: 'khối tròn xoay — cột, đồng xu, vòng tròn' },
+  { id: 'bieu-do',     ten: 'Biểu đồ cột',  mo: 'khoe con số tăng trưởng bằng cột có bề dày' },
 ];
 
 /** Khối mới sinh ra đã phải đẹp sẵn — không bắt người dùng vặn mới xem được. */
@@ -58,6 +65,15 @@ export function khoiMoi(loai = 'hop', mauId = 'den-cam') {
         dong: { kieu: 'lia-quanh', chuKy: 12 }, xoayNgang: -32, xoayDoc: 18 };
     case 'logo-khoi':
       return { ...chung, rong: 280, cao: 280, day: 280, chu: '◆', coChu: 118 };
+    case 'tru':
+      return { ...chung, ban: 130, cao: 330, soMat: 28,
+        dong: { kieu: 'xoay-vong', chuKy: 10 }, xoayNgang: 0, xoayDoc: 16 };
+    case 'bieu-do':
+      /* Bốn cột tăng dần: đây là hình hay dùng nhất trong clip quảng bá, nên
+         bày sẵn đúng dáng ấy thay vì bốn cột bằng nhau. */
+      return { ...chung, cot: [38, 56, 74, 100], nhan: ['T1', 'T2', 'T3', 'T4'],
+        rongCot: 72, khe: 26, caoMax: 300, day: 72,
+        dong: { kieu: 'lac-nhe', chuKy: 7 }, xoayNgang: -24, xoayDoc: 14 };
     default:
       return { ...chung, rong: 330, cao: 330, day: 330, chu: '' };
   }
@@ -111,6 +127,37 @@ export function boCuc(khoi = {}) {
         { id: 'khoi', x: 0, y: 0, z: 0, rong, cao, day, dauMoiMat: khoi.chu || '◆' },
       ] };
 
+    case 'tru':
+      return { kieu: 'hop', khoiCon: [
+        { id: 'tru', hinh: 'tru', x: 0, y: 0, z: 0,
+          ban: khoi.ban ?? 110, cao: khoi.cao ?? 240, soMat: khoi.soMat ?? 24 },
+      ] };
+
+    case 'bieu-do': {
+      const gt = (khoi.cot?.length ? khoi.cot : [38, 56, 74, 100]).slice(0, 12);
+      const w = khoi.rongCot ?? 60, khe = khoi.khe ?? 24;
+      const caoMax = khoi.caoMax ?? 300, sau = khoi.day ?? 60;
+      const dinh = Math.max(1, ...gt.map((v) => Math.abs(v)));
+      const tongRong = gt.length * w + (gt.length - 1) * khe;
+      return { kieu: 'hop', khoiCon: gt.map((v, i) => {
+        const h = Math.max(6, (Math.abs(v) / dinh) * caoMax);
+        return {
+          id: 'cot' + i, hinh: 'hop',
+          /* Cột mọc TỪ MỘT ĐÁY CHUNG lên, không phải cùng tâm. Căn theo tâm thì
+             cột thấp lơ lửng giữa không trung và biểu đồ hết nghĩa. */
+          x: -tongRong / 2 + w / 2 + i * (w + khe),
+          y: -caoMax / 2 + h / 2,
+          z: 0, rong: w, cao: h, day: sau,
+          chuMat: { truoc: khoi.nhan?.[i] || '' },
+          /* Nhãn phải nằm ở CHÂN cột. Căn giữa thì mỗi nhãn một độ cao khác
+             nhau theo cột nó đứng, nhìn so le và không đọc thành một hàng —
+             mà biểu đồ thì cái người ta đọc chính là hàng nhãn ấy. */
+          chuODuoi: true,
+          pha: 0.78 + 0.22 * (h / caoMax),
+        };
+      }) };
+    }
+
     default:
       return { kieu: 'hop', khoiCon: [
         { id: 'hop', x: 0, y: 0, z: 0, rong, cao, day,
@@ -121,6 +168,7 @@ export function boCuc(khoi = {}) {
 
 /** Chiều cao thật của cả khối — để sân biết phải chừa bao nhiêu chỗ. */
 export function caoTong(khoi = {}) {
+  if (khoi.loai === 'bieu-do') return khoi.caoMax ?? 300;
   if (khoi.loai === 'gia-may-chu') {
     const tang = Math.max(1, Math.min(12, khoi.tang ?? 5));
     return tang * (khoi.cao ?? 46) + (tang - 1) * (khoi.khe ?? 12);

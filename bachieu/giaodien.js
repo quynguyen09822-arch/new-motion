@@ -147,6 +147,19 @@ const NUM_THEO_LOAI = {
     ['canh', 'Cạnh khối', 60, 700, 10, true],
     ['coChu', 'Cỡ dấu hiệu', 20, 220, 2, true],
   ],
+  tru: [
+    ['ban', 'Bề ngang (nửa)', 30, 400, 5, true],
+    ['cao', 'Bề cao', 20, 700, 10, true],
+    ['soMat', 'Độ mịn đường tròn', 3, 48, 1, true],
+  ],
+  'bieu-do': [
+    ['cotChu', 'Các cột (số, cách nhau bằng dấu phẩy)', null, null, null, true],
+    ['nhanChu', 'Tên dưới mỗi cột', null, null, null, true],
+    ['rongCot', 'Bề ngang mỗi cột', 20, 200, 2, true],
+    ['caoMax', 'Bề cao cột lớn nhất', 60, 600, 10, true],
+    ['day', 'Bề sâu', 10, 300, 5, true],
+    ['khe', 'Khe hở giữa các cột', 0, 120, 2, true],
+  ],
 };
 
 const el = (tag, lop, trong) => {
@@ -298,7 +311,18 @@ function dungBang() {
   /* ② hình dạng */
   const m2 = el('div', 'muc'); m2.appendChild(el('h2', null, 'Hình dạng'));
   for (const [khoa, nhan, min, max, buoc] of NUM_THEO_LOAI[khoi.loai] || []) {
-    if (min == null) {
+    if (khoa === 'cotChu') {
+      /* Người dùng gõ "38, 56, 74, 100". Lọc lấy số và BỎ QUA ô rỗng giữa chừng
+         — đang gõ dở "38, " mà đã dựng lại thì cột cuối nhấp nháy mất hiện. */
+      m2.appendChild(oChu(nhan, (khoi.cot || []).join(', '), (v) => {
+        const so = v.split(',').map((x) => Number(x.trim())).filter((x) => Number.isFinite(x));
+        if (so.length) { khoi.cot = so.slice(0, 12); lamLai(); }
+      }));
+    } else if (khoa === 'nhanChu') {
+      m2.appendChild(oChu(nhan, (khoi.nhan || []).join(', '), (v) => {
+        khoi.nhan = v.split(',').map((x) => x.trim()); lamLai();
+      }));
+    } else if (min == null) {
       m2.appendChild(oChu(nhan, khoi[khoa], (v) => { khoi[khoa] = v; lamLai(); }));
     } else if (khoa === 'canh') {
       m2.appendChild(oTruot(nhan, khoi.rong, min, max, buoc, (v) => {

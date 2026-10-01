@@ -55,6 +55,46 @@ export function matCuaHop({ rong = 220, cao = 220, day = 220 } = {}) {
 }
 
 /**
+ * Sinh mặt cho một ỐNG TRỤ — hình tròn dựng bằng toàn mặt phẳng.
+ *
+ * VÌ SAO LÀM ĐƯỢC. Lộ trình ghi "Giai đoạn 1 không có hình cong". Đúng với hình
+ * cong THẬT, nhưng tròn xoay thì khác: ghép đủ nhiều mặt phẳng hẹp quanh một
+ * trục là mắt thấy tròn. 24 mặt thì mỗi mặt lệch nhau 15°, đứng cách màn hình
+ * một bước chân là không phân biệt được với hình tròn thật.
+ *
+ * Nhờ vậy có cột, đồng xu, vòng, ống — mà vẫn không mượn thư viện nào.
+ *
+ * Bề rộng mỗi mặt là DÂY CUNG chứ không phải cung tròn: 2·r·sin(π/N). Lấy chu vi
+ * chia N thì mỗi mặt rộng dôi ra, các mặt chồng mép lên nhau và viền thành hình
+ * răng cưa — nhìn thì tưởng lỗi khử răng cưa của trình duyệt.
+ */
+export function matCuaTru({ ban = 110, cao = 240, soMat = 24 } = {}) {
+  const N = Math.max(3, Math.min(64, Math.round(soMat)));
+  const w = 2 * ban * Math.sin(Math.PI / N);
+  const mat = [];
+  for (let i = 0; i < N; i++) {
+    const g = (i * 360) / N;
+    const a = rad(g);
+    mat.push({
+      id: 'canh' + i,
+      /* Pháp tuyến chĩa thẳng ra ngoài tại góc ấy — cùng hệ với `matCuaHop`. */
+      n: [Math.sin(a), 0, Math.cos(a)],
+      /* Cộng thêm một chút bề rộng cho mép liền nhau. Thiếu thì giữa hai mặt
+         hiện ra khe sáng một pixel, chạy vòng quanh khối như sợi chỉ. */
+      w: w + 1,
+      h: cao,
+      bien: `rotateY(${g}deg) translateZ(${ban}px)`,
+    });
+  }
+  /* Hai nắp. `tron` để `ve.js` bo tròn chúng thành đĩa. */
+  mat.push({ id: 'nap-tren', ten: 'nắp trên', n: [0, -1, 0], w: ban * 2, h: ban * 2,
+    bien: `rotateX(90deg) translateZ(${cao / 2}px)`, tron: true });
+  mat.push({ id: 'nap-duoi', ten: 'nắp dưới', n: [0, 1, 0], w: ban * 2, h: ban * 2,
+    bien: `rotateX(-90deg) translateZ(${cao / 2}px)`, tron: true });
+  return mat;
+}
+
+/**
  * Pháp tuyến SAU KHI khối đã quay.
  *
  * Phải khớp đúng thứ tự mà `ve.js` ghi ra CSS: `rotateX(doc) rotateY(ngang)`.
@@ -232,12 +272,24 @@ export const NGUONG_CHIEM = 0.5;
 /**
  * Chỗ rộng nhất khối quét qua khi quay.
  *
- * KHÔNG phải bề ngang của khối. Khối xoay tới góc 45° thì chỗ rộng nhất là
+ * KHÔNG phải bề ngang của khối. Khối hộp xoay tới 45° thì chỗ rộng nhất là
  * đường chéo đáy — bỏ qua chuyện này là lúc xuất phim mới phát hiện hình bị cắt
  * mất hai bên.
+ *
+ * Nhưng ỐNG TRỤ thì tròn xoay: quay kiểu gì nó cũng chỉ rộng đúng bằng đường
+ * kính. Lấy đường chéo cho nó là tính dôi ra 41%, và lời nhắc "quá nửa khung"
+ * sẽ kêu oan — mà phép kiểm hay kêu oan thì người ta học cách bỏ qua, rồi bỏ
+ * qua luôn lần nó kêu đúng.
  */
-export const beRongChiem = (khoi = {}) =>
-  Math.hypot(khoi.rong ?? 220, khoi.day ?? 220);
+export function beRongChiem(khoi = {}) {
+  if (khoi.loai === 'tru') return 2 * (khoi.ban ?? 110);
+  if (khoi.loai === 'bieu-do') {
+    const n = Math.max(1, Math.min(12, khoi.cot?.length ?? 4));
+    const rongNgang = n * (khoi.rongCot ?? 60) + (n - 1) * (khoi.khe ?? 24);
+    return Math.hypot(rongNgang, khoi.day ?? 60);
+  }
+  return Math.hypot(khoi.rong ?? 220, khoi.day ?? 220);
+}
 
 /** Trả danh sách lời nhắc; rỗng là ổn. Chỉ NHẮC, không bao giờ chặn. */
 export function soatBeRong(khoi = {}, khungRong = 1080) {

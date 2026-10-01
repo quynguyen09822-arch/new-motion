@@ -31,6 +31,31 @@ nhau, rồi bài kiểm đọc một nơi còn người dùng nhận nơi kia.
 
 ---
 
+## Bảy loại khối
+
+| Loại | Dùng khi |
+|---|---|
+| Hộp | hộp sản phẩm, gói dịch vụ |
+| Thẻ lật | trước / sau khi dùng dịch vụ |
+| Chữ nổi | tiêu đề có bề dày |
+| Giá máy chủ | nhiều tầng xếp chồng, nhìn chéo |
+| Logo khối | dấu hiệu thương hiệu trên cả sáu mặt |
+| **Ống trụ** | cột, đồng xu, vòng tròn |
+| **Biểu đồ cột** | khoe con số tăng trưởng |
+
+**"Ống trụ" trông tròn nhưng vẫn là mặt phẳng.** Ghép 28 mặt hẹp quanh một trục
+thì mắt thấy tròn — đứng cách màn hình một bước chân là không phân biệt được với
+hình tròn thật. Nhờ mẹo đó mà có cột, đồng xu, vòng mà vẫn không mượn thư viện
+nào; lộ trình vốn xếp mấy thứ này vào Giai đoạn 2.
+
+Hai chỗ dễ sai, đều có bài kiểm canh:
+- Bề rộng mỗi mặt là **dây cung** `2·r·sin(π/N)`, không phải chu vi chia N. Lấy
+  nhầm thì các mặt chồng mép và viền thành răng cưa.
+- Ống trụ **tròn xoay** nên quay kiểu gì cũng chỉ rộng bằng đường kính. Đo bằng
+  đường chéo như khối hộp là tính dôi 41%, và lời nhắc "quá nửa khung" kêu oan.
+
+---
+
 ## Bốn file
 
 | File | Việc | Chạm DOM? |
@@ -66,7 +91,7 @@ hai lần xuất ra hai phim khác nhau. Bộ dựng clip đã theo đúng luậ
 node tools/kiem-ba-chieu.mjs     # hoặc: npm run kiem -- ba-chieu
 ```
 
-Tám mục. Đã **thử bẻ gãy 10 kiểu** để chắc không có mục nào xanh dễ dãi — và
+Chín mục. Đã **thử bẻ gãy 10 kiểu** để chắc không có mục nào xanh dễ dãi — và
 lần thử ấy bắt được một chỗ xanh giả thật: mọi phép thử pháp tuyến đều dùng
 vector có `x = 0`, nên một lỗi đảo dấu ở đúng số hạng chứa `x` thì không ai
 thấy. Nay đã có phép thử "quay đi rồi quay về phải trở lại chỗ cũ".
@@ -77,8 +102,9 @@ thấy. Nay đã có phép thử "quay đi rồi quay về phải trở lại ch
 
 - **Chưa nối vào clip.** Nút "Chép mã khối" chỉ chép JSON ra. Nối vào là Giai
   đoạn 2.
-- **Chỉ có hình ghép từ mặt phẳng.** Không có hình cong — không làm được quả
-  địa cầu. Cố nặn hình cong bằng mặt phẳng thì ra thứ nhìn như đồ gấp giấy hỏng.
+- **Chưa có hình cong tự do.** Quả địa cầu có lục địa, người, xe — chưa làm
+  được. Cố nặn bằng mặt phẳng thì ra thứ nhìn như đồ gấp giấy hỏng.
+  (Tròn xoay thì ĐÃ làm được — xem "Ống trụ" bên dưới.)
 - **Phép soát chất lượng chưa biết gì về 3D.** Ba tầng soát của trình sửa clip
   đo chữ và màu; chúng không biết khối đang bị cắt mất nửa hay quay lưng vào
   máy quay.

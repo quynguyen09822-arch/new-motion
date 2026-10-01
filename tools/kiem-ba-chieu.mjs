@@ -85,6 +85,43 @@ console.log('\n② Quay khối thì pháp tuyến quay theo');
   }
 }
 
+console.log('\n①b Ống trụ — hình tròn dựng bằng toàn mặt phẳng');
+{
+  const N = 24, ban = 100, cao = 240;
+  const mat = H.matCuaTru({ ban, cao, soMat: N });
+  dat('đủ mặt bên cộng hai nắp', mat.length === N + 2, `${mat.length} mặt`);
+  const canh = mat.filter((m) => m.id.startsWith('canh'));
+  dat('pháp tuyến mặt bên nào cũng dài đúng 1',
+    canh.every((m) => gan(Math.hypot(...m.n), 1, 1e-12)));
+  /* Mặt bên phải chĩa NGANG ra ngoài. Lệch lên/xuống là đèn chiếu sai và ống
+     trụ nhìn như bị bẹp. */
+  dat('mặt bên chĩa ngang, không chếch lên xuống', canh.every((m) => gan(m.n[1], 0)));
+  /* Các pháp tuyến phải RẢI ĐỀU quanh vòng. Dồn cục một phía nghĩa là tính góc
+     sai, và nửa ống trụ sẽ tối om. */
+  dat('pháp tuyến rải đều quanh vòng', (() => {
+    const t = canh.map((m) => Math.atan2(m.n[0], m.n[2]));
+    const b = 2 * Math.PI / N;
+    return t.every((v, i) => i === 0 || gan(((v - t[i - 1]) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI), b, 1e-9));
+  })());
+  /* Bề rộng là DÂY CUNG, không phải cung tròn. Lấy chu vi chia N thì mỗi mặt
+     rộng dôi, các mép chồng nhau thành viền răng cưa. */
+  const chuan = 2 * ban * Math.sin(Math.PI / N);
+  dat('bề rộng mặt lấy theo dây cung', Math.abs(canh[0].w - chuan) <= 1.001,
+    `${canh[0].w.toFixed(2)} so với dây cung ${chuan.toFixed(2)} (chu vi/N = ${(2*Math.PI*ban/N).toFixed(2)})`);
+  dat('mặt bên cao đúng bằng ống', canh.every((m) => m.h === cao));
+  const nap = mat.filter((m) => m.tron);
+  dat('hai nắp quay lên và quay xuống',
+    nap.length === 2 && ganVec(nap[0].n, [0, -1, 0]) && ganVec(nap[1].n, [0, 1, 0]));
+  dat('nắp rộng đúng đường kính', nap.every((m) => m.w === ban * 2 && m.h === ban * 2));
+  dat('số mặt vô lý thì bị kẹp lại',
+    H.matCuaTru({ soMat: 2 }).length >= 5 && H.matCuaTru({ soMat: 999 }).length <= 66);
+  /* Càng nhiều mặt càng tròn: tổng dây cung phải tiệm cận chu vi thật. */
+  dat('tăng số mặt thì càng sát hình tròn thật', (() => {
+    const sai = (n) => Math.abs(n * 2 * ban * Math.sin(Math.PI / n) - 2 * Math.PI * ban);
+    return sai(48) < sai(24) && sai(24) < sai(8);
+  })());
+}
+
 console.log('\n③ Đèn');
 {
   const den = { ngang: 0, cao: 0, nen: 0.3 };  // đèn chiếu thẳng từ phía người xem
@@ -246,6 +283,39 @@ console.log('\n⑦ Bố cục năm loại khối');
     dat('giá máy chủ: tầng trên sáng hơn tầng dưới', con[0].pha > con[5].pha);
     g.tang = 99;
     dat('số tầng vô lý thì bị chặn lại', K.boCuc(g).khoiCon.length <= 12);
+  }
+  {
+    const t = K.khoiMoi('tru');
+    const con = K.boCuc(t).khoiCon[0];
+    dat('ống trụ: khai đúng là hình trụ', con.hinh === 'tru');
+    /* Ống trụ TRÒN XOAY: quay kiểu gì cũng chỉ rộng bằng đường kính. Lấy đường
+       chéo cho nó là tính dôi 41% và lời nhắc "quá nửa khung" kêu oan. */
+    dat('ống trụ đo bề ngang bằng đường kính, không bằng đường chéo',
+      gan(H.beRongChiem(t), 2 * t.ban), `${H.beRongChiem(t)} so với đường kính ${2 * t.ban}`);
+  }
+  {
+    const b = K.khoiMoi('bieu-do');
+    b.cot = [20, 50, 100]; b.rongCot = 60; b.khe = 20; b.caoMax = 200;
+    const con = K.boCuc(b).khoiCon;
+    dat('biểu đồ: đúng số cột', con.length === 3);
+    /* Cột mọc từ MỘT ĐÁY CHUNG. Căn theo tâm thì cột thấp lơ lửng giữa không
+       trung và biểu đồ hết nghĩa. */
+    dat('mọi cột chung một đáy',
+      con.every((c) => gan(c.y - c.cao / 2, con[0].y - con[0].cao / 2, 1e-9)),
+      con.map((c) => (c.y - c.cao / 2).toFixed(1)).join(' '));
+    dat('cột cao nhất đúng bằng bề cao đã đặt', gan(Math.max(...con.map((c) => c.cao)), 200));
+    dat('chiều cao cột đúng tỉ lệ với số liệu',
+      gan(con[0].cao / con[2].cao, 0.2, 1e-9) && gan(con[1].cao / con[2].cao, 0.5, 1e-9));
+    dat('cụm cột cân quanh tâm',
+      gan(Math.min(...con.map((c) => c.x)) + Math.max(...con.map((c) => c.x)), 0, 1e-9));
+    dat('các cột không chồng lên nhau',
+      con.slice(1).every((c, i) => c.x - con[i].x >= 60), con.map((c) => c.x).join(' '));
+    /* Số 0 hoặc toàn số 0 là ca hay làm vỡ: chia cho 0. */
+    const khong = K.boCuc({ loai: 'bieu-do', cot: [0, 0, 0], caoMax: 200 }).khoiCon;
+    dat('toàn số 0 vẫn dựng được, không chia cho 0',
+      khong.length === 3 && khong.every((c) => Number.isFinite(c.cao) && c.cao > 0));
+    dat('quá nhiều cột thì bị kẹp lại',
+      K.boCuc({ loai: 'bieu-do', cot: Array(50).fill(10) }).khoiCon.length <= 12);
   }
   dat('thẻ lật thì mỏng, không thành hộp', K.boCuc(K.khoiMoi('the-lat')).khoiCon[0].day <= 16);
   dat('logo khối đặt dấu hiệu lên cả sáu mặt',
