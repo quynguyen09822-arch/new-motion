@@ -167,8 +167,19 @@ console.log('\n⑤ Soát — chỉ bắt lỗi KHÔNG sửa tại chỗ được
   const to = { mon: [{ loai: 'hop', rong: 90000, cao: 100, day: 100, vi: { x: 0, y: 50, z: 0 } }] };
   dat('khai quá khổ thì báo', B.soatCanhAI(B.chuanHoa(to), to).some((v) => /quá khổ/.test(v)));
 
-  /* Cảnh quá nặng — ngưỡng lấy từ canh.js, không gõ lại. */
-  const nang = { mon: Array.from({ length: 10 }, (_, i) =>
+  /* CẢNH QUÁ NẶNG. Số món TÍNH RA từ ngưỡng, không gõ cứng.
+     Bản đầu gõ cứng 10 nhân vật — hồi đó mỗi con là 2.085 mảnh nên thừa sức
+     vượt ngưỡng. Rồi quả cầu chuyển sang vẽ mượt bằng một thẻ, mỗi con còn 60
+     mảnh, 10 con chỉ ra 600 — dưới ngưỡng, và mục này đỏ. Cái đỏ ấy ĐÚNG: con
+     số trong bài kiểm đã mục mà không ai hay. Tính ra thì nó không mục lại. */
+  const motCon = C.soMatMon(K.khoiMoi('nhan-vat'), K.boCuc);
+  const soCon = Math.floor(C.NGUONG_MAT_NANG / motCon) + 1;
+  /* Vượt được ngưỡng mà vẫn nằm trong trần số món thì lời nhắc mới có đường
+     bật ra. Quá trần nghĩa là nó KHÔNG BAO GIỜ kêu — một lời nhắc không bao
+     giờ kêu thì thà bỏ hẳn còn hơn để đó ru mình. */
+  dat('lời nhắc "cảnh nặng" còn với tới được', soCon <= B.TOI_DA_MON,
+    `cần ${soCon} món (${motCon} mảnh/con), trần là ${B.TOI_DA_MON}`);
+  const nang = { mon: Array.from({ length: soCon }, (_, i) =>
     ({ loai: 'nhan-vat', ten: 'Người ' + i, co: 1.2, vi: { x: i * 900, y: 0, z: 0 } })) };
   const bn = B.soatCanhAI(B.chuanHoa(nang), nang);
   dat('cảnh quá nặng thì báo', bn.some((v) => /nặng quá/.test(v)), bn.find((v) => /nặng/.test(v))?.slice(0, 68));

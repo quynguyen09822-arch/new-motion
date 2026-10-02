@@ -16,6 +16,15 @@
 > xoay được, nhưng đó là đặt dáng chứ không phải chuyển động theo thời gian.
 > Xem `bachieu/README.md`.
 >
+> **Cập nhật 02/10/2026 — hai việc nữa đã xong:**
+> *Vẽ mượt*: quả cầu không còn ghép từ ~100 mảnh phẳng (nhìn rõ từng múi như
+> quả cầu disco) mà vẽ bằng ĐÚNG MỘT thẻ tròn tô hai lớp chuyển sắc, xoay ngược
+> lại đúng bằng góc máy nên lúc nào cũng quay mặt về ống kính. Con linh vật từ
+> 2.085 mảnh xuống 60, và hết răng cưa.
+> *Nắm bắt món*: đo được 585/729 điểm bên trong khung nhân vật rơi vào KHE giữa
+> các mảnh — tức hơn 80% cú bấm là trượt. Nay có khung bắt, khung chọn nhìn
+> thấy được và núm nắm. Xem `bachieu/README.md`.
+>
 > Giai đoạn 2 trở đi còn chờ quyết ở mục 5.
 > Mọi con số trong đây là đo thật trên chính máy chủ này, không phải ước lượng.
 

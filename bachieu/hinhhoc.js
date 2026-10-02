@@ -343,3 +343,90 @@ export function keoTheoCao(dy, { doc = 28, ti = 1 } = {}) {
      cùng kiểu bẫy chia-cho-0 như trên, chặn theo cách tương tự. */
   return -dy / (t * Math.max(SIN_TOI_THIEU, Math.abs(cb)));
 }
+
+/* ---------------------------------------------------------------------------
+ * CHIẾU NGƯỢC: điểm trong cảnh nằm ở đâu trên màn hình
+ *
+ * VÌ SAO CẦN. Bấm chọn một món đang dựa vào thẻ nào nằm dưới con trỏ. Cách ấy
+ * chính xác tuyệt đối khi trúng, nhưng con linh vật là 60 mảnh RỜI — bấm vào
+ * khe giữa hai mảnh là trúng nền, và cả xưởng tưởng người dùng muốn xoay máy.
+ * Càng thu nhỏ thì khe càng nhiều so với mảnh, nên càng khó bấm trúng.
+ *
+ * Có toạ độ màn hình của món thì bắt được cả vùng nó CHIẾM CHỖ, không chỉ chỗ
+ * có thẻ. Đây cũng là thứ để vẽ khung chọn và núm nắm.
+ *
+ * PHẢI KHỚP TỪNG CHỮ với chuỗi lệnh trong `ve.js`:
+ *
+ *   scale(ti) rotateX(doc) rotateY(ngang) translate3d(-tamX, tamY, 0)
+ *
+ * đọc từ PHẢI sang TRÁI là thứ tự thực sự áp lên điểm. Rồi khung nhìn mới chia
+ * phối cảnh với `perspective: xa`. Lệch một bước ở đây thì khung chọn vẽ ra
+ * một nơi mà món nằm một nẻo — mà chẳng có gì báo lỗi cả.
+ *
+ * TRỤC Y: trong cảnh y HƯỚNG LÊN (đứng trên sàn là y dương), còn CSS thì y
+ * hướng XUỐNG. Chỗ đổi dấu nằm gọn trong hàm này, đúng như `ve.js` làm.
+ * ------------------------------------------------------------------------- */
+
+/**
+ * Chiếu một điểm trong cảnh ra pixel, tính từ TÂM khung nhìn.
+ *
+ * @returns {{u:number, v:number, k:number, sau:number}} u sang phải, v xuống
+ *   dưới, `k` là hệ số phối cảnh (>1 là gần máy hơn mặt phẳng gốc), `sau` là
+ *   độ sâu sau khi xoay — số càng lớn càng GẦN máy quay.
+ */
+export function chieuDiem([x, y, z], may = {}) {
+  const { ngang = 0, doc = 0, xa = 2200, ti = 1, tamX = 0, tamY = 0 } = may;
+  /* Dời cảnh về tâm trước — và đổi y sang chiều của CSS. */
+  const px = x - tamX;
+  const py = -y + tamY;
+  const pz = z;
+
+  const a = rad(ngang), b = rad(doc);
+  const ca = Math.cos(a), sa = Math.sin(a);
+  const cb = Math.cos(b), sb = Math.sin(b);
+
+  /* rotateY rồi rotateX, đúng thứ tự của `ve.js`. */
+  const x1 = px * ca + pz * sa;
+  const z1 = -px * sa + pz * ca;
+  const y2 = py * cb - z1 * sb;
+  const z2 = py * sb + z1 * cb;
+
+  /* `scale()` của CSS là scale2d — chỉ co giãn x và y, KHÔNG đụng z. Nhân cả
+     z vào đây là phối cảnh đổi theo mức thu phóng, và lăn chuột sẽ thấy hình
+     vừa nhỏ lại vừa méo. */
+  const X = x1 * ti, Y = y2 * ti, Z = z2;
+
+  /* Điểm lùi ra sau mặt phẳng tiêu cự thì phép chia đổi dấu và hình lộn ngược.
+     Chặn mẫu số cho nó bẹp ở mép thay vì văng sang phía đối diện. */
+  const d = Math.max(1, xa);
+  const k = d / Math.max(d * 0.08, d - Z);
+  return { u: X * k, v: Y * k, k, sau: Z };
+}
+
+/**
+ * Chiếu cả một khối hộp trong cảnh ra khung chữ nhật trên màn.
+ *
+ * Chiếu đủ TÁM đỉnh rồi lấy mép ngoài cùng. Chiếu mỗi tâm rồi nhân bề ngang
+ * lên là sai: xoay 45° thì hình chiếu của khối hộp RỘNG RA gấp rưỡi, và khung
+ * bắt sẽ hụt mất hai góc.
+ *
+ * @returns {{tr:number, pha:number, tren:number, duoi:number, u:number,
+ *   v:number, rong:number, cao:number, sau:number}}
+ */
+export function khungHop(tam, kichThuoc, may = {}) {
+  const [cx, cy, cz] = tam;
+  const [w, h, d] = kichThuoc;
+  let tr = Infinity, pha = -Infinity, tren = Infinity, duoi = -Infinity;
+  let sau = -Infinity;
+  for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const sz of [-1, 1]) {
+    const p = chieuDiem([cx + (sx * w) / 2, cy + (sy * h) / 2, cz + (sz * d) / 2], may);
+    if (p.u < tr) tr = p.u;
+    if (p.u > pha) pha = p.u;
+    if (p.v < tren) tren = p.v;
+    if (p.v > duoi) duoi = p.v;
+    if (p.sau > sau) sau = p.sau;
+  }
+  const giua = chieuDiem(tam, may);
+  return { tr, pha, tren, duoi, u: giua.u, v: giua.v,
+    rong: pha - tr, cao: duoi - tren, sau };
+}

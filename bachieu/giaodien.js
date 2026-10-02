@@ -15,7 +15,7 @@ import { gocTuBanDen, banDenTuGoc, taDen, mauTheoSang, keoTrenSan, keoTheoCao,
   DEN_MAC_DINH } from './hinhhoc.js';
 import { dungCanh, veCanhTai } from './ve.js';
 import { canhMoi, themMon, nhanBan, xoaMon, thuPhongVua, soatCanh, soMatMon,
-  datTen } from './canh.js';
+  datTen, timMon, khungMon } from './canh.js';
 import { goiJSON } from '../web/goi.js';
 
 const Q = (s) => document.querySelector(s);
@@ -74,6 +74,48 @@ function veLai() {
   Q('#goc-may').textContent =
     `máy quay ${Math.round(((c.ngang % 360) + 360) % 360)}° · ${Math.round(c.doc)}° · `
     + `phóng ${Math.round(c.ti * 100)}%`;
+  veNam();
+}
+
+/* ---------------------------------------------------------------------------
+ * KHUNG CHỌN VÀ NÚM NẮM
+ *
+ * Viền xanh mảnh vẽ trên từng mặt phẳng không đủ: quả cầu MƯỢT vẽ bằng một thẻ
+ * tròn tô chuyển sắc, nó không có `.bc-mat` nào để mà viền — nên chọn con linh
+ * vật xong gần như KHÔNG THẤY gì đổi. Thêm nữa, 60 mảnh rời thì giữa chúng là
+ * khe, và bấm vào khe là trúng nền.
+ *
+ * Khung phẳng này trả lời cả hai: nhìn là biết đang cầm món nào, và cái núm
+ * giữa khung thì lúc nào cũng bấm trúng, dù món nhỏ cỡ nào hay thủng chỗ nào.
+ * ------------------------------------------------------------------------- */
+
+const oNam = Q('#nam'), oKhungNam = Q('#khung-nam'), oNumNam = Q('#num-nam');
+
+function veNam() {
+  const m = canh.mon.find((x) => x.id === chonId);
+  if (!m || m.an) { oNam.hidden = true; return; }
+  oNam.hidden = false;
+  const cx = san.clientWidth / 2, cy = san.clientHeight / 2;
+  const k = khungMon(m, boCuc, canh.may);
+  /* Chặn sàn 22px: món bé xíu hoặc thu phóng nhỏ hết cỡ thì khung co lại thành
+     một chấm, và lúc ấy nó chẳng chỉ ra được gì nữa. */
+  const w = Math.max(22, k.rong), h = Math.max(22, k.cao);
+  oKhungNam.style.transform =
+    `translate(${(cx + (k.tr + k.pha) / 2 - w / 2).toFixed(1)}px, `
+    + `${(cy + (k.tren + k.duoi) / 2 - h / 2).toFixed(1)}px)`;
+  oKhungNam.style.width = w.toFixed(1) + 'px';
+  oKhungNam.style.height = h.toFixed(1) + 'px';
+  /* Núm đặt ở GIỮA KHUNG, không ở gốc toạ độ của món: gốc của nhiều món nằm
+     lệch hẳn khỏi phần nhìn thấy, và một cái núm nằm ngoài hình thì người dùng
+     không đoán được nó thuộc về cái gì. */
+  oNumNam.style.transform =
+    `translate(${(cx + k.u).toFixed(1)}px, ${(cy + k.v).toFixed(1)}px) translate(-50%, -50%)`;
+}
+
+/** Con trỏ đang ở đâu, tính từ TÂM khung nhìn — đúng hệ mà `chieuDiem` trả về. */
+function toaDoSan(e) {
+  const r = san.getBoundingClientRect();
+  return { u: e.clientX - (r.left + r.width / 2), v: e.clientY - (r.top + r.height / 2) };
 }
 
 /* ---------------------------------------------------------------------------
@@ -85,9 +127,37 @@ let keo = null;
    con số đứng im trong khi vật chạy, và người dùng không tin con số nữa. */
 let oSoViTri = null;
 
+/* Chuột PHẢI không được bật thực đơn của trình duyệt trong khung nhìn — nó là
+   đường xoay máy khi cả khung đã kín vật, không còn chỗ nền nào mà bấm. */
+san.addEventListener('contextmenu', (e) => e.preventDefault());
+
 san.addEventListener('pointerdown', (e) => {
-  const o = e.target.closest?.('[data-mon]');
-  const m = o ? canh.mon.find((x) => x.id === o.dataset.mon) : null;
+  /* ĐƯỜNG THOÁT. Khung bắt rộng hơn hình, nên cảnh đông vật thì chỗ nền trống
+     có thể hết sạch — lúc ấy không còn cách nào xoay máy nữa. Chuột phải, chuột
+     giữa, hoặc giữ Alt thì LUÔN LUÔN là xoay máy, bất kể dưới ngón tay là gì. */
+  const epXoay = e.button === 1 || e.button === 2 || e.altKey;
+
+  let m = null;
+  if (!epXoay) {
+    /* ① Núm nắm của món đang chọn — bấm là trúng, không phải nhắm. */
+    if (e.target.closest?.('#num-nam')) {
+      m = canh.mon.find((x) => x.id === chonId) || null;
+    }
+    /* ② Thẻ thật nằm dưới ngón tay. Chính xác tới từng pixel, nên xét trước. */
+    if (!m) {
+      const o = e.target.closest?.('[data-mon]');
+      m = o ? canh.mon.find((x) => x.id === o.dataset.mon) : null;
+    }
+    /* ③ Hụt thẻ thì hỏi KHUNG BẮT. Đây là chỗ chữa đúng lời than "nhiều lúc
+       không chọn trúng cái nhân vật": linh vật gồm 60 mảnh rời, bấm vào khe
+       giữa hai mảnh là trúng nền và xưởng tưởng người dùng muốn xoay máy. */
+    if (!m) {
+      const t = toaDoSan(e);
+      const id = timMon(t.u, t.v, canh, boCuc);
+      m = id ? canh.mon.find((x) => x.id === id) : null;
+    }
+  }
+
   if (m && m.id !== chonId) chon(m.id);
   keo = {
     /* Bấm trúng vật → DỜI VẬT. Bấm vào nền → XOAY MÁY. Đây là quy ước dễ đoán
@@ -461,7 +531,7 @@ function veBang() {
   m5.appendChild(oTruot('Mặt khuất sáng cỡ nào', Math.round((canh.den.nen ?? 0.42) * 100), 5, 95, 1,
     (v) => { canh.den.nen = v / 100; veLai(); }, 'kéo về 5 thì mặt khuất đen kịt', 'nenSang'));
   m5.appendChild(oTruot('Độ mở ống kính', canh.may.xa, 700, 6000, 50,
-    (v) => { canh.may.xa = v; san.style.perspective = v + 'px'; veLai(); },
+    (v) => { canh.may.xa = v; veLai(); },
     'số nhỏ thì phối cảnh mạnh, vật gần phình to', 'mayXa'));
   const dem = el('p', 'trong');
   dem.id = 'dem-manh';
@@ -561,7 +631,6 @@ document.addEventListener('pointerdown', (e) => {
 /* ---------------------------------------------------------------------------
  * Chạy
  * ------------------------------------------------------------------------- */
-san.style.perspective = canh.may.xa + 'px';
 lamLai();
 vuaKhung();
 addEventListener('resize', vuaKhung);
@@ -574,4 +643,7 @@ window.__bachieu = {
   chon,
   them: (loai) => { const m = themMon(canh, loai); chonId = m.id; lamLai(); return m.id; },
   vuaKhung,
+  /* Dựng lại sau khi bài kiểm tự nhét cảnh vào — không có cửa này thì bài kiểm
+     phải bắt chước từng bước dựng, và nó sẽ trôi khỏi bản thật lúc nào không hay. */
+  lamLai,
 };

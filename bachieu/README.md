@@ -251,11 +251,28 @@ duyệt soi bằng mắt, và mỗi lần soi ra một kết luận khác.
 phim". Bỏ khung phim thì luật ấy hết nghĩa — nhưng **lý do** sinh ra nó vẫn còn:
 máy chủ dựng phim không có chip đồ hoạ riêng.
 
-Nên đo lại đúng thứ thật sự tốn: **tổng số mảnh trong cảnh**. Đo trên chính máy
-này — 1.180 mảnh mất 16 ms một khung, tức thừa cho 60 hình/giây. Ngưỡng nhắc:
-**3.500 mảnh** là chạm 30 hình/giây, **6.000** là bắt đầu ì tay.
+Nên đo lại đúng thứ thật sự tốn: **tổng số mảnh trong cảnh**.
 
-*Bỏ một luật thì phải thay bằng luật đúng, không phải bỏ trống.*
+Và phải đo lại **lần thứ hai** khi cách vẽ đổi. Từ lúc quả cầu vẽ mượt bằng một
+thẻ duy nhất, con linh vật rơi từ 2.085 mảnh xuống **60** — ngưỡng cũ (3.500 /
+6.000) thành thứ không bao giờ với tới, vì cả cảnh đầy 24 món cũng chỉ 1.440
+mảnh. Một lời nhắc không bao giờ kêu thì vô dụng y như không có.
+
+Số đo lại, trên chính máy này:
+
+| Số thẻ | Thời gian một khung |
+|---|---|
+| 720 | 13–27 ms (mượt tay) |
+| 1.440 | 85 ms (ì rõ) |
+
+Ngưỡng nay là **900** (`NGUONG_MAT_VUA`) và **1.300** (`NGUONG_MAT_NANG`).
+
+Dư địa đã mỏng: lời nhắc "cảnh nặng" cần 22 món mà trần là 24. `kiem-bay-3d.mjs`
+tính con số ấy ra chứ không gõ cứng, và **báo đỏ nếu ngưỡng vượt khỏi trần** —
+tức nếu lần sau nó lại thành thứ không bao giờ kêu.
+
+*Bỏ một luật thì phải thay bằng luật đúng, không phải bỏ trống. Và khi cách vẽ
+đổi thì phải ĐO LẠI, chứ giữ con số cũ là tự ru mình.*
 
 **Không có chuyển động, và đó là chủ ý.** Bản trước có kho chuyển động, thanh
 thời gian và luật "góc quay là hàm thuần của giây" — tất cả sinh ra từ giả định
@@ -267,16 +284,77 @@ dáng** — một con số đứng yên, không phải chuyển động theo th�
 
 ---
 
+## Nắm bắt món — vì sao phải tự tính toạ độ màn hình
+
+Xưởng từng chọn món bằng đúng một câu: *thẻ nào nằm dưới ngón tay*. Chính xác
+tới từng pixel khi trúng — nhưng con linh vật là **60 mảnh RỜI**, và giữa chúng
+là khe. Đo thật: **585 trên 729 điểm bên trong khung của nó rơi vào khe**, tức
+hơn 80% số cú bấm vào người nó là trượt, và xưởng hiểu nhầm thành "muốn xoay
+máy". Anh Quý gọi đúng tên bệnh: *"nhiều lúc tôi cũng không chọn trúng cái nhân
+vật đó được"*.
+
+Chữa bằng cách tính **món chiếm chỗ nào trên màn** (`chieuDiem` trong
+`hinhhoc.js`, `khungMon` trong `canh.js`), rồi xếp ba tầng bắt:
+
+1. **Núm nắm** của món đang chọn — một chấm xanh giữa khung, bấm là trúng.
+2. **Thẻ thật** dưới ngón tay — chính xác nhất nên xét trước.
+3. **Khung bắt** — đỡ những cú rơi vào khe. Nhiều khung chồng nhau thì lấy món
+   **gần máy nhất**, không lấy món đầu danh sách.
+
+Và một **đường thoát**: chuột phải / chuột giữa / giữ Alt thì **luôn** là xoay
+máy. Khung bắt rộng hơn hình, nên cảnh đông vật có thể hết sạch chỗ nền trống —
+không có đường thoát thì không còn cách nào xoay máy nữa.
+
+**Phép chiếu phải khớp TỪNG CHỮ với chuỗi lệnh CSS trong `ve.js`**
+(`scale → rotateX → rotateY → translate3d`, rồi `perspective` của khung nhìn).
+Đã đối chiếu với trình duyệt thật: **24 điểm, 4 góc máy, lệch 0,00px**.
+
+Phép đối chiếu ấy lôi ra một lỗi câm: `perspective` trước đây chỉ được gán lúc
+người dùng kéo thanh trượt, nên mở một cảnh có `xa` khác là hình dựng theo một
+tiêu cự khác với con số trên bảng. Nay `veCanhTai()` đặt nó từ mô hình, mỗi lượt vẽ.
+
+**Hai cái bẫy trong phép tính khung:**
+
+- **Đừng gom bộ phận thành một hộp rồi mới chiếu hộp ấy.** Hộp-của-hộp luôn to
+  hơn hình: xoay máy 42° là khung phồng lên **1,29 lần** vì hai góc chéo của hộp
+  bao chìa ra chỗ chẳng có gì. Phải chiếu **từng bộ phận** rồi mới gộp trên màn.
+- **Quả cầu mượt tính riêng.** Nó là tấm billboard xoay ngược lại đúng bằng góc
+  máy, nên trên màn lúc nào cũng là đĩa `rx × ry` — nhét nó vào phép xoay là
+  thổi phồng khung vô cớ. Nhưng nó **vẫn** chịu phép chia phối cảnh.
+
+Sau khi sửa: khung **426×566** so với hình thật **431×558** — lệch 1,5%.
+
+---
+
 ## Kiểm
 
 ```bash
 node tools/kiem-ba-chieu.mjs     # hoặc: npm run kiem -- ba-chieu
+node tools/kiem-nam-mon.mjs      # nắm bắt món, cần trình duyệt thật
 ```
 
-Mười hai mục. Đã **thử bẻ gãy 15 kiểu** để chắc không có mục nào xanh dễ dãi — và
-lần thử ấy bắt được một chỗ xanh giả thật: mọi phép thử pháp tuyến đều dùng
-vector có `x = 0`, nên một lỗi đảo dấu ở đúng số hạng chứa `x` thì không ai
-thấy. Nay đã có phép thử "quay đi rồi quay về phải trở lại chỗ cũ".
+`kiem-ba-chieu.mjs` chạy bằng Node trần, mười lăm mục. Đã **thử bẻ gãy 15 kiểu**
+để chắc không có mục nào xanh dễ dãi — và lần thử ấy bắt được một chỗ xanh giả
+thật: mọi phép thử pháp tuyến đều dùng vector có `x = 0`, nên một lỗi đảo dấu ở
+đúng số hạng chứa `x` thì không ai thấy. Nay đã có phép thử "quay đi rồi quay về
+phải trở lại chỗ cũ".
+
+`kiem-nam-mon.mjs` cần trình duyệt thật, vì chỗ hỏng nằm đúng giữa phép toán và
+cách trình duyệt dựng hình: toán đúng mà hình lệch, hoặc ngược lại, thì vẫn
+trượt. Nó tìm một điểm mà trình duyệt KHÔNG thấy thẻ nào rồi **bấm chuột thật**
+vào đó.
+
+**Hai bài này bắt hai lớp lỗi khác hẳn nhau, và đã chứng minh bằng đột biến.**
+Thử bẻ 8 kiểu: bài trình duyệt bắt được "bỏ khung bắt", "bỏ đường thoát chuột
+phải", "chiếu sai dấu trục y", "khung lệch 40px", "lấy nhầm món bị che"; nhưng
+nó **không** bắt được "quên hệ số phối cảnh của cầu mượt" và "bỏ phép xoay của
+bộ phận" — hai thứ ấy không lộ ra ở cảnh thử, và chỉ bài thuần số mới thấy.
+
+Lần thử đột biến ấy còn lôi ra **hai lỗ hổng trong chính bài kiểm**: dung sai
+"khung ôm được hình" nới tới 10% cỡ món (45px) nên một khung lệch hẳn 40px vẫn
+lọt — nay so **tâm với tâm**; và cảnh thử chỉ có một món nên "lấy món gần máy
+nhất" đổi thành "lấy món đầu danh sách" vẫn xanh — nay có hẳn mục hai món chồng
+nhau, xoay máy 180° để đổi vai.
 
 ---
 

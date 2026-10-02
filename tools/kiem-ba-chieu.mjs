@@ -385,9 +385,17 @@ console.log('\n⑦ Bố cục năm loại khối');
     dat('nhân vật: đủ bộ phận', con.length >= 20, `${con.length} bộ phận`);
     dat('nhân vật: bộ phận nào cũng có màu riêng',
       con.every((c) => c.mauRieng), con.filter((c) => !c.mauRieng).map((c) => c.id).join(', ') || 'đủ cả');
-    dat('nhân vật: dùng cả cầu, trụ và hộp',
-      new Set(con.map((c) => c.hinh)).size === 3,
-      [...new Set(con.map((c) => c.hinh))].join(' '));
+    /* Phép cũ đòi nhân vật phải dùng ĐỦ ba loại hình — canh nhầm thứ. Dùng
+       loại nào là chuyện của người nặn; điều đáng canh là nó KHÔNG BỊ SẦN.
+       Ghép cầu từ mặt phẳng thì nhìn rõ từng múi, linh vật thành quả cầu
+       disco. Mọi khối cầu của nhân vật phải ở chế độ MƯỢT. */
+    dat('nhân vật: mọi khối cầu đều vẽ mượt, không ghép mảnh',
+      con.filter((c) => c.hinh === 'cau').every((c) => c.muot === true),
+      `${con.filter((c) => c.hinh === 'cau').length} khối cầu`);
+    /* Vẽ mượt rẻ hơn ghép mảnh khoảng một trăm lần. Con số này vọt lên nghĩa
+       là có khối cầu tuột về chế độ ghép mảnh. */
+    dat('nhân vật: không còn nặng vì ghép mảnh cầu',
+      C.soMatMon(nv, K.boCuc) < 400, `${C.soMatMon(nv, K.boCuc)} mảnh phẳng`);
     /* Mới sinh ra đã phải nằm trong luật 50% của chính nó. Để nó ra đời đã vượt
        mốc thì lời nhắc kêu ngay lần đầu mở, và người dùng học cách bỏ qua. */
     dat('nhân vật: bề ngang theo đúng hệ số to nhỏ',
@@ -490,9 +498,23 @@ console.log('\n⑦c Luật MỚI thay luật khung phim: đếm mảnh, không �
   const c = C.canhMoi('hop');
   dat('một khối hộp thì im', C.soatCanh(c, K.boCuc).length === 0);
   dat('đếm đúng số mảnh của khối hộp', C.soMatMon(c.mon[0], K.boCuc) === 6);
-  dat('đếm được cả món ghép nhiều bộ phận',
-    C.soMatMon(K.khoiMoi('nhan-vat'), K.boCuc) > 900);
-  for (let i = 0; i < 4; i++) C.themMon(c, 'nhan-vat');
+  /* Món ghép nhiều bộ phận: đếm phải CỘNG DỒN các bộ phận, nhưng quả cầu MƯỢT
+     chỉ tính 1 vì nó vẽ bằng một thẻ. Linh vật 25 bộ phận mà chỉ 60 mảnh —
+     trước khi vẽ mượt nó là 2.085, và phép đếm từng tính nhầm đúng con số cũ
+     khiến lời nhắc "cảnh nặng" kêu oan ngay từ món đầu. */
+  {
+    const nv = K.khoiMoi('nhan-vat');
+    const dem = C.soMatMon(nv, K.boCuc);
+    dat('đếm được món ghép nhiều bộ phận', dem > 20 && dem < 300, `${dem} mảnh`);
+    dat('quả cầu mượt chỉ tính MỘT mảnh', (() => {
+      const motCau = { loai: 'tru' };   // không phải cầu, để so
+      const cauMuot = C.soMatMon({ loai: 'hop', rong: 1, cao: 1, day: 1 }, K.boCuc);
+      return cauMuot === 6 && dem < K.boCuc(nv).khoiCon.length * 40;
+    })());
+  }
+  /* Cảnh NẶNG. Ngưỡng đo lại sau khi có cầu mượt: 720 thẻ còn mượt tay,
+     1.440 thẻ đã ì. Dựng bằng linh vật (60 mảnh mỗi con) cho sát thực tế. */
+  for (let i = 0; i < 23; i++) C.themMon(c, 'nhan-vat');
   const nhac = C.soatCanh(c, K.boCuc);
   dat('cảnh nặng thì nhắc', nhac.length === 1);
   dat('nói rõ đang có bao nhiêu mảnh', /\d/.test(nhac[0] || ''), nhac[0]);
@@ -551,6 +573,102 @@ console.log('\n⑦d Vặn núm thì ĐỪNG đập bảng vặn');
     !/if \(khoa\) i\.dataset\.khoa/.test(src));
 }
 
+console.log('\n⑨ Chiếu ngược: món nằm ở đâu trên màn');
+{
+  /* Phép chiếu này đã được ĐỐI CHIẾU VỚI TRÌNH DUYỆT THẬT: 24 điểm, 4 góc máy,
+     lệch 0,00px. Mấy mục dưới đây giữ những tính chất mà một lần đổi code vô ý
+     rất dễ phá, và phá thì không có gì kêu — khung chọn chỉ lệch đi một chút. */
+  const thang = { ngang: 0, doc: 0, ti: 1, xa: 2200, tamX: 0, tamY: 0 };
+  dat('gốc toạ độ rơi vào giữa khung nhìn',
+    gan(H.chieuDiem([0, 0, 0], thang).u, 0) && gan(H.chieuDiem([0, 0, 0], thang).v, 0));
+  dat('trục y hướng LÊN, màn hình hướng XUỐNG', H.chieuDiem([0, 100, 0], thang).v < 0,
+    String(H.chieuDiem([0, 100, 0], thang).v));
+  /* Lại gần máy thì to ra. Thiếu phép chia phối cảnh thì mọi thứ to như nhau
+     bất kể xa gần, và khung chọn của món đứng trước sẽ hụt. */
+  const gan1 = H.chieuDiem([100, 0, 600], thang).u;
+  const xa1 = H.chieuDiem([100, 0, -600], thang).u;
+  dat('càng gần máy càng to', gan1 > 100 && xa1 < 100, `gần ${gan1.toFixed(1)} · xa ${xa1.toFixed(1)}`);
+  dat('thu phóng nhân thẳng vào',
+    gan(H.chieuDiem([200, 0, 0], { ...thang, ti: 2 }).u, 400));
+  dat('dời tâm thì cảnh dời ngược lại',
+    gan(H.chieuDiem([0, 0, 0], { ...thang, tamX: 150 }).u, -150));
+  /* Xoay 90° quanh trục đứng: điểm trên trục x phải chạy hết sang trục z. */
+  const q = H.chieuDiem([300, 0, 0], { ...thang, ngang: 90 });
+  dat('xoay máy 90° thì điểm trên trục x biến mất khỏi bề ngang', Math.abs(q.u) < 0.01,
+    q.u.toExponential(1));
+
+  /* Hộp xoay 45° thì hình chiếu RỘNG RA đúng căn 2 — đây là lý do phải chiếu
+     đủ tám đỉnh chứ không nhân bề ngang với một hệ số nào đó. */
+  /* Ống kính gần như không phối cảnh, để con số so được với hình học phẳng:
+     để `xa` thường thì mặt trước nở, mặt sau co, và tỉ lệ ra 1,35 chứ không
+     phải 1,414 — đúng về vật lý nhưng không chứng minh được điều đang muốn nói. */
+  const det = { ...thang, xa: 2e7 };
+  const h0 = H.khungHop([0, 0, 0], [200, 200, 200], det);
+  const h45 = H.khungHop([0, 0, 0], [200, 200, 200], { ...det, ngang: 45 });
+  dat('hộp xoay 45° thì bề ngang nở ra căn 2',
+    gan(h45.rong / h0.rong, Math.SQRT2, 0.002), (h45.rong / h0.rong).toFixed(4));
+}
+
+console.log('\n⑨b Khung bắt món — ôm đúng hình, không phồng');
+{
+  const may = { ngang: 0, doc: 0, ti: 1, xa: 2200, tamX: 0, tamY: 0 };
+  const mon = { id: 'a', loai: 'hop', vi: { x: 0, y: 0, z: 0 }, xoay: { x: 0, y: 0, z: 0 } };
+  const bo = (con) => () => ({ kieu: 'hop', khoiCon: [con] });
+
+  /* BỘ PHẬN TỰ XOAY. Áo choàng của linh vật ngả 44°, lông mày cau lại — bỏ
+     phép xoay ấy đi thì khung vẫn gần đúng vì mấy quả cầu to lấn át, nên bài
+     kiểm bằng trình duyệt KHÔNG bắt được (đã thử). Ở đây dựng hẳn một tấm dài
+     lăn 90°, lúc ấy sai hay đúng lộ ra ngay. */
+  const tam = { hinh: 'hop', x: 0, y: 0, z: 0, rong: 400, cao: 40, day: 40 };
+  const n0 = C.khungMon(mon, bo(tam), may);
+  const n9 = C.khungMon(mon, bo({ ...tam, xoay: { lan: 90 } }), may);
+  dat('tấm dài nằm ngang thì khung rộng và dẹt', n0.rong > 390 && n0.cao < 50,
+    `${n0.rong.toFixed(0)}×${n0.cao.toFixed(0)}`);
+  dat('lăn 90° thì khung cũng dựng đứng theo', n9.cao > 390 && n9.rong < 50,
+    `${n9.rong.toFixed(0)}×${n9.cao.toFixed(0)}`);
+
+  /* QUẢ CẦU MƯỢT là tấm billboard: không xoay theo máy, nhưng VẪN phải chịu
+     phép chia phối cảnh. Quên nhân hệ số ấy thì khung đứng im trong khi hình
+     to dần lúc món tiến lại gần — mà ở cảnh mặc định món nào cũng gần z = 0
+     nên sai số bé tí, bài kiểm bằng trình duyệt cho qua tuốt (đã thử). */
+  const manh = { ngang: 0, doc: 0, ti: 1, xa: 900, tamX: 0, tamY: 0 };
+  const cau = { hinh: 'cau', x: 0, y: 0, z: 0, ban: 100, muot: true };
+  const rong = (z) => C.khungMon({ ...mon, vi: { x: 0, y: 0, z } }, bo(cau), manh).rong;
+  dat('cầu mượt ở giữa đúng bằng đường kính', gan(rong(0), 200, 0.01), rong(0).toFixed(1));
+  dat('tiến lại gần máy thì cầu mượt to ra', rong(600) > rong(0) * 1.6,
+    `z=0 → ${rong(0).toFixed(0)} · z=600 → ${rong(600).toFixed(0)}`);
+  dat('lùi ra xa thì nhỏ lại', rong(-600) < rong(0) * 0.75,
+    `z=-600 → ${rong(-600).toFixed(0)}`);
+  /* Cầu mượt KHÔNG được nở ra khi xoay máy — nó luôn quay mặt về phía ống kính. */
+  const xoay = C.khungMon(mon, bo(cau), { ...may, ngang: 45, doc: 30 }).rong;
+  dat('xoay máy thì cầu mượt vẫn đúng đường kính', gan(xoay, 200, 0.01), xoay.toFixed(1));
+}
+
+console.log('\n⑨c Tìm món dưới con trỏ');
+{
+  const may = { ngang: 0, doc: 0, ti: 1, xa: 2200, tamX: 0, tamY: 0 };
+  const hop = (id, x, z) => ({ id, loai: 'hop', ten: id, vi: { x, y: 0, z },
+    xoay: { x: 0, y: 0, z: 0 } });
+  const bo = () => ({ kieu: 'hop',
+    khoiCon: [{ hinh: 'hop', x: 0, y: 0, z: 0, rong: 200, cao: 200, day: 200 }] });
+  const canh = { may, mon: [hop('sau', 0, -500), hop('truoc', 0, 500)] };
+
+  dat('bấm giữa chỗ chồng nhau thì tóm món ĐỨNG TRƯỚC',
+    C.timMon(0, 0, canh, bo) === 'truoc');
+  /* Quay 180°: món đằng sau ra đứng trước. Phép tìm nào bỏ qua chiều sâu —
+     chẳng hạn cứ lấy món đầu danh sách — sẽ trả về y như cũ. */
+  dat('quay máy 180° thì đổi thành món kia',
+    C.timMon(0, 0, { ...canh, may: { ...may, ngang: 180 } }, bo) === 'sau');
+  dat('bấm ra ngoài thì không tóm gì', C.timMon(3000, 0, canh, bo) === null);
+  dat('món đang ẩn thì không tóm được',
+    C.timMon(0, 0, { ...canh, mon: canh.mon.map((m) => ({ ...m, an: true })) }, bo) === null);
+  /* Nới mép: món bé xíu vẫn phải bấm trúng. Nhưng nới quá thì bấm đâu cũng
+     dính, nên phải CÓ GIỚI HẠN — kiểm cả hai đầu. */
+  const mep = C.khungMon(canh.mon[1], bo, may).pha;
+  dat('nới mép vài pixel cho dễ bấm', C.timMon(mep + 4, 0, canh, bo) === 'truoc');
+  dat('nhưng không nới vô tội vạ', C.timMon(mep + 60, 0, canh, bo) === null);
+}
+
 console.log('\n⑧ Câu chữ — không để lọt tiếng máy ra màn hình');
 {
   const CAM = /\b(CPU|mesh|normal map|PBR|roughness|metalness|bake|FOV|viewport|shader|vertex|polygon|WebGL|GPU|render|opacity|stagger|easing|transform|matrix)\b/i;
@@ -574,7 +692,11 @@ console.log('\n⑧ Câu chữ — không để lọt tiếng máy ra màn hình'
   /* Nhãn trong bảng vặn nằm trong giaodien.js — quét luôn phần chuỗi. */
   const gd = readFileSync(path.join(M, 'bachieu', 'giaodien.js'), 'utf8')
     .split('\n').filter((d) => !/^\s*[/*]/.test(d)).join('\n');
-  const nhan = [...gd.matchAll(/'([^']{6,})'/g)].map((m) => m[1])
+  /* CHẶN TRONG MỘT DÒNG (`[^'\n]`). Thiếu dấu `\n` thì dấu nháy cuối một
+     chuỗi ghép với dấu nháy đầu chuỗi sau, và phép quét vơ nguyên cả khối mã
+     nằm giữa — rồi báo "nhãn bẩn" vì trong mã có chữ `transform` của CSS. Mục
+     này canh CÂU CHỮ NGƯỜI DÙNG ĐỌC, không canh tên thuộc tính CSS. */
+  const nhan = [...gd.matchAll(/'([^'\n]{6,})'/g)].map((m) => m[1])
     .filter((s) => /[àáạảãăâêôơưđèéẹẻíìỉòóõốồổúùụưứừửĐ]/i.test(s));
   const ban = nhan.filter((s) => CAM.test(s));
   dat('nhãn trên bảng vặn sạch tiếng máy', ban.length === 0, ban.join(' | '));

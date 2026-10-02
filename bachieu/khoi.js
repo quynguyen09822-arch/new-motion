@@ -88,7 +88,7 @@ export function khoiMoi(loai = 'hop', mauId = 'den-cam') {
          nhựa bóng chụp trong hộp sáng, không phải tượng đá ngoài trời — để ánh
          nền thấp thì mặt và áo tối sầm, và nó thành một cục đất sét đỏ. */
       return { ...chung, co: 1.35,
-        den: { ngang: -30, cao: 34, nen: 0.72 }, xoayNgang: -14, xoayDoc: 6 };
+        den: { ngang: -30, cao: 38, nen: 0.46 }, xoayNgang: -14, xoayDoc: 6 };
     case 'bieu-do':
       /* Bốn cột tăng dần: đây là hình hay dùng nhất trong clip quảng bá, nên
          bày sẵn đúng dáng ấy thay vì bốn cột bằng nhau. */
@@ -169,9 +169,12 @@ export function boCuc(khoi = {}) {
       const M = MAU_LINH_VAT;
       const k = khoi.co ?? 1;
       /* cầu: tâm, bán kính, màu, độ chia, rồi bóp/xoay/khoét nếu cần */
+      /* `muot: true` — vẽ mỗi quả cầu bằng MỘT đĩa tô chuyển sắc thay vì cả
+         trăm mảnh phẳng. Ghép mảnh thì nhìn rõ từng múi, linh vật trông như
+         quả cầu disco; đĩa chuyển sắc cho ra mặt nhựa bóng như hình gốc. */
       const C = (id, x, y, z, ban, mau, vong, tang, them = {}) =>
         ({ id, hinh: 'cau', x: x * k, y: y * k, z: z * k, ban: ban * k,
-          vong, tang, mauRieng: mau, ...them });
+          vong, tang, mauRieng: mau, muot: true, ...them });
       const T = (id, x, y, z, ban, cao, mau, vong, them = {}) =>
         ({ id, hinh: 'tru', x: x * k, y: y * k, z: z * k, ban: ban * k,
           cao: cao * k, soMat: vong, mauRieng: mau, ...them });
@@ -182,25 +185,25 @@ export function boCuc(khoi = {}) {
       return { kieu: 'hop', khoiCon: [
         /* --- ÁO CHOÀNG: dựng TRƯỚC để nằm sau lưng trong thứ tự vẽ.
                Hai tà rủ xuống, nghiêng ra ngoài và vẹt về sau. --- */
-        H('choang-trai', -74, -196, -84, 118, 272, 8, M.xanhDen,
-          { bo: 55, xoay: { ngang: 48, lan: -16 } }),
-        H('choang-phai', 74, -196, -84, 118, 272, 8, M.xanhDen,
-          { bo: 55, xoay: { ngang: -48, lan: 16 } }),
+        H('choang-trai', -88, -186, -90, 126, 282, 8, M.xanhDen,
+          { bo: 100, xoay: { ngang: 44, lan: -15 } }),
+        H('choang-phai', 88, -186, -90, 126, 282, 8, M.xanhDen,
+          { bo: 100, xoay: { ngang: -44, lan: 15 } }),
 
         /* --- CHÂN VÀ GIÀY --- */
-        T('chan-trai', -33, -275, 0, 22, 62, M.doChan, 10),
-        T('chan-phai', 33, -275, 0, 22, 62, M.doChan, 10),
-        H('giay-trai', -38, -322, 18, 74, 56, 96, M.xanhDen, { bo: 14 }),
-        H('giay-phai', 38, -322, 18, 74, 56, 96, M.xanhDen, { bo: 14 }),
+        C('chan-trai', -33, -272, 0, 24, M.doChan, 0, 0, { phong: [1, 1.5, 1] }),
+        C('chan-phai', 33, -272, 0, 24, M.doChan, 0, 0, { phong: [1, 1.5, 1] }),
+        H('giay-trai', -38, -320, 20, 78, 50, 104, M.xanhDen, { bo: 100 }),
+        H('giay-phai', 38, -320, 20, 78, 50, 104, M.xanhDen, { bo: 100 }),
 
         /* --- THÂN: thon trên, phình dưới. Một quả cầu duy nhất thì ra hình
                thùng; hai quả bóp khác nhau mới ra dáng. --- */
         C('bung', 0, -208, 0, 112, M.doTuoi, 16, 10, { phong: [1.02, 0.56, 0.88] }),
         C('nguc', 0, -100, 0, 112, M.doSam, 18, 11, { phong: [0.98, 0.70, 0.90] }),
-        T('that-lung', 0, -178, 0, 110, 26, M.thatLung, 22),
-        H('khoa', 0, -178, 100, 48, 26, 12, M.vang, { bo: 18 }),
+        C('that-lung', 0, -178, 26, 108, M.thatLung, 0, 0, { phong: [1, 0.17, 0.5] }),
+        H('khoa', 0, -178, 100, 48, 26, 12, M.vang, { bo: 45 }),
         /* Dấu xoáy: đĩa trắng mỏng áp lên ngực. */
-        T('dau-nguc', 0, -112, 100, 28, 7, '#FFFFFF', 22, { xoay: { doc: 90 } }),
+        C('dau-nguc', 0, -112, 104, 29, '#FFFFFF', 0, 0, { phong: [1, 1, 0.12] }),
 
         /* --- TAY: găng đen tròn hai bên --- */
         C('gang-trai', -126, -150, 14, 36, M.xanhDen, 11, 7, { phong: [0.95, 1.12, 1] }),
@@ -224,12 +227,12 @@ export function boCuc(khoi = {}) {
 
         /* --- LÔNG MÀY: dày, cau vào trong (đuôi trong thấp hơn) --- */
         H('may-trai', -82, 166, 150, 92, 20, 12, M.longMay,
-          { bo: 40, xoay: { lan: 13 } }),
+          { bo: 100, xoay: { lan: 13 } }),
         H('may-phai', 82, 166, 150, 92, 20, 12, M.longMay,
-          { bo: 40, xoay: { lan: -13 } }),
+          { bo: 100, xoay: { lan: -13 } }),
 
         /* --- CHÓP MŨ --- */
-        T('can-chop', 0, 268, 0, 5, 54, M.doTuoi, 8),
+        C('can-chop', 0, 266, 0, 6, M.doTuoi, 0, 0, { phong: [1, 4.2, 1] }),
         C('chop', 0, 303, 0, 17, M.doTuoi, 10, 6),
       ] };
     }

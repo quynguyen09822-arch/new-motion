@@ -40,7 +40,7 @@
      Chuyển sắc nhẹ từ trên xuống cho ra chiều sâu, không để phẳng lì. */
   #san{flex:1;position:relative;min-height:380px;overflow:hidden;cursor:grab;
     background:linear-gradient(180deg,#4a4e55 0%,#3d4046 46%,#303338 100%);
-    perspective:2200px;touch-action:none}
+    touch-action:none}
   #san.dangkeo{cursor:grabbing}
   /* SÀN nằm TRONG cảnh nên xoay theo máy quay — cho mắt bám vào mà biết mình
      đang đứng đâu. Vẽ bằng hình nền của khung nhìn thì nó đứng im lúc xoay, và
@@ -97,10 +97,42 @@
   .bc-hop{transform-style:preserve-3d;position:absolute;left:0;top:0}
   .bc-mat{position:absolute;left:0;top:0;backface-visibility:hidden;
     display:grid;place-items:center;border-radius:2px}
+  /* Quả cầu MƯỢT: một đĩa tròn tô chuyển sắc, thay cho cả trăm mảnh phẳng. */
+  .bc-cau{position:absolute;left:0;top:0;border-radius:50%;backface-visibility:visible}
   .bc-chu{font-weight:800;letter-spacing:-.02em;color:rgba(0,0,0,.55);user-select:none}
   .bc-lop{position:absolute;left:50%;top:50%;transform-origin:50% 50%;
     font-weight:900;letter-spacing:-.03em;white-space:nowrap;user-select:none;line-height:1}
   .bc-cho.chon .bc-mat{outline:1px solid rgba(49,217,117,.55);outline-offset:-1px}
+  /* KHUNG CHỌN + NÚM NẮM.
+     Vì sao cần: con linh vật là 60 mảnh rời, bấm vào khe giữa hai mảnh là trúng
+     nền. Viền mảnh ở trên chỉ vẽ được trên MẶT PHẲNG — quả cầu mượt không có
+     mặt nào nên món tròn gần như không thấy mình đang được chọn. Khung phẳng
+     này luôn thấy, và cái núm ở giữa thì LÚC NÀO CŨNG bấm trúng. */
+  #nam{position:absolute;inset:0;pointer-events:none;z-index:4}
+  #khung-nam{position:absolute;left:0;top:0;box-sizing:border-box;
+    border:1px dashed rgba(49,217,117,.5);border-radius:3px;
+    background:rgba(49,217,117,.05)}
+  /* Bốn góc đậm hơn — mắt bắt góc nhanh hơn bắt cạnh, và nét đứt mảnh thì trên
+     nền xám dễ chìm. */
+  #khung-nam::before,#khung-nam::after{content:'';position:absolute;
+    width:13px;height:13px;border:2px solid #31d975}
+  #khung-nam::before{left:-1px;top:-1px;border-right:0;border-bottom:0;border-radius:3px 0 0 0}
+  #khung-nam::after{right:-1px;bottom:-1px;border-left:0;border-top:0;border-radius:0 0 3px 0}
+  /* Núm là một VÒNG có dấu bốn chiều, không phải chấm đặc. Chấm xanh đặc rơi
+     đúng lên huy hiệu ngực của linh vật — cũng một chấm xanh — và không ai
+     phân biệt được đâu là nút đâu là hình. Vòng rỗng kèm dấu mũi tên thì đọc
+     ra ngay là thứ để bấm. */
+  #num-nam{position:absolute;left:0;top:0;width:26px;height:26px;border-radius:50%;
+    pointer-events:auto;cursor:move;box-sizing:border-box;
+    border:2px solid #31d975;background:rgba(14,17,22,.62);
+    box-shadow:0 0 0 1.5px rgba(10,12,16,.6),0 2px 8px rgba(0,0,0,.5)}
+  /* Dấu bốn chiều vẽ bằng hai vạch bắt chéo — rẻ hơn nhét một hình SVG vào. */
+  #num-nam::before,#num-nam::after{content:'';position:absolute;background:#31d975;
+    left:50%;top:50%;transform:translate(-50%,-50%);border-radius:1px}
+  #num-nam::before{width:13px;height:2px}
+  #num-nam::after{width:2px;height:13px}
+  #num-nam:hover{background:rgba(49,217,117,.3);border-color:#6bffab}
+  #san.dangkeo #num-nam{cursor:grabbing}
 
   /* ---------- bên phải ---------- */
   .phai{border-left:1px solid var(--vien);display:flex;flex-direction:column;min-height:0}
@@ -182,14 +214,21 @@
            xoá sạch nội dung chỗ vẽ mỗi lần dựng lại, mà lưới sàn với dòng chỉ
            số máy quay cũng là con của #san — vẽ thẳng vào đó là xoá luôn
            chúng, và trang chết ngay từ lần dựng đầu tiên. -->
-      <div id="canh3d" style="position:absolute;inset:0;transform-style:preserve-3d"></div>
+      <div id="canh3d" style="position:absolute;inset:0;transform-style:preserve-3d;perspective:2200px"></div>
+      <!-- LỚP NẮM: khung chọn và núm nắm. Nằm NGOÀI cảnh 3D, vẽ bằng toạ độ
+           phẳng đã chiếu sẵn — nhét vào trong cảnh thì nó bị xoay nghiêng theo
+           máy quay, và một cái khung nghiêng thì chẳng chỉ ra được cái gì. -->
+      <div id="nam" hidden>
+        <div id="khung-nam"></div>
+        <div id="num-nam" title="Nắm đây để dời món (giữ Shift để nâng hạ)"></div>
+      </div>
       <div id="goc-may"></div>
       <div id="dang-bay" hidden>
         <div class="vong"></div>
         <b id="dang-bay-chu">Đang nhìn ảnh…</b>
         <span id="dang-bay-giay"></span>
       </div>
-      <div id="chi-dan">kéo vật để dời · giữ Shift để nâng hạ · kéo nền để xoay máy · lăn để phóng</div>
+      <div id="chi-dan">kéo vật hoặc núm xanh để dời · giữ Shift để nâng hạ · kéo nền để xoay máy (chuột phải ở đâu cũng xoay) · lăn để phóng</div>
     </div>
 
   </div>

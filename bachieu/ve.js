@@ -15,7 +15,7 @@
  * triệu chứng lại giống hệt "máy chủ yếu" — đi sai hướng cả buổi.
  */
 import { matCuaHop, matCuaTru, matCuaCau, phapTuyen, doSang, mauTheoSang,
-  beRongChiem, DEN_MAC_DINH } from './hinhhoc.js';
+  beRongChiem, huongDen, DEN_MAC_DINH } from './hinhhoc.js';
 import { boCuc, caoTong } from './khoi.js';
 
 const the = (lop, kieu) => {
@@ -59,10 +59,41 @@ export function dung(cha, khoi) {
          Các lớp sau đóng vai thành bên, nên cho tối dần. */
       chuDS.push({ el: l, mat: i === 0, sau: i / Math.max(1, bc.lop - 1) });
     }
-    return { goc, matDS, chuDS };
+    return { goc, matDS, chuDS, cauDS: [] };
   }
 
+  const cauDS = [];
   for (const con of bc.khoiCon) {
+    /* QUẢ CẦU MƯỢT — vẽ bằng ĐÚNG MỘT thẻ thay vì cả trăm mảnh phẳng.
+     *
+     * VÌ SAO. Ghép cầu từ mặt phẳng thì mỗi mảnh một màu phẳng, nên nhìn rõ
+     * từng múi — linh vật trông như quả cầu disco chứ không như đồ nhựa bóng.
+     * Chia mịn hơn cũng không hết: mịn tới đâu vẫn thấy ranh giới, mà lại tốn
+     * thẻ gấp bội.
+     *
+     * Mẹo: quả cầu nhìn từ GÓC NÀO cũng là một hình tròn. Nên vẽ một đĩa tròn
+     * rồi tô chuyển sắc theo hướng đèn là ra quả cầu mượt — đúng cách cái xem
+     * trước trên bàn đèn vẫn làm, và nó mượt hơn hẳn phiên bản ghép mảnh.
+     *
+     * Giá phải trả: đĩa luôn phải quay mặt về người xem, nên mỗi khung hình
+     * phải khử ngược phép quay của máy quay và của chính món. Bù lại rẻ hơn
+     * khoảng một trăm lần.
+     */
+    if (con.hinh === 'cau' && con.muot) {
+      const rx = (con.ban ?? 100) * (con.phong?.[0] ?? 1);
+      const ry = (con.ban ?? 100) * (con.phong?.[1] ?? 1);
+      const bb = the('bc-cau', {
+        width: rx * 2 + 'px', height: ry * 2 + 'px',
+        marginLeft: -rx + 'px', marginTop: -ry + 'px',
+      });
+      const cho2 = the('bc-hop', {
+        transform: `translate3d(${con.x}px, ${-con.y}px, ${con.z}px)`,
+      });
+      cho2.appendChild(bb);
+      goc.appendChild(cho2);
+      cauDS.push({ el: bb, bb: cho2, mau: con.mauRieng || null, pha: con.pha ?? 1, r: Math.max(rx, ry) });
+      continue;
+    }
     /* BA PHÉP cho từng bộ phận, và thứ tự quan trọng: dời tới chỗ → xoay →
        bóp. Bóp trước khi xoay thì khối bị méo theo trục đã quay, ra hình kỳ
        quặc không ai đoán được.
@@ -100,9 +131,24 @@ export function dung(cha, khoi) {
        * mép nhau; bo vào là hở ra cả vòng lỗ, nhìn như vật bị rỗ.
        */
       const laHop = (con.hinh ?? 'hop') === 'hop';
-      const nho = Math.min(con.rong ?? 1e9, con.cao ?? 1e9, con.day ?? 1e9);
-      const lon = Math.max(con.rong ?? 0, con.cao ?? 0, con.day ?? 0);
-      const boGoc = laHop ? ((khoi.bo || 0) / 100) * Math.min(0.5 * nho, 0.08 * lon) : 0;
+      const ba = [con.rong ?? 1e9, con.cao ?? 1e9, con.day ?? 1e9].sort((a, b) => a - b);
+      const [nho, giua, lon] = ba;
+      /* TẤM MỎNG bo được nhiều hơn khối vuông, và luật cũ không phân biệt.
+         Lỗ hụt ở đỉnh khối to bằng bán kính bo — với khối vuông thì nó lộ ngay,
+         nhưng với một tấm mỏng (áo choàng dày 8 trên 282) thì lỗ ấy chỉ sâu
+         bằng bề dày, nhìn từ trước không thấy. Luật cũ lấy cạnh NHỎ NHẤT làm
+         trần nên tấm mỏng gần như không bo được tí nào — áo choàng và giày cứ
+         vuông chằn chặn dù núm đã vặn hết cỡ. */
+      const mongDet = nho < giua * 0.3;
+      const canCu = mongDet ? giua : nho;
+      /* `bo` của RIÊNG bộ phận thắng `bo` của cả món. Thiếu dòng này thì món
+         ghép nhiều bộ phận (linh vật) không đặt riêng được: giày muốn bo tròn
+         mà áo choàng muốn vuông là chịu. Đã quên một lần — gán bo cho giày mà
+         nó cứ vuông chằn chặn, vì chỗ này chỉ đọc `khoi.bo`. */
+      const mucBo = con.bo ?? khoi.bo ?? 0;
+      const boGoc = laHop
+        ? (mucBo / 100) * Math.min(0.5 * canCu, (mongDet ? 0.22 : 0.09) * lon)
+        : 0;
       const f = the('bc-mat', {
         width: m.w + 'px',
         height: m.h + 'px',
@@ -133,7 +179,7 @@ export function dung(cha, khoi) {
     }
     goc.appendChild(hop);
   }
-  return { goc, matDS, chuDS };
+  return { goc, matDS, chuDS, cauDS };
 }
 
 /**
@@ -143,7 +189,7 @@ export function dung(cha, khoi) {
  * rồi: xưởng này để dựng phối cảnh, không phải làm video. Góc quay giờ là một
  * con số người dùng đặt, đứng yên.
  */
-export function veTai(dat, khoi) {
+export function veTai(dat, khoi, may = { ngang: 0, doc: 0 }) {
   const ngang = khoi.xoayNgang ?? -28;
   const doc = khoi.xoayDoc ?? 14;
   const den = khoi.den || DEN_MAC_DINH;
@@ -163,6 +209,40 @@ export function veTai(dat, khoi) {
   for (const m of dat.matDS) {
     const s = doSang(phapTuyen(m.n, ngang, doc), den) * m.pha;
     m.el.style.background = mauTheoSang(m.mau || mau, s);
+  }
+
+  /* --- QUẢ CẦU MƯỢT --- */
+  if (dat.cauDS?.length) {
+    /* Chỗ sáng nhất trên đĩa là hướng đèn CHIẾU LÊN MÀN HÌNH. Đèn gắn vào thế
+       giới, nên phải quay nó theo máy quay — đúng thứ tự máy quay dùng. Bỏ
+       bước này thì lia máy một vòng mà vệt sáng đứng im một chỗ, quả cầu trông
+       như dán hình chứ không như vật thể. */
+    const L = phapTuyen(huongDen(den), may.ngang, may.doc);
+    /* Và đĩa phải luôn quay mặt về người xem: khử ngược phép quay của máy quay
+       lẫn của chính món, theo THỨ TỰ NGƯỢC LẠI. Sai thứ tự thì đĩa lệch dần
+       mỗi khi xoay, và quả cầu hoá hình bầu dục méo. */
+    const khu = `rotateY(${-ngang}deg) rotateX(${-doc}deg) `
+      + `rotateY(${-may.ngang}deg) rotateX(${-may.doc}deg)`;
+    for (const c of dat.cauDS) {
+      const m = c.mau || mau;
+      const nen = (den.nen ?? DEN_MAC_DINH.nen) * c.pha;
+      /* HAI LỚP chồng nhau, và cần cả hai thì quả cầu mới ra khối:
+         · lớp trên — đốm sáng nhỏ, gắt, lệch về phía đèn: đó là ánh phản trên
+           mặt nhựa bóng. Thiếu nó thì nhìn như giấy màu.
+         · lớp dưới — chuyển sắc rộng từ sáng sang tối: đó là khối tròn.
+         Một lớp thôi thì hoặc bẹt như hình dán, hoặc bóng mà không có khối. */
+      const hx = 50 + L[0] * 34, hy = 50 + L[1] * 34;
+      c.el.style.background =
+        `radial-gradient(circle ${Math.round(c.r * 0.72)}px at ${hx.toFixed(1)}% ${hy.toFixed(1)}%, `
+        + `rgba(255,255,255,${(0.42 * c.pha).toFixed(2)}) 0%, rgba(255,255,255,0) 72%), `
+        + `radial-gradient(circle ${Math.round(c.r * 2.3)}px at `
+        + `${(50 + L[0] * 46).toFixed(1)}% ${(50 + L[1] * 46).toFixed(1)}%, `
+        + `${mauTheoSang(m, 1)} 0%, ${mauTheoSang(m, 0.82)} 28%, `
+        + `${mauTheoSang(m, Math.max(nen, 0.3))} 62%, ${mauTheoSang(m, Math.max(nen * 0.72, 0.16))} 100%)`;
+      const t = c.bb.style.transform;
+      const d = t.indexOf(') ') >= 0 ? t.slice(0, t.indexOf(') ') + 1) : t.split('rotate')[0];
+      c.bb.style.transform = `${d} ${khu}`;
+    }
   }
 
   for (const c of dat.chuDS) {
@@ -235,12 +315,18 @@ export function dungCanh(cha, canh) {
     for (const f of d.matDS) f.el.dataset.mon = m.id;
     monDS.push({ id: m.id, cho, bong, ...d });
   }
-  return { may, monDS };
+  return { khung: cha, may, monDS };
 }
 
 /** Vẽ cả cảnh. */
 export function veCanhTai(dat, canh) {
   const c = canh.may;
+  /* ĐỘ MỞ ỐNG KÍNH đặt từ MÔ HÌNH, mỗi lượt vẽ. Trước đây nó chỉ được gán lúc
+     người dùng kéo thanh trượt, nên mở một cảnh đã lưu có `xa` khác là hình
+     dựng theo một tiêu cự mà con số trên bảng nói một đằng. Lỗi câm: không
+     sai lệch gì thấy được, chỉ là phối cảnh hơi khác thôi — và phép chiếu
+     ngược (`chieuDiem`) tính theo `xa` sẽ trỏ khung chọn ra chỗ khác. */
+  dat.khung.style.perspective = Math.max(400, c.xa) + 'px';
   dat.may.style.transform =
     `scale(${c.ti}) rotateX(${c.doc}deg) rotateY(${c.ngang}deg) `
     + `translate3d(${-c.tamX}px, ${c.tamY}px, 0)`;
@@ -271,6 +357,6 @@ export function veCanhTai(dat, canh) {
        xoay bao nhiêu, không phụ thuộc người xem đứng đâu. Nhờ vậy lia máy sang
        mặt khuất là thấy tối — gắn đèn vào máy thì mặt sáng bám theo mắt người
        xem và vật trông bẹt như dán lên màn hình. */
-    veTai(d, { ...m, den: m.den || canh.den });
+    veTai(d, { ...m, den: m.den || canh.den }, canh.may);
   }
 }
