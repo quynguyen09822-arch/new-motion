@@ -9,7 +9,12 @@
 >
 > Nên khung phim đã bỏ, và xưởng thành **trình dựng cảnh**: nhiều món, máy quay
 > xoay quanh được, sàn thật, danh sách món. Luật ① thay bằng phép **đếm mảnh**
-> — đo đúng thứ thật sự tốn máy. Xem `bachieu/README.md`.
+> — đo đúng thứ thật sự tốn máy.
+>
+> **Luật ② cũng đã gỡ** cùng với cả bộ chuyển động và thanh thời gian: *"chỗ
+> này để dựng phối cảnh và nhân vật 3D chứ không phải ngồi làm video"*. Món vẫn
+> xoay được, nhưng đó là đặt dáng chứ không phải chuyển động theo thời gian.
+> Xem `bachieu/README.md`.
 >
 > Giai đoạn 2 trở đi còn chờ quyết ở mục 5.
 > Mọi con số trong đây là đo thật trên chính máy chủ này, không phải ước lượng.
@@ -202,7 +207,7 @@ Mỗi cái là một công thức theo giây `at` — đúng Luật 2, nên tua 
 
 ---
 
-### GĐ 4 · AI dựng cảnh 3D — lối vào thứ năm
+### GĐ 4 · AI dựng cảnh 3D ✅ XONG (02/10) — nhưng từ ẢNH, không từ lời tả
 
 App đang có 4 lối cho AI (ảnh · trang web · lời tả · sửa món). Thêm lối thứ năm:
 
@@ -210,8 +215,15 @@ App đang có 4 lối cho AI (ảnh · trang web · lời tả · sửa món). T
 > → AI **chọn trong kho** rồi **xếp đặt + chiếu đèn + đặt máy quay**
 
 **Điều quan trọng nhất ở đây: AI KHÔNG nặn hình.** Nó chỉ chọn và bày. Lý do:
-AI sinh hình 3D hiện vẫn ra hình méo, và một hình méo trong clip quảng bá thì
-tệ hơn là không có 3D. Chọn trong kho thì **xấu nhất cũng vẫn là một hình đúng.**
+AI sinh hình 3D hiện vẫn ra hình méo, và một hình méo thì tệ hơn là không có.
+Chọn trong kho thì **xấu nhất cũng vẫn là một hình đúng.**
+
+**Đã làm xong 02/10/2026, nhưng vào từ ẢNH chứ không từ lời tả** — anh Quý hỏi
+thẳng: "tôi muốn input hình vào sẽ dựng lại bối cảnh của hình bằng gemini".
+Ảnh mang nhiều thông tin hơn một câu tả: góc máy, hướng đèn, bảng màu, bố cục.
+
+Mã ở `server/bay3d.js`, nút "Bày từ ảnh…" trên thanh trên của xưởng. Mượn
+nguyên khuôn mẫu của `server/dungcanh.js`. Xem `bachieu/README.md`.
 
 ---
 

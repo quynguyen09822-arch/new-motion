@@ -76,6 +76,19 @@
   #goc-may{position:absolute;left:14px;bottom:12px;font-size:11px;color:rgba(255,255,255,.52);
     font-variant-numeric:tabular-nums;pointer-events:none}
   #chi-dan{position:absolute;right:14px;bottom:12px;font-size:11px;color:rgba(255,255,255,.52);pointer-events:none}
+  /* Ô báo tiến trình. Gọi AI kèm ảnh mất 30–120 giây; không có cái này thì
+     người dùng bấm xong thấy màn hình đứng im và tưởng app treo, rồi bấm lại —
+     mỗi lần bấm là một lượt AI bị tính tiền. */
+  #dang-bay{position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:12px;z-index:25;
+    background:rgba(20,23,28,.82);backdrop-filter:blur(2px);color:var(--chu)}
+  #dang-bay[hidden]{display:none}
+  #dang-bay b{font-size:14px;font-weight:600}
+  #dang-bay span{font-size:12px;color:var(--mo);font-variant-numeric:tabular-nums}
+  #dang-bay .vong{width:34px;height:34px;border-radius:50%;
+    border:3px solid rgba(255,255,255,.14);border-top-color:var(--nhan);
+    animation:quay 0.9s linear infinite}
+  @keyframes quay{to{transform:rotate(360deg)}}
 
   /* ---------- khối ---------- */
   .bc-may{transform-style:preserve-3d;position:absolute;left:50%;top:50%;will-change:transform}
@@ -159,6 +172,8 @@
         <select id="chon-loai" style="width:auto"></select>
         <button id="them" class="nut chinh" type="button">+ Thêm món</button>
         <button id="vua-khung" class="nut" type="button">Vừa khung</button>
+        <button id="tu-anh" class="nut" type="button" title="Đưa một ảnh mẫu vào, AI bày sẵn bối cảnh">Bày từ ảnh…</button>
+        <input id="tep-anh" type="file" accept="image/png,image/jpeg,image/webp" hidden>
       </div>
     </div>
 
@@ -169,6 +184,11 @@
            chúng, và trang chết ngay từ lần dựng đầu tiên. -->
       <div id="canh3d" style="position:absolute;inset:0;transform-style:preserve-3d"></div>
       <div id="goc-may"></div>
+      <div id="dang-bay" hidden>
+        <div class="vong"></div>
+        <b id="dang-bay-chu">Đang nhìn ảnh…</b>
+        <span id="dang-bay-giay"></span>
+      </div>
       <div id="chi-dan">kéo vật để dời · giữ Shift để nâng hạ · kéo nền để xoay máy · lăn để phóng</div>
     </div>
 

@@ -46,11 +46,17 @@ if (!co('docker info')) {
 }
 
 console.log('\nDựng một Postgres thật để kiểm…');
-try { execFileSync('docker', ['rm', '-f', TEN], { stdio: 'ignore' }); } catch { /* chưa có */ }
+/* Cờ `-v` BẮT BUỘC: ảnh postgres khai một VOLUME, nên mỗi `docker run` đẻ ra
+   một volume vô danh. `docker rm` không kèm `-v` thì xoá container mà BỎ LẠI
+   volume — mỗi lượt chạy bài kiểm rò ~45 MB đĩa, im lặng.
+   Đã trả giá: chạy bộ kiểm vài chục lượt trong hai ngày là 1,1 GB nằm chết, và
+   lúc ổ đĩa đầy thì bài xuất video chết với câu "Target crashed" chẳng liên
+   quan gì tới Postgres — mất một lượt chạy mới truy ra. */
+try { execFileSync('docker', ['rm', '-f', '-v', TEN], { stdio: 'ignore' }); } catch { /* chưa có */ }
 execFileSync('docker', ['run', '-d', '--name', TEN, '-p', `${CONG}:5432`,
   '-e', `POSTGRES_PASSWORD=${MK}`, '-e', 'POSTGRES_DB=motion_kiem',
   'postgres:16-alpine'], { stdio: 'ignore' });
-const don = () => { try { execFileSync('docker', ['rm', '-f', TEN], { stdio: 'ignore' }); } catch { /* kệ */ } };
+const don = () => { try { execFileSync('docker', ['rm', '-f', '-v', TEN], { stdio: 'ignore' }); } catch { /* kệ */ } };
 process.on('exit', don);
 process.on('uncaughtException', (e) => { don(); console.error(e); process.exit(1); });
 

@@ -48,9 +48,20 @@ export function monMoi(loai = 'hop', mauId = 'den-cam') {
   return { ...khoiMoi(loai, mauId), vi: { x: 0, y: 0, z: 0 } };
 }
 
-/** Tên cho người đọc, tự đánh số khi trùng. */
+/**
+ * Tên cho người đọc, tự đánh số khi trùng.
+ *
+ * GIỮ TÊN ĐÃ CÓ nếu món mang sẵn một cái. AI đặt tên theo thứ nó thấy trong
+ * ảnh ("Bàn", "Đèn cây") — ném đi để thay bằng tên loại khối ("Hộp", "Ống
+ * trụ") là vứt luôn phần thông tin có ích nhất, mà cũng là thứ ta đã dặn AI
+ * phải nghĩ ra. Bài kiểm đã bắt đúng lỗi này.
+ *
+ * Cắt số đuôi trước khi đánh lại: nhân đôi "Hộp 2" phải ra "Hộp 3", không ra
+ * "Hộp 2 2".
+ */
 export function datTen(mon, daCo = []) {
-  const goc = KHO_LOAI.find((l) => l.id === mon.loai)?.ten || 'Món';
+  const san = typeof mon.ten === 'string' ? mon.ten.trim().replace(/\s+\d+$/, '') : '';
+  const goc = san || KHO_LOAI.find((l) => l.id === mon.loai)?.ten || 'Món';
   const dung = new Set(daCo.map((m) => m.ten));
   if (!dung.has(goc)) return { ...mon, ten: goc };
   for (let i = 2; i < 999; i++) if (!dung.has(`${goc} ${i}`)) return { ...mon, ten: `${goc} ${i}` };

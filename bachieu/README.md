@@ -24,7 +24,12 @@ dựng). Đây là phần thứ ba, và nó **cố ý không dính vào hai ph�
 Vào bằng nút trên trang chào (dashboard), ra bằng nút “← Motion”. Chỉ là đường
 dẫn qua lại — trang sửa clip **không nạp một dòng mã nào** của xưởng này.
 
-Chiều ngược lại, xưởng mượn đúng một thứ của Motion: bảng màu `web/phoimau.js`.
+Chiều ngược lại, xưởng mượn hai thứ của Motion, cả hai đều thuần và một chiều:
+`web/phoimau.js` (bảng màu) và `web/goi.js` (dịch câu báo lỗi của máy chủ).
+Chép lại thay vì mượn là tạo ra hai nơi nói hai kiểu về cùng một thứ.
+
+`server/bay3d.js` thì đọc ngược vào `bachieu/` để biết "một cảnh hợp lệ là gì" —
+cũng một chiều, và cũng vì lý do ấy.
 
 ---
 
@@ -44,6 +49,7 @@ cảnh cho ra dáng chuyên nghiệp. Nên khung phim bỏ hẳn.
 | Món mới | tự xếp vào chỗ trống và **đứng trên sàn** |
 | Dời vật | **kéo thẳng trong khung nhìn**; giữ Shift để nâng hạ |
 | Sửa dáng | xoay ngang · ngả · **nghiêng (bóp méo)** · **bo góc** |
+| Bày từ ảnh | đưa một ảnh mẫu vào, **AI bày sẵn bối cảnh** |
 
 ### Kéo vật: đổi từ màn hình hai chiều sang không gian ba chiều
 
@@ -103,6 +109,49 @@ lia tới mặt khuất là thấy tối — đúng như ngoài đời.
 
 ---
 
+## AI bày sẵn bối cảnh từ ảnh mẫu
+
+**Gọi đúng tên để khỏi kỳ vọng sai: nó KHÔNG vẽ lại cái ảnh.** Gemini không
+sinh được hình ba chiều — nó **chọn trong kho khối có sẵn rồi xếp đặt**. Đưa
+ảnh một văn phòng vào thì nhận lại mấy khối hộp đứng đúng chỗ cái bàn cái ghế:
+một **bản phác**, không phải bản sao.
+
+Nhưng bản phác ấy đúng là phần tốn thời gian nhất khi bày tay — góc máy quay,
+hướng đèn, bảng màu, vật nào đứng đâu. Phác xong thì kéo chỉnh.
+
+Mã ở `server/bay3d.js`, mượn nguyên khuôn mẫu của `server/dungcanh.js` vì nó đã
+chạy thật: ① AI chỉ được ghép từ thành phần **có sẵn** ② sinh xong **bắt buộc
+qua bộ soát** ③ sai thì trả **nguyên danh sách lỗi** về cho nó tự sửa, đúng một
+lượt.
+
+### Sửa chuyện vặt tại chỗ, chỉ hỏi lại khi thật cần
+
+Gọi AI kèm ảnh mất 30–120 giây. Bắt nó chạy lại chỉ vì quên khai một trường hay
+vì `den.nen` ghi 1,4 là phí một phút của người dùng. Nên:
+
+| Sửa tại chỗ | Hỏi lại AI |
+|---|---|
+| lấp trường thiếu, kẹp số quá khoảng | chế ra loại khối không có thật |
+| màu sai dạng | mọi vật chồng đống lên nhau |
+| **nâng vật đang chìm lên mặt đất** | cảnh nặng quá ngưỡng |
+| cắt bớt khi quá số món | khai sai đơn vị (bé tí hoặc quá khổ) |
+
+Chỉ nâng vật đang **chìm**, không đụng vật đang **bay**: vật nằm cao hơn mặt
+đất có thể là thứ AI cố ý treo lên (đèn trần, biển hiệu). Kéo tuột nó xuống là
+tự tay phá bố cục nó cố ý dựng — bài kiểm đã bắt đúng lỗi này.
+
+### Kiểm được mà không cần mạng
+
+Phần chạm mạng gói trong đúng một hàm; soạn lời nhắc, bóc JSON, chuẩn hoá, soát
+đều thuần. `tools/kiem-bay-3d.mjs` nạp thẳng những thứ AI **thật sự hay trả về**
+— kể cả thứ hỏng — rồi đo bằng số.
+
+Phép kiểm quan trọng nhất: **thứ AI trả về, xưởng phải mở được**. Một cảnh "hợp
+lệ" mà `boCuc()` nổ khi dựng thì người dùng chờ gần một phút rồi nhận một trang
+trắng. Bài kiểm dựng thử cả 8 loại, kể cả khi AI chỉ khai mỗi `loai`.
+
+---
+
 ## Tám loại khối
 
 | Loại | Dùng khi |
@@ -147,10 +196,11 @@ Hai chỗ dễ sai, đều có bài kiểm canh:
 
 ---
 
-## Năm file
+## Sáu file
 
 | File | Việc | Chạm DOM? |
 |---|---|---|
+| `../server/bay3d.js` | AI bày bối cảnh từ ảnh — **thuần trừ đúng một hàm** | không |
 | `hinhhoc.js` | mọi phép tính: mặt của hộp/trụ/cầu, góc quay, đèn, màu | **không** — kiểm được bằng Node |
 | `khoi.js` | một món là gì, tám loại, bố cục từng loại | **không** |
 | `canh.js` | một cảnh là gì: nhiều món, máy quay, đếm độ nặng | **không** |

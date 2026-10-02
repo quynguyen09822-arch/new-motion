@@ -7,7 +7,7 @@
 |---|---|
 | **Vấn đề** | Clip quảng bá của Mắt Bão dựng bằng kịch bản JSON. Sửa một chữ, dời một khối, đổi một màu — đều phải mở file JSON gõ tay. Người viết nội dung không làm được; mỗi lần đổi một dòng lại phải nhờ người kỹ thuật. |
 | **Lời giải** | Mở clip → bấm vào thành phần trên khung hình → vặn núm ở cột phải → lưu → xuất video. Thêm bốn lối để AI dựng hộ: từ ảnh chụp màn hình, từ một trang web, từ lời tả, hoặc sửa từng món bằng câu lệnh. |
-| **Quy mô** | 138 commit trong 33 ngày · 17.288 dòng JS · **49 bài kiểm tự động** · 30 tài liệu · **0 gói phụ thuộc** |
+| **Quy mô** | 138 commit trong 33 ngày · 17.288 dòng JS · **50 bài kiểm tự động** · 30 tài liệu · **0 gói phụ thuộc** |
 
 ---
 
@@ -64,7 +64,7 @@ nhau. Đăng nhập bằng mật khẩu riêng hoặc bằng Google (người m�
 
 Không phải danh sách tính năng, mà là **cách phòng cho nó khỏi hỏng lặng lẽ**.
 
-### 49 bài kiểm, gần như bài nào cũng sinh ra từ một lỗi thật
+### 50 bài kiểm, gần như bài nào cũng sinh ra từ một lỗi thật
 
 ```bash
 npm run kiem              # chạy cả bộ, tự dựng máy chủ riêng ở cổng 7804
@@ -121,7 +121,7 @@ là mấy dự án lẫn lộn:
 | `server/` + `web/` | **Motion** — trình sửa clip. Đây là dự án chính. | 1,3 MB |
 | `clip/` | **Bộ dựng** — `scene-player.html` biến kịch bản JSON thành hình, kèm clip mẫu và công cụ xuất video | 41 MB |
 | `bachieu/` | **Xưởng khối nổi** — dựng hình 3D bằng chính trình duyệt, đứng tách hẳn. Mở ở `/ba-chieu/` | 40 KB |
-| `tools/` | 49 bài kiểm tự động + công cụ sinh kịch bản | |
+| `tools/` | 50 bài kiểm tự động + công cụ sinh kịch bản | |
 | `docs/` | tài liệu kỹ thuật · `docs/ghi-chu/` là sổ tay làm việc, không cần đọc | |
 
 `bachieu/` đứng riêng: vào từ nút trên trang chào, và trình sửa clip không nạp

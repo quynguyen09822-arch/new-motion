@@ -14,7 +14,9 @@ import { KHO_LOAI, BO_PHOI, boCuc } from './khoi.js';
 import { gocTuBanDen, banDenTuGoc, taDen, mauTheoSang, keoTrenSan, keoTheoCao,
   DEN_MAC_DINH } from './hinhhoc.js';
 import { dungCanh, veCanhTai } from './ve.js';
-import { canhMoi, themMon, nhanBan, xoaMon, thuPhongVua, soatCanh, soMatMon } from './canh.js';
+import { canhMoi, themMon, nhanBan, xoaMon, thuPhongVua, soatCanh, soMatMon,
+  datTen } from './canh.js';
+import { goiJSON } from '../web/goi.js';
 
 const Q = (s) => document.querySelector(s);
 const san = Q('#san'), oCanh = Q('#canh3d'), bang = Q('#bang'), dsEl = Q('#ds-mon');
@@ -140,6 +142,79 @@ Q('#them').onclick = () => {
   chonId = m.id;
   lamLai();
   vuaKhung();
+};
+
+/* ---------------------------------------------------------------------------
+ * AI BÀY SẴN BỐI CẢNH TỪ MỘT ẢNH MẪU
+ *
+ * Nói đúng tên để khỏi kỳ vọng sai: nó KHÔNG vẽ lại cái ảnh. Gemini không sinh
+ * được hình ba chiều — nó chọn trong kho khối có sẵn rồi xếp đặt. Nhận lại là
+ * một BẢN PHÁC: góc máy, hướng đèn, bảng màu, vật nào đứng đâu. Chỉnh tay tiếp.
+ *
+ * Mượn `web/goi.js` để dịch câu báo lỗi. KHÔNG chép lại phần dịch ấy sang đây:
+ * nó đã biết cổng proxy trả trang 504 lúc việc chạy quá lâu — mà việc này chạy
+ * tới hai phút nên đúng là ca dễ gặp nhất. Chép lại là hai nơi dịch hai kiểu.
+ * ------------------------------------------------------------------------- */
+
+const tepAnh = Q('#tep-anh');
+const oBay = Q('#dang-bay');
+let dangBay = false;
+
+Q('#tu-anh').onclick = () => { if (!dangBay) tepAnh.click(); };
+
+tepAnh.onchange = async () => {
+  const f = tepAnh.files?.[0];
+  tepAnh.value = '';                     // chọn lại ĐÚNG tệp cũ vẫn phải nổ sự kiện
+  if (!f || dangBay) return;
+
+  const dan = prompt('Muốn dặn thêm gì cho AI không? (để trống cũng được)\n'
+    + 'Ví dụ: "chỉ lấy phần bàn làm việc", "bỏ qua người".') ?? '';
+
+  dangBay = true;
+  oBay.hidden = false;
+  Q('#dang-bay-chu').textContent = 'Đang nhìn ảnh…';
+  const moc = Date.now();
+  /* Đếm giây để người dùng biết nó CÒN SỐNG. Thiếu cái này thì sau 40 giây im
+     lặng ai cũng tưởng treo, rồi bấm lại — mỗi lần bấm tốn một lượt AI. */
+  const dem = () => {
+    const g = Math.round((Date.now() - moc) / 1000);
+    Q('#dang-bay-giay').textContent = `${g} giây — việc này mất tới hai phút`;
+  };
+  dem();                       // hiện NGAY, đừng để nửa giây đầu trống trơn
+  const dong = setInterval(dem, 500);
+
+  try {
+    const anh = await new Promise((ok, hu) => {
+      const r = new FileReader();
+      r.onload = () => ok(String(r.result).split(',')[1]);
+      r.onerror = () => hu(new Error('Không đọc được tệp ảnh này.'));
+      r.readAsDataURL(f);
+    });
+    const d = await goiJSON('/api/bay-3d', {
+      cach: 'POST', than: { anh, mime: f.type || 'image/png', dan },
+    });
+
+    /* Đặt lại tên cho khỏi trùng: AI đặt tên theo thứ nó thấy, hai cái bàn thì
+       ra hai dòng "Bàn" y hệt trong danh sách và không ai biết dòng nào là cái
+       nào. */
+    const da = [];
+    d.canh.mon = d.canh.mon.map((m) => { const x = datTen(m, da); da.push(x); return x; });
+
+    canh = d.canh;
+    chonId = canh.mon[0]?.id || null;
+    lamLai();
+    vuaKhung();
+    const n = canh.mon.length;
+    Q('#chi-dan').textContent = `AI bày ${n} món từ ảnh`
+      + (d.daSua ? ' (đã tự sửa một lượt)' : '')
+      + ' · kéo vật để chỉnh lại';
+  } catch (e) {
+    alert(e.message || 'Không bày được bối cảnh từ ảnh này.');
+  } finally {
+    clearInterval(dong);
+    oBay.hidden = true;
+    dangBay = false;
+  }
 };
 
 function chon(id) { chonId = id; veLai(); veDanhSach(); veBang(); }

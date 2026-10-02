@@ -58,6 +58,8 @@ import { soatChatLuong } from '../web/soat.js';
 const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const WEB = path.join(GOC, 'web');
 const CLIP15 = path.join(GOC, 'clip-15s');
+import { bayTuAnh } from './bay3d.js';
+
 // Xưởng khối nổi — dự án RIÊNG trong repo này, không dính gì tới phần dựng clip.
 // Xem bachieu/README.md. Gỡ cả dự án = xoá thư mục `bachieu/` + khối route dưới.
 const BACHIEU = path.join(GOC, 'bachieu');
@@ -1028,6 +1030,38 @@ const server = http.createServer(async (req, res) => {
         ok: vanDe.length === 0, vanDe,
         chatLuong: { soNang: cl.soNang, soNhe: cl.soNhe, loi: cl.loi },
       });
+    }
+
+    /* AI bày sẵn bối cảnh 3D từ một ảnh mẫu — của XƯỞNG 3D, không phải của
+       trình sửa clip. Đặt cạnh khối route xưởng để gỡ cả dự án trong một lượt.
+       Mọi phép đo và kiểm giới hạn chép đúng theo `/api/dung-canh`: hai đường
+       cùng nhận ảnh mà chặn hai ngưỡng khác nhau là người dùng nhận hai câu
+       báo khác nhau cho cùng một tấm ảnh.
+
+       PHẢI ĐẶT TRƯỚC bẫy 404 ngay bên dưới. Lần đầu tôi để nó cạnh khối route
+       của xưởng (xa hơn về sau) cho dễ gỡ — và thế là mọi lời gọi rơi vào bẫy
+       404 trước khi tới nơi. Hỏng lặng lẽ: đường có tồn tại trong mã, mà gọi
+       vào thì báo "không có đường dẫn". */
+    if (p === '/api/bay-3d' && req.method === 'POST') {
+      const than = await docJson(req);
+      {
+        const ai = aiDangVao(req);
+        const q = xin('goiAI', ai);
+        if (!q.ok) return loi(res, 429, q.cau);
+        ghiNhat('goiAI', ai, 1, 'bày bối cảnh 3D');
+      }
+      const anh = String(than?.anh || '');
+      if (!anh) return loi(res, 400, 'Chưa chọn ảnh.');
+      if (anh.length > 5.4 * 1024 * 1024) {
+        return loi(res, 400, 'Ảnh nặng quá 4 MB. Thu nhỏ lại rồi thử lại.');
+      }
+      const mime = String(than?.mime || 'image/png');
+      if (!/^image\/(png|jpeg|webp|gif)$/.test(mime)) {
+        return loi(res, 400, `Không đọc được định dạng ảnh "${mime}". Dùng PNG, JPG hoặc WebP.`);
+      }
+      const d = await bayTuAnh({ anh, mime, dan: String(than?.dan || '').slice(0, 400) });
+      if (!d.ok) return loi(res, 400, d.cau);
+      return json(res, 200, d);
     }
 
     if (p.startsWith('/api/')) return loi(res, 404, `Không có đường dẫn ${p}.`);
