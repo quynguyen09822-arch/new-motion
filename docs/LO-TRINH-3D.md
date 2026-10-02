@@ -25,6 +25,16 @@
 > các mảnh — tức hơn 80% cú bấm là trượt. Nay có khung bắt, khung chọn nhìn
 > thấy được và núm nắm. Xem `bachieu/README.md`.
 >
+> **MỤC TIÊU ĐÃ ĐƯỢC NÓI RÕ (02/10/2026).** Anh Quý: *"tôi muốn nó phải dựng
+> được bối cảnh từ hình ảnh input vào để như là một hậu trường để tôi làm mô
+> phỏng góc máy mong muốn, cho AI sẽ hiểu về hình ảnh để làm phim được — mục
+> tiêu của cái 3D này là như vậy."*
+>
+> Xưởng 3D KHÔNG phải nơi nặn hình, cũng không phải nơi làm một món cho clip.
+> Nó là **hậu trường chốt góc máy**. Hệ quả: khối không cần giống thật (previz
+> toàn khối xám), nên nhập `.glb` lùi xuống sau; còn khung hình và đường xuất
+> thì thành bắt buộc. Cả hai đã làm xong — xem `bachieu/README.md`.
+>
 > Giai đoạn 2 trở đi còn chờ quyết ở mục 5.
 > Mọi con số trong đây là đo thật trên chính máy chủ này, không phải ước lượng.
 

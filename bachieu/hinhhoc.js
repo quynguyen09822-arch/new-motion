@@ -391,10 +391,10 @@ export function chieuDiem([x, y, z], may = {}) {
   const y2 = py * cb - z1 * sb;
   const z2 = py * sb + z1 * cb;
 
-  /* `scale()` của CSS là scale2d — chỉ co giãn x và y, KHÔNG đụng z. Nhân cả
-     z vào đây là phối cảnh đổi theo mức thu phóng, và lăn chuột sẽ thấy hình
-     vừa nhỏ lại vừa méo. */
-  const X = x1 * ti, Y = y2 * ti, Z = z2;
+  /* Nhân CẢ BA TRỤC — `ve.js` dùng `scale3d`, không dùng `scale`. Bỏ sót trục
+     z ở đây là phép chiếu nói một đằng, trình duyệt vẽ một nẻo, mà cả hai đều
+     không kêu. Xem lời giải thích dài trong `ve.js`. */
+  const X = x1 * ti, Y = y2 * ti, Z = z2 * ti;
 
   /* Điểm lùi ra sau mặt phẳng tiêu cự thì phép chia đổi dấu và hình lộn ngược.
      Chặn mẫu số cho nó bẹp ở mép thay vì văng sang phía đối diện. */

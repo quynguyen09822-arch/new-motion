@@ -136,7 +136,7 @@ console.log('\n④ XƯỞNG PHẢI MỞ ĐƯỢC thứ AI trả về');
   /* Và cảnh ấy phải nhét vừa mô hình cảnh thật của xưởng. */
   const c = B.chuanHoa(TOT);
   dat('hộp bao của cảnh tính được', Number.isFinite(C.hopBao(c).rong) && C.hopBao(c).rong > 0);
-  dat('thu phóng vừa khung tính được', C.thuPhongVua(c, 900, 600).ti > 0);
+  dat('thu phóng vừa khung tính được', C.thuPhongVua(c, K.boCuc, 900, 600).ti > 0);
 }
 
 console.log('\n⑤ Soát — chỉ bắt lỗi KHÔNG sửa tại chỗ được, và nói rõ phải làm gì');

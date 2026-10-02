@@ -32,7 +32,91 @@ import { beRongChiem, DEN_MAC_DINH, matCuaHop, matCuaTru, matCuaCau,
  * mỏng và mất hết tác dụng định hướng. Trên 50° thì thành nhìn từ nóc xuống,
  * vật mất dáng.
  */
-export const MAY_MAC_DINH = { ngang: -26, doc: 28, xa: 2200, ti: 1, tamX: 0, tamY: 0 };
+/* ---------------------------------------------------------------------------
+ * KHUNG HÌNH VÀ ỐNG KÍNH
+ *
+ * VÌ SAO CÓ. Xưởng này là HẬU TRƯỜNG để chốt góc máy trước khi nhờ AI dựng
+ * phim — anh Quý nói rõ: *"dựng được bối cảnh từ hình ảnh input vào để như là
+ * một hậu trường để tôi làm mô phỏng góc máy mong muốn cho AI hiểu"*.
+ *
+ * Mà chốt góc máy thì phải THẤY KHUNG HÌNH. Trước đây cảnh vẽ tràn một ô chữ
+ * nhật co giãn theo cửa sổ trình duyệt: cùng một cảnh, mở cửa sổ rộng ra là
+ * thấy thêm, thu lại là mất — không ai chốt được cái gì trên một khung không
+ * cố định. Nay khung là một tỉ lệ KHAI BÁO, phần ngoài khung bị làm tối.
+ *
+ * ỐNG KÍNH TÍNH BẰNG MI-LI-MÉT, không bằng `perspective` của CSS. Hai lý do:
+ *   · `xa` tính bằng pixel nên nó ĐI THEO CỠ CỬA SỔ — kéo rộng trình duyệt là
+ *     góc nhìn đổi mà con số trên bảng đứng im. Lỗi câm.
+ *   · "ống kính 35mm" là thứ cả người quay phim lẫn AI dựng phim đều hiểu;
+ *     "perspective 2200px" thì không ai hiểu.
+ *
+ * Phép đổi: ảnh 35mm có bề ngang 36mm, nên tiêu cự f ứng với khung rộng W
+ * pixel và khoảng cách phối cảnh `xa` là  f = 36 · xa / W.
+ * ------------------------------------------------------------------------- */
+
+/** Các tỉ lệ khung hay dùng. `w`/`h` chỉ dùng để tính tỉ lệ, không phải pixel. */
+export const KHO_TI = [
+  /* `ngan` khai THẲNG chứ không cắt từ `ten` bằng mẹo. Bản đầu cắt chữ đầu
+     tiên — "Điện ảnh 2.39:1" ra cái nút ghi "ảnh 2.39:1". */
+  { id: '16-9', ten: 'Ngang 16:9', ngan: '16:9', w: 16, h: 9, mo: 'YouTube, màn hình máy tính' },
+  { id: '9-16', ten: 'Dọc 9:16', ngan: '9:16', w: 9, h: 16, mo: 'TikTok, Reels, Shorts' },
+  { id: '1-1', ten: 'Vuông 1:1', ngan: '1:1', w: 1, h: 1, mo: 'bài đăng mạng xã hội' },
+  { id: '4-5', ten: 'Đứng 4:5', ngan: '4:5', w: 4, h: 5, mo: 'Instagram feed' },
+  { id: '2-39', ten: 'Điện ảnh 2.39:1', ngan: '2.39:1', w: 239, h: 100, mo: 'phim nhựa, rất ngang' },
+];
+
+export const tiTheoId = (id) => KHO_TI.find((t) => t.id === id) || KHO_TI[0];
+
+/**
+ * Khung hình to nhất lọt vào ô `rongO × caoO`, đặt giữa.
+ *
+ * Chừa lề 4%: ôm sát mép thì không còn chỗ thấy phần NGOÀI khung, mà phần
+ * ngoài khung chính là thứ cho biết mình sắp cắt mất cái gì.
+ */
+export function khungTrong(rongO, caoO, tiId = '16-9', le = 0.04) {
+  const t = tiTheoId(tiId);
+  const w0 = Math.max(40, rongO * (1 - le * 2));
+  const h0 = Math.max(40, caoO * (1 - le * 2));
+  const rong = Math.min(w0, (h0 * t.w) / t.h);
+  const cao = rong * (t.h / t.w);
+  return { rong, cao, tr: (rongO - rong) / 2, tren: (caoO - cao) / 2, ti: t };
+}
+
+/* `Math.max` KHÔNG chặn được `NaN` — `Math.max(8, NaN)` trả về `NaN`, rồi nó
+   chảy xuống thành `perspective: NaNpx`, và trình duyệt bỏ nguyên dòng ấy
+   không một lời. Hình vẫn vẽ, chỉ là vẽ phẳng lì không còn chiều sâu. Nên
+   phải lọc số rác TRƯỚC khi kẹp. */
+const soSach = (v, thay) => (Number.isFinite(v) ? v : thay);
+
+/** Ống kính (mm) → khoảng cách phối cảnh (px) cho khung rộng `rongKhung` px. */
+export const xaTuOng = (ong, rongKhung) =>
+  Math.max(60, (Math.max(8, soSach(ong, 40)) * Math.max(40, soSach(rongKhung, 900))) / 36);
+
+/** Ngược lại: khoảng cách phối cảnh → ống kính. Dùng khi mở cảnh đời cũ. */
+export const ongTuXa = (xa, rongKhung) =>
+  Math.max(8, (36 * Math.max(60, soSach(xa, 2200))) / Math.max(40, soSach(rongKhung, 900)));
+
+/**
+ * `xa` là số DẪN XUẤT, không phải số người dùng đặt. Gọi hàm này mỗi khi đổi
+ * ống kính, đổi tỉ lệ khung, hay cửa sổ đổi cỡ — quên một chỗ là hình vẽ theo
+ * một tiêu cự, con số trên bảng nói một tiêu cự khác.
+ */
+export function dongBoOng(may, rongKhung) {
+  if (!(may.ong > 0)) may.ong = Math.round(ongTuXa(may.xa ?? 2200, rongKhung));
+  may.xa = xaTuOng(may.ong, rongKhung);
+  return may;
+}
+
+export const MAY_MAC_DINH = {
+  ngang: -26, doc: 28, ti: 1, tamX: 0, tamY: 0,
+  /* 40mm: gần đúng góc nhìn của mắt người, nên bố cục thấy ở đây giống thứ
+     mắt sẽ thấy. Rộng hơn thì méo mạnh ở rìa, hẹp hơn thì bẹt mất chiều sâu. */
+  ong: 40,
+  khung: '16-9',
+  /* Giữ lại cho những chỗ gọi `chieuDiem` trước khi khung kịp đo — `dongBoOng`
+     sẽ ghi đè bằng số thật ngay lượt vẽ đầu. */
+  xa: 2200,
+};
 
 export function canhMoi(loai = 'hop') {
   const dau = datTen(monMoi(loai), []);
@@ -142,11 +226,48 @@ export function hopBao(canh) {
  *
  * Nhân 1,35 để chừa lề — ôm sát mép thì món ngoài cùng chạm viền, cảnh ngột.
  */
-export function thuPhongVua(canh, rongO = 900, caoO = 600) {
+export function thuPhongVua(canh, boCuc, rongO = 900, caoO = 600, le = 1.1) {
+  /* NGẮM VÀO TÂM CẢNH. `tamX`/`tamY` dời cảnh TRƯỚC khi xoay, nên điểm
+     (tamX, tamY, 0) rơi đúng vào giữa khung — đặt nó ở tâm cảnh là căn giữa. */
   const b = hopBao(canh);
-  const ti = Math.min(rongO / Math.max(1, b.rong * 1.35), caoO / Math.max(1, b.cao * 1.35));
-  return { ti: Math.max(0.05, Math.min(3, ti)), tamX: b.tamX, tamY: b.tamY };
+  const hien = canh.mon.filter((m) => !m.an);
+  if (!hien.length) return { ti: 1, tamX: b.tamX, tamY: b.tamY };
+
+  /* ĐO TRÊN MÀN, không đo trong không gian cảnh.
+     Bản cũ lấy bề ngang hộp bao rồi chia — tức bỏ qua cả ba thứ làm hình chiếm
+     chỗ khác đi: máy quay xoay (hộp xoay 45° chiếm rộng gấp rưỡi), phối cảnh
+     (vật gần phình to), và chiều sâu (cảnh dày thì hai đầu chiếu ra hai nơi).
+     Nên bấm "Vừa khung" xong vẫn thấy vật tràn ra ngoài. */
+  const doVua = (ti) => {
+    const may = { ...canh.may, ti, tamX: b.tamX, tamY: b.tamY };
+    let ngang = 1, doc = 1;
+    for (const m of hien) {
+      const k = khungMon(m, boCuc, may);
+      /* Lấy khoảng cách XA NHẤT TÍNH TỪ TÂM rồi nhân đôi, chứ không lấy bề
+         rộng hộp bao: hình chiếu lệch tâm (xoay máy là lệch ngay), mà khung
+         thì căn giữa — vừa theo bề rộng vẫn có thể thò ra một bên. */
+      ngang = Math.max(ngang, 2 * Math.abs(k.tr), 2 * Math.abs(k.pha));
+      doc = Math.max(doc, 2 * Math.abs(k.tren), 2 * Math.abs(k.duoi));
+    }
+    return ngang * le <= rongO && doc * le <= caoO;
+  };
+
+  /* DÒ NHỊ PHÂN, không chia một phát.
+     Phép chiếu KHÔNG tỉ lệ thuận với `ti` nữa kể từ khi thu phóng nhân cả
+     trục z: thu nhỏ đồng nghĩa lùi máy ra xa, mà lùi xa thì phối cảnh nhẹ đi
+     và hình chiếu co lại NHANH HƠN mức thu phóng. Chia một phát là hụt.
+     22 vòng đủ để sai số dưới một phần triệu của khoảng dò — rẻ, và chỉ chạy
+     lúc bấm nút chứ không chạy mỗi khung hình. */
+  let thap = 0.02, cao = 3;
+  if (doVua(cao)) return { ti: cao, tamX: b.tamX, tamY: b.tamY };
+  if (!doVua(thap)) return { ti: thap, tamX: b.tamX, tamY: b.tamY };
+  for (let i = 0; i < 22; i++) {
+    const giua = (thap + cao) / 2;
+    if (doVua(giua)) thap = giua; else cao = giua;
+  }
+  return { ti: thap, tamX: b.tamX, tamY: b.tamY };
 }
+
 
 
 /* ---------------------------------------------------------------------------

@@ -9,6 +9,9 @@
     --nen:#101216; --san:#3d4046; --tam:#191c22; --vien:#2b303a; --chu:#e8ecf3;
     --mo:#8b95a8; --nhan:#FF7A2F; --chon:#31d975;
     --font:'Be Vietnam Pro',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+    /* Ba bậc cỡ chữ như cả repo. Trước đây chỗ này viết `font-size:11px` thẳng
+       vào rule — dưới mức đọc thoải mái, và mỗi chỗ một con số. */
+    --chu-nho:12px; --chu-vua:14px; --chu-to:16px;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
@@ -73,9 +76,19 @@
      được nó đứng ở đâu trên sàn — đây là thứ làm cảnh "có thật" nhiều nhất,
      mà rẻ hơn tính bóng thật cả ngàn lần. */
   .bc-bong{position:absolute;left:50%;top:50%;pointer-events:none;border-radius:50%}
-  #goc-may{position:absolute;left:14px;bottom:12px;font-size:11px;color:rgba(255,255,255,.52);
-    font-variant-numeric:tabular-nums;pointer-events:none}
-  #chi-dan{position:absolute;right:14px;bottom:12px;font-size:11px;color:rgba(255,255,255,.52);pointer-events:none}
+  /* CÂU TẢ GÓC MÁY — thứ sẽ đem đưa cho AI. Để nó to và rõ hơn mấy dòng phụ:
+     đây là kết quả của cả việc xoay máy, không phải ghi chú bên lề. */
+  #goc-may{position:absolute;left:14px;bottom:30px;max-width:calc(100% - 28px);line-height:1.45;
+    font-size:var(--chu-nho);color:rgba(255,255,255,.82);pointer-events:none;z-index:5}
+  #so-may{position:absolute;left:14px;bottom:12px;font-size:var(--chu-nho);
+    color:rgba(255,255,255,.44);font-variant-numeric:tabular-nums;
+    pointer-events:none;z-index:5}
+  /* Dòng chỉ dẫn lùi lên GÓC TRÊN PHẢI. Để chung đáy với câu tả góc máy thì
+     hai dòng đè lên nhau ngay khi cửa sổ hẹp lại — và câu tả mới là thứ quan
+     trọng, nên nó được giữ cả bề ngang đáy. */
+  #chi-dan{position:absolute;right:14px;top:10px;max-width:46%;text-align:right;
+    font-size:var(--chu-nho);color:rgba(255,255,255,.38);pointer-events:none;z-index:5;
+    line-height:1.5}
   /* Ô báo tiến trình. Gọi AI kèm ảnh mất 30–120 giây; không có cái này thì
      người dùng bấm xong thấy màn hình đứng im và tưởng app treo, rồi bấm lại —
      mỗi lần bấm là một lượt AI bị tính tiền. */
@@ -108,6 +121,59 @@
      nền. Viền mảnh ở trên chỉ vẽ được trên MẶT PHẲNG — quả cầu mượt không có
      mặt nào nên món tròn gần như không thấy mình đang được chọn. Khung phẳng
      này luôn thấy, và cái núm ở giữa thì LÚC NÀO CŨNG bấm trúng. */
+  /* KHUNG HÌNH. Phần NGOÀI khung làm tối bằng một cái bóng đổ khổng lồ —
+     rẻ hơn nhiều so với dựng bốn tấm che rồi tính lại cỡ từng tấm mỗi lần
+     cửa sổ đổi. Không che hẳn: vẫn phải thấy mình sắp cắt mất cái gì. */
+  #khung-phim{position:absolute;inset:0;pointer-events:none;z-index:3}
+  #khung-trong{position:absolute;box-sizing:border-box;
+    border:1px solid rgba(255,255,255,.26);
+    box-shadow:0 0 0 9999px rgba(10,12,16,.52);
+    /* VẠCH BA PHẦN — chỗ đặt chủ thể cho bố cục dễ nhìn. Mảnh và mờ, vì nó là
+       thước đo chứ không phải thứ để ngắm. */
+    background-image:
+      linear-gradient(90deg,transparent calc(33.333% - .5px),rgba(255,255,255,.14) calc(33.333% - .5px),
+        rgba(255,255,255,.14) calc(33.333% + .5px),transparent calc(33.333% + .5px),
+        transparent calc(66.667% - .5px),rgba(255,255,255,.14) calc(66.667% - .5px),
+        rgba(255,255,255,.14) calc(66.667% + .5px),transparent calc(66.667% + .5px))}
+  #khung-trong::before,#khung-trong::after{content:'';position:absolute;left:0;right:0;
+    height:1px;background:rgba(255,255,255,.14)}
+  #khung-trong::before{top:33.333%}
+  #khung-trong::after{top:66.667%}
+  #khung-ten{position:absolute;font-size:var(--chu-nho);color:rgba(255,255,255,.5);
+    letter-spacing:.3px;white-space:nowrap}
+  .khung-day{display:flex;flex-wrap:wrap;gap:4px}
+  .khung-day button{flex:1 1 auto;padding:5px 7px;font-size:var(--chu-nho);
+    border-radius:6px;border:1px solid var(--vien);background:transparent;
+    color:var(--mo);cursor:pointer;white-space:nowrap}
+  .khung-day button[aria-pressed="true"]{border-color:var(--nhan);
+    background:color-mix(in srgb,var(--nhan) 18%,transparent);color:var(--chu)}
+  /* LÚC CHỤP ẢNH THAM CHIẾU thì giấu hết đồ nghề: vạch ba phần, viền khung,
+     khung chọn, núm nắm, mấy dòng chữ. Ảnh đưa cho AI phải là BỐI CẢNH, không
+     phải ảnh chụp màn hình phần mềm — mấy vạch kẻ ấy AI sẽ hiểu thành vật thể
+     và dựng chúng vào phim. */
+  body.dang-chup #khung-phim,body.dang-chup #nam,body.dang-chup #goc-may,
+  body.dang-chup #so-may,body.dang-chup #chi-dan,body.dang-chup .bc-truc{display:none !important}
+  body.dang-chup .bc-san{opacity:.35}
+  /* HỘP XUẤT. `<dialog>` của trình duyệt lo sẵn phần nền mờ, phím Esc và bẫy
+     tiêu điểm — tự dựng lại ba thứ ấy bằng tay là ba chỗ để sai. */
+  #hop-xuat{border:1px solid var(--vien);border-radius:12px;background:var(--tam);
+    color:var(--chu);padding:0;max-width:560px;width:calc(100% - 32px);font-family:var(--font)}
+  #hop-xuat::backdrop{background:rgba(6,8,12,.62)}
+  .xuat-trong{padding:18px 18px 14px;display:flex;flex-direction:column;gap:7px}
+  .xuat-trong h2{margin:0;font-size:var(--chu-to)}
+  .xuat-mo{margin:0 0 4px;color:var(--mo);font-size:var(--chu-nho);line-height:1.5}
+  .xuat-nhan{font-size:var(--chu-nho);color:var(--mo);margin-top:6px}
+  #xuat-anh-o{border:1px dashed var(--vien);border-radius:8px;min-height:120px;
+    display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0d0f13}
+  #xuat-anh-o img{max-width:100%;display:block}
+  .xuat-cho{color:var(--mo);font-size:var(--chu-nho);padding:18px;text-align:center}
+  #hop-xuat textarea{width:100%;resize:vertical;border-radius:8px;border:1px solid var(--vien);
+    background:#0d0f13;color:var(--chu);padding:8px 9px;font:inherit;font-size:var(--chu-nho);
+    line-height:1.5}
+  .xuat-day{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+  .xuat-dong{justify-content:flex-end;margin-top:8px}
+  .xuat-nhac{margin:2px 0 0;min-height:17px;font-size:var(--chu-nho);color:var(--chon)}
+  .xuat-nhac.hong{color:#ff8f7a}
   #nam{position:absolute;inset:0;pointer-events:none;z-index:4}
   #khung-nam{position:absolute;left:0;top:0;box-sizing:border-box;
     border:1px dashed rgba(49,217,117,.5);border-radius:3px;
@@ -154,7 +220,7 @@
   .mon-hang button:hover{color:var(--chu);background:var(--vien)}
   .o{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-bottom:8px}
   .o label{font-size:12.5px}
-  .o .goi{font-size:11px;color:var(--mo);display:block;margin-top:1px}
+  .o .goi{font-size:var(--chu-nho);color:var(--mo);display:block;margin-top:1px}
   .o input[type=range]{width:132px;accent-color:var(--nhan)}
   select,input[type=text],input[type=number]{background:var(--tam);border:1px solid var(--vien);
     color:var(--chu);border-radius:7px;padding:6px 9px;font:inherit;font-size:12.5px}
@@ -189,7 +255,7 @@
   .den-tay{position:absolute;width:25px;height:25px;margin:-12px 0 0 -12px;border-radius:50%;
     border:2px solid #fff;background:#ffe9b8;cursor:grab;padding:0;
     box-shadow:0 0 0 4px rgba(255,233,184,.22), 0 0 18px 4px rgba(255,210,120,.6)}
-  .den-ghi{color:var(--mo);font-size:11px;text-align:center;margin-top:10px;line-height:1.5}
+  .den-ghi{color:var(--mo);font-size:var(--chu-nho);text-align:center;margin-top:10px;line-height:1.5}
 </style>
 </head>
 <body>
@@ -205,6 +271,7 @@
         <button id="them" class="nut chinh" type="button">+ Thêm món</button>
         <button id="vua-khung" class="nut" type="button">Vừa khung</button>
         <button id="tu-anh" class="nut" type="button" title="Đưa một ảnh mẫu vào, AI bày sẵn bối cảnh">Bày từ ảnh…</button>
+        <button id="xuat-ai" class="nut chinh" type="button" title="Lấy ảnh tham chiếu và câu tả góc máy để đưa cho AI dựng phim">Xuất cho AI…</button>
         <input id="tep-anh" type="file" accept="image/png,image/jpeg,image/webp" hidden>
       </div>
     </div>
@@ -215,6 +282,14 @@
            số máy quay cũng là con của #san — vẽ thẳng vào đó là xoá luôn
            chúng, và trang chết ngay từ lần dựng đầu tiên. -->
       <div id="canh3d" style="position:absolute;inset:0;transform-style:preserve-3d;perspective:2200px"></div>
+      <!-- KHUNG HÌNH. Hậu trường để chốt góc máy thì phải THẤY khung sẽ cắt
+           tới đâu. Trước đây cảnh vẽ tràn cả ô, mà ô ấy co giãn theo cửa sổ
+           trình duyệt — cùng một cảnh, kéo rộng cửa sổ là thấy thêm, thu lại
+           là mất, nên chẳng chốt được gì. -->
+      <div id="khung-phim">
+        <div id="khung-trong"></div>
+        <div id="khung-ten"></div>
+      </div>
       <!-- LỚP NẮM: khung chọn và núm nắm. Nằm NGOÀI cảnh 3D, vẽ bằng toạ độ
            phẳng đã chiếu sẵn — nhét vào trong cảnh thì nó bị xoay nghiêng theo
            máy quay, và một cái khung nghiêng thì chẳng chỉ ra được cái gì. -->
@@ -223,15 +298,42 @@
         <div id="num-nam" title="Nắm đây để dời món (giữ Shift để nâng hạ)"></div>
       </div>
       <div id="goc-may"></div>
+      <div id="so-may"></div>
       <div id="dang-bay" hidden>
         <div class="vong"></div>
         <b id="dang-bay-chu">Đang nhìn ảnh…</b>
         <span id="dang-bay-giay"></span>
       </div>
-      <div id="chi-dan">kéo vật hoặc núm xanh để dời · giữ Shift để nâng hạ · kéo nền để xoay máy (chuột phải ở đâu cũng xoay) · lăn để phóng</div>
+      <div id="chi-dan">kéo vật hoặc núm xanh để dời · Shift: nâng hạ · chuột phải: xoay máy · lăn: phóng</div>
     </div>
 
   </div>
+
+  <dialog id="hop-xuat">
+    <form method="dialog" class="xuat-trong">
+      <h2>Xuất góc máy cho AI</h2>
+      <p class="xuat-mo">Ba thứ này đi cùng nhau: ảnh cho AI thấy bố cục, câu tả
+        cho AI biết đặt máy ở đâu, và lời dặn của bạn cho AI biết nội dung.</p>
+
+      <label class="xuat-nhan">① Ảnh tham chiếu — đúng khung hình đã chọn</label>
+      <div id="xuat-anh-o"><span class="xuat-cho">Bấm "Chụp ảnh" để máy chủ dựng ảnh.</span></div>
+      <div class="xuat-day">
+        <button id="xuat-chup" class="nut chinh" type="button">Chụp ảnh</button>
+        <a id="xuat-tai" class="nut" download hidden>Tải ảnh về</a>
+      </div>
+
+      <label class="xuat-nhan" for="xuat-vi">② Câu tả góc máy — tiếng Việt</label>
+      <textarea id="xuat-vi" rows="3" readonly></textarea>
+      <div class="xuat-day"><button id="chep-vi" class="nut" type="button">Chép câu tiếng Việt</button></div>
+
+      <label class="xuat-nhan" for="xuat-en">③ Câu tả cho công cụ nói tiếng Anh</label>
+      <textarea id="xuat-en" rows="3" readonly></textarea>
+      <div class="xuat-day"><button id="chep-en" class="nut" type="button">Chép câu tiếng Anh</button></div>
+
+      <p id="xuat-nhac" class="xuat-nhac"></p>
+      <div class="xuat-day xuat-dong"><button class="nut" value="dong">Đóng</button></div>
+    </form>
+  </dialog>
 
   <div class="phai">
     <div class="khoi-ds">

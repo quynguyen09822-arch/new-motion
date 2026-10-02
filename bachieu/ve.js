@@ -327,8 +327,17 @@ export function veCanhTai(dat, canh) {
      sai lệch gì thấy được, chỉ là phối cảnh hơi khác thôi — và phép chiếu
      ngược (`chieuDiem`) tính theo `xa` sẽ trỏ khung chọn ra chỗ khác. */
   dat.khung.style.perspective = Math.max(400, c.xa) + 'px';
+  /* THU PHÓNG PHẢI NHÂN CẢ BA TRỤC. `scale()` của CSS là phép hai chiều: nó
+     nhân x và y, bỏ nguyên z. Nghĩa là thu nhỏ cảnh thì vật bé lại nhưng máy
+     quay VẪN ĐỨNG NGUYÊN CHỖ CŨ so với chiều sâu — mô hình tự mâu thuẫn, và
+     phối cảnh tính ra sai đúng bằng hệ số thu phóng.
+     Chỗ ấy không lộ ra ở cảnh nhỏ, nhưng dựng một cảnh rộng rồi chuyển sang
+     khung dọc 9:16 thì hệ số phối cảnh nhảy lên hàng chục lần: vật chiếm
+     6.589px trên một khung rộng 428px, và "Vừa khung" bó tay.
+     Nhân cả z thì thành phép co giãn ĐỀU: thu nhỏ = lùi máy ra xa, góc nhìn
+     (tức tiêu cự ống kính) giữ nguyên. Đúng như máy quay thật. */
   dat.may.style.transform =
-    `scale(${c.ti}) rotateX(${c.doc}deg) rotateY(${c.ngang}deg) `
+    `scale3d(${c.ti}, ${c.ti}, ${c.ti}) rotateX(${c.doc}deg) rotateY(${c.ngang}deg) `
     + `translate3d(${-c.tamX}px, ${c.tamY}px, 0)`;
 
   for (const d of dat.monDS) {

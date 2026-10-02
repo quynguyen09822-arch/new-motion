@@ -4,8 +4,16 @@
 > Vào bằng nút **“Mở xưởng”** trên trang chào của Motion, hoặc gõ thẳng
 > **`/ba-chieu/`**. Trong xưởng có nút **“← Motion”** để lui về.
 
-Dựng hình nổi (3D) để sau này gắn vào clip. **Không mượn thư viện nào** — dùng
-đúng `transform-style: preserve-3d` mà trình duyệt làm sẵn.
+**HẬU TRƯỜNG để chốt góc máy trước khi nhờ AI dựng phim.** Đưa một tấm ảnh
+vào, AI bày sẵn bối cảnh bằng khối; kéo chỉnh, xoay máy tới góc ưng ý; rồi
+xuất ra **ảnh tham chiếu + câu tả góc máy** cho công cụ dựng phim.
+
+Vì là hậu trường nên khối **không cần giống thật** — previz của Pixar hay
+Marvel toàn khối xám. Thứ đang chốt là máy đặt ở đâu, nhìn thấy gì, vật nào
+che vật nào.
+
+**Không mượn thư viện nào** — dùng đúng `transform-style: preserve-3d` mà
+trình duyệt làm sẵn.
 
 ---
 
@@ -227,16 +235,18 @@ Hai chỗ dễ sai, đều có bài kiểm canh:
 
 ---
 
-## Sáu file
+## Bảy file
 
 | File | Việc | Chạm DOM? |
 |---|---|---|
 | `../server/bay3d.js` | AI bày bối cảnh từ ảnh — **thuần trừ đúng một hàm** | không |
-| `hinhhoc.js` | mọi phép tính: mặt của hộp/trụ/cầu, góc quay, đèn, màu | **không** — kiểm được bằng Node |
+| `../server/chup3d.js` | chụp ảnh tham chiếu bằng Chromium của máy chủ | không (chạy ở máy chủ) |
+| `hinhhoc.js` | mọi phép tính: mặt của hộp/trụ/cầu, góc quay, đèn, màu, **phép chiếu ra màn** | **không** — kiểm được bằng Node |
 | `khoi.js` | một món là gì, tám loại, bố cục từng loại | **không** |
-| `canh.js` | một cảnh là gì: nhiều món, máy quay, đếm độ nặng | **không** |
-| `ve.js` | dựng ra thẻ và vẽ tại giây `t` | có |
-| `giaodien.js` | khung nhìn, danh sách món, bảng vặn | có |
+| `canh.js` | một cảnh là gì: nhiều món, máy quay, khung hình, ống kính, bắt món | **không** |
+| `gocmay.js` | dịch góc máy sang ngôn ngữ làm phim, hai thứ tiếng | **không** |
+| `ve.js` | dựng ra thẻ và vẽ | có |
+| `giaodien.js` | khung nhìn, danh sách món, bảng vặn, hộp xuất | có |
 
 Chia vậy vì lỗi 3D hay nằm ở **phép tính**, mà triệu chứng lại là "hình nhìn kỳ
 kỳ" — không có lỗi, không có vệt đỏ. Để lẫn với mã dựng DOM thì phải mở trình
@@ -281,6 +291,85 @@ và nhân vật 3D chứ không phải ngồi làm video"*.
 
 Nên cả bộ ấy **gỡ hẳn**, không giấu đi. Món vẫn xoay được, nhưng đó là **đặt
 dáng** — một con số đứng yên, không phải chuyển động theo thời gian.
+
+---
+
+## Mục đích thật của xưởng: HẬU TRƯỜNG để chốt góc máy
+
+Anh Quý nói rõ (02/10/2026): *"tôi muốn nó phải dựng được bối cảnh từ hình ảnh
+input vào để như là một hậu trường để tôi làm mô phỏng góc máy mong muốn, cho
+AI sẽ hiểu về hình ảnh để làm phim được — mục tiêu của cái 3D này là như vậy."*
+
+Câu ấy đổi thứ tự ưu tiên của cả dự án:
+
+| | Trước | Sau |
+|---|---|---|
+| Khối phải giống thật | quan trọng | **không quan trọng** — previz của Pixar, Marvel toàn khối xám |
+| Nhập `.glb` (GĐ 5a) | đường đi chính | lùi xuống sau |
+| Khung hình | *không có* | **bắt buộc** — chốt góc máy mà không thấy khung thì chốt cái gì |
+| Đường ra | *không có* | **bắt buộc** — không có thì mọi thứ chạy quanh trong một cái tab |
+
+Ba chặng của một lượt dùng:
+
+```
+ảnh mẫu ──Gemini──► bối cảnh phác ──kéo chỉnh + xoay máy──► ảnh tham chiếu
+                                                           + câu tả góc máy
+                                                                  │
+                                                      công cụ dựng phim bằng AI
+```
+
+Chặng đầu đã có từ trước (`server/bay3d.js`). Hai chặng sau làm ngày 02/10/2026.
+
+### Khung hình
+
+Trước đây cảnh vẽ tràn một ô co giãn theo cửa sổ trình duyệt: cùng một cảnh,
+kéo rộng cửa sổ là thấy thêm, thu lại là mất. Không ai chốt được gì trên một
+khung không cố định. Nay có năm tỉ lệ khai sẵn (16:9 · 9:16 · 1:1 · 4:5 ·
+2.39:1), phần ngoài khung làm tối, trong khung có vạch ba phần.
+
+### Ống kính tính bằng mi-li-mét
+
+`perspective` của CSS tính bằng pixel, nên nó **đi theo cỡ cửa sổ** — kéo rộng
+trình duyệt là góc nhìn đổi mà con số trên bảng đứng im. Lỗi câm.
+
+Nay người dùng đặt **tiêu cự (mm)**, còn `xa` là số dẫn xuất:
+`xa = ống_kính × bề_rộng_khung ÷ 36` (36mm là bề ngang khuôn hình máy ảnh).
+Góc nhìn nhờ vậy cố định, và "ống kính 35mm" là câu cả người quay phim lẫn AI
+đều hiểu — khác hẳn "perspective 2200px".
+
+### Câu tả góc máy (`gocmay.js`)
+
+Dịch từ con số sang ngôn ngữ làm phim, hai thứ tiếng:
+
+> Trung cảnh, chếch từ trên, chếch ba phần tư từ bên trái · ống kính 40mm
+> (tiêu chuẩn) · khung 16:9 · đèn bên trái chếch trên, tương phản vừa
+
+> medium shot, slightly high angle, three-quarter view from the left, 40mm
+> standard lens, 16:9 aspect ratio, key light from the left side from above,
+> moderate contrast
+
+Cỡ cảnh suy từ **chiều cao chủ thể chia chiều cao khung**, nên nó đo đúng thứ
+mắt thấy chứ không đoán. Câu này chạy trực tiếp dưới khung nhìn: thấy nó đổi
+theo tay mình thì mới tin được nó tả đúng.
+
+**Bên trái hay bên phải — suy ra chứ không đoán.** Xoay cảnh `rotateY(ngang)`
+tương đương xoay máy đi `-ngang`, nên `ngang` dương là máy dời sang phía x âm;
+nhân vật nhìn về z dương nên tay phải nó ở x âm; vậy `ngang` dương ⇒ máy đứng
+phía tay phải nhân vật. Chép nhầm chiều thì AI vẫn dựng ra phim — chỉ là phim
+soi gương, và không có gì báo lỗi.
+
+### Ảnh tham chiếu (`server/chup3d.js`)
+
+Phần lớn công cụ dựng phim bằng AI nhận **đầu vào là một tấm ảnh**, không nhận
+toạ độ. Mà cảnh ở đây dựng bằng CSS ba chiều: `html2canvas` và mọi thư viện
+cùng loại **không** dựng được `transform-style: preserve-3d` — chúng vẽ ra một
+đống hình phẳng chồng nhau. Nên ảnh phải chụp ở máy chủ, bằng chính Chromium
+đã có sẵn cho `chuptrang.js`.
+
+Lúc chụp thì **giấu hết đồ nghề**: vạch ba phần, viền khung, khung chọn, núm
+nắm, trục toạ độ. Để lại thì AI tưởng chúng là vật thể và dựng vào phim.
+
+Một lượt mất 2–5 giây, ra PNG 1280px.
 
 ---
 
@@ -329,8 +418,11 @@ Sau khi sửa: khung **426×566** so với hình thật **431×558** — lệch 
 ## Kiểm
 
 ```bash
-node tools/kiem-ba-chieu.mjs     # hoặc: npm run kiem -- ba-chieu
-node tools/kiem-nam-mon.mjs      # nắm bắt món, cần trình duyệt thật
+node tools/kiem-ba-chieu.mjs     # hình học, bố cục khối — Node trần
+node tools/kiem-goc-may.mjs      # khung hình, ống kính, câu tả — Node trần
+node tools/kiem-nam-mon.mjs      # nắm bắt món — cần trình duyệt thật
+node tools/kiem-xuat-3d.mjs      # xuất ảnh tham chiếu — cần máy chủ đang chạy
+node tools/kiem-bay-3d.mjs       # AI bày bối cảnh từ ảnh — Node trần, không cần mạng
 ```
 
 `kiem-ba-chieu.mjs` chạy bằng Node trần, mười lăm mục. Đã **thử bẻ gãy 15 kiểu**
@@ -360,8 +452,13 @@ nhau, xoay máy 180° để đổi vai.
 
 ## Còn thiếu gì (chưa làm, có chủ ý)
 
-- **Chưa nối vào clip.** Nút "Chép mã khối" chỉ chép JSON ra. Nối vào là Giai
-  đoạn 2.
+- **Chưa có đường máy quay.** Mới chốt được MỘT góc tĩnh. Phim thì có lia, có
+  đẩy, có cắt cảnh — bước tiếp theo là xâu nhiều góc thành một chuỗi, mỗi góc
+  một ảnh tham chiếu.
+- **Câu tả chỉ nói BỐ CỤC, không nói nội dung.** Nó biết "một khối cao 1,8m
+  đứng giữa khung" chứ không biết đó là người hay cái tủ. Phần nội dung người
+  dùng phải gõ thêm — đây là giới hạn thật, không phải chỗ còn dở.
+- **Chưa nối vào clip.** Nối vào trình sửa clip là Giai đoạn 2.
 - **Chưa có hình cong tự do.** Quả địa cầu có lục địa, người, xe — chưa làm
   được. Cố nặn bằng mặt phẳng thì ra thứ nhìn như đồ gấp giấy hỏng.
   (Tròn xoay thì ĐÃ làm được — xem "Ống trụ" bên dưới.)

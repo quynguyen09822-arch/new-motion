@@ -59,6 +59,7 @@ const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const WEB = path.join(GOC, 'web');
 const CLIP15 = path.join(GOC, 'clip-15s');
 import { bayTuAnh } from './bay3d.js';
+import { chupKhung3D } from './chup3d.js';
 
 // Xưởng khối nổi — dự án RIÊNG trong repo này, không dính gì tới phần dựng clip.
 // Xem bachieu/README.md. Gỡ cả dự án = xoá thư mục `bachieu/` + khối route dưới.
@@ -1062,6 +1063,27 @@ const server = http.createServer(async (req, res) => {
       const d = await bayTuAnh({ anh, mime, dan: String(than?.dan || '').slice(0, 400) });
       if (!d.ok) return loi(res, 400, d.cau);
       return json(res, 200, d);
+    }
+
+    /* ẢNH THAM CHIẾU CỦA GÓC MÁY. Cùng lý do đặt chỗ như `/api/bay-3d` ngay
+       trên: phải nằm TRƯỚC bẫy 404 của `/api/`.
+       Trả thẳng PNG chứ không trả JSON có base64 — ảnh 1280px nặng cỡ 1 MB,
+       bọc base64 là phình 1,33 lần rồi trình duyệt lại phải giải mã, trong khi
+       thứ người dùng cần chỉ là bấm tải về. Câu tả góc máy gửi kèm ở header. */
+    if (p === '/api/chup-3d' && req.method === 'POST') {
+      const than = await docJson(req);
+      const cong = Number(process.env.PORT || 7803);
+      const d = await chupKhung3D({ canh: than?.canh, goc: `http://127.0.0.1:${cong}` });
+      if (!d.ok) return loi(res, d.khongCo ? 501 : 400, d.cau);
+      res.writeHead(200, {
+        'content-type': 'image/png',
+        'content-length': d.anh.length,
+        'content-disposition': `attachment; filename="${d.ten}"`,
+        'x-ta-goc-may': encodeURIComponent(d.ta.cauV),
+        'x-ta-goc-may-en': encodeURIComponent(d.ta.cauA),
+        'cache-control': 'no-store',
+      });
+      return res.end(d.anh);
     }
 
     if (p.startsWith('/api/')) return loi(res, 404, `Không có đường dẫn ${p}.`);

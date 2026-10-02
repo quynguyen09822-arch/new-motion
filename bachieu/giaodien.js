@@ -15,7 +15,8 @@ import { gocTuBanDen, banDenTuGoc, taDen, mauTheoSang, keoTrenSan, keoTheoCao,
   DEN_MAC_DINH } from './hinhhoc.js';
 import { dungCanh, veCanhTai } from './ve.js';
 import { canhMoi, themMon, nhanBan, xoaMon, thuPhongVua, soatCanh, soMatMon,
-  datTen, timMon, khungMon } from './canh.js';
+  datTen, timMon, khungMon, KHO_TI, khungTrong, dongBoOng } from './canh.js';
+import { taGocMay } from './gocmay.js';
 import { goiJSON } from '../web/goi.js';
 
 const Q = (s) => document.querySelector(s);
@@ -71,9 +72,14 @@ function veLai() {
   veCanhTai(dat, canh);
   for (const d of dat.monDS) d.cho.classList.toggle('chon', d.id === chonId);
   const c = canh.may;
-  Q('#goc-may').textContent =
-    `máy quay ${Math.round(((c.ngang % 360) + 360) % 360)}° · ${Math.round(c.doc)}° · `
-    + `phóng ${Math.round(c.ti * 100)}%`;
+  const t = taGocMay(canh, boCuc, khungHinh, chonId);
+  /* Dòng này là THỨ ĐEM ĐI ĐƯA CHO AI, nên để nó chạy ngay trước mắt lúc xoay
+     máy — thấy câu đổi theo tay mình thì mới tin được nó tả đúng. */
+  Q('#goc-may').textContent = t.cauV;
+  Q('#so-may').textContent =
+    `${Math.round(((c.ngang % 360) + 360) % 360)}° · ${Math.round(c.doc)}° · `
+    + `phóng ${Math.round(c.ti * 100)}%`
+    + (t.chu && !t.lotTron ? (t.trongKhung ? ' · chủ thể bị cắt' : ' · chủ thể ngoài khung') : '');
   veNam();
 }
 
@@ -90,6 +96,28 @@ function veLai() {
  * ------------------------------------------------------------------------- */
 
 const oNam = Q('#nam'), oKhungNam = Q('#khung-nam'), oNumNam = Q('#num-nam');
+const oKhungPhim = Q('#khung-trong'), oKhungTen = Q('#khung-ten');
+
+/* Khung hình hiện tại, tính từ cỡ khung nhìn. Giữ trong một biến vì cả phép
+   vẽ, phép thu-vừa-khung lẫn câu tả góc máy đều cần — tính lại ba nơi thì ba
+   nơi sẽ lệch nhau vào đúng lúc cửa sổ đổi cỡ. */
+let khungHinh = khungTrong(900, 600, '16-9');
+
+function doKhung() {
+  khungHinh = khungTrong(san.clientWidth, san.clientHeight, canh.may.khung);
+  /* `xa` là số DẪN XUẤT từ ống kính và bề ngang khung — khung đổi thì phải
+     tính lại, không thì kéo rộng cửa sổ là góc nhìn đổi mà bảng vẫn ghi 40mm. */
+  dongBoOng(canh.may, khungHinh.rong);
+  const k = khungHinh;
+  oKhungPhim.style.left = k.tr.toFixed(1) + 'px';
+  oKhungPhim.style.top = k.tren.toFixed(1) + 'px';
+  oKhungPhim.style.width = k.rong.toFixed(1) + 'px';
+  oKhungPhim.style.height = k.cao.toFixed(1) + 'px';
+  oKhungTen.style.left = k.tr.toFixed(1) + 'px';
+  oKhungTen.style.top = Math.max(2, k.tren - 17).toFixed(1) + 'px';
+  oKhungTen.textContent = `${k.ti.ten} · ${Math.round(k.rong)}×${Math.round(k.cao)}`;
+  return k;
+}
 
 function veNam() {
   const m = canh.mon.find((x) => x.id === chonId);
@@ -215,9 +243,10 @@ san.addEventListener('wheel', (e) => {
 }, { passive: false });
 
 function vuaKhung() {
-  const r = san.getBoundingClientRect();
-  const v = thuPhongVua(canh, r.width, r.height);
-  Object.assign(canh.may, v);
+  /* Vừa KHUNG HÌNH, không vừa cả ô. Vừa cả ô thì vật tràn ra ngoài khung và
+     người dùng vừa bấm "Vừa khung" xong đã thấy nó bị cắt. */
+  const k = doKhung();
+  Object.assign(canh.may, thuPhongVua(canh, boCuc, k.rong, k.cao));
   veLai();
 }
 Q('#vua-khung').onclick = vuaKhung;
@@ -398,6 +427,24 @@ const NUM_THEO_LOAI = {
  */
 const khoaTuNhan = (nhan) => 'n-' + String(nhan).trim().toLowerCase().replace(/\s+/g, '-');
 
+/** Chọn tỉ lệ khung hình — dãy nút, không phải menu thả xuống: chỉ có năm
+    lựa chọn và người dùng cần thấy ngay mình đang ở khung nào. */
+function oChonKhung() {
+  const o = el('div', 'o');
+  o.appendChild(el('label', null, 'Khung hình'));
+  const day = el('div', 'khung-day');
+  for (const t of KHO_TI) {
+    const n = el('button', null, t.ngan);
+    n.type = 'button';
+    n.title = `${t.ten} — ${t.mo}`;
+    n.setAttribute('aria-pressed', String(t.id === canh.may.khung));
+    n.onclick = () => { canh.may.khung = t.id; doKhung(); veLai(); veBang(); };
+    day.appendChild(n);
+  }
+  o.appendChild(day);
+  return o;
+}
+
 function oTruot(nhan, gtri, min, max, buoc, khiDoi, goi, khoa = khoaTuNhan(nhan)) {
   const o = el('div', 'o');
   const trai = el('div');
@@ -530,9 +577,10 @@ function veBang() {
   m5.appendChild(nutDen());
   m5.appendChild(oTruot('Mặt khuất sáng cỡ nào', Math.round((canh.den.nen ?? 0.42) * 100), 5, 95, 1,
     (v) => { canh.den.nen = v / 100; veLai(); }, 'kéo về 5 thì mặt khuất đen kịt', 'nenSang'));
-  m5.appendChild(oTruot('Độ mở ống kính', canh.may.xa, 700, 6000, 50,
-    (v) => { canh.may.xa = v; veLai(); },
-    'số nhỏ thì phối cảnh mạnh, vật gần phình to', 'mayXa'));
+  m5.appendChild(oChonKhung());
+  m5.appendChild(oTruot('Ống kính (mm)', Math.round(canh.may.ong ?? 40), 14, 180, 1,
+    (v) => { canh.may.ong = v; doKhung(); veLai(); },
+    'số nhỏ là góc rộng, ôm nhiều bối cảnh; số lớn là tele, nén chiều sâu', 'mayOng'));
   const dem = el('p', 'trong');
   dem.id = 'dem-manh';
   m5.appendChild(dem);
@@ -631,9 +679,110 @@ document.addEventListener('pointerdown', (e) => {
 /* ---------------------------------------------------------------------------
  * Chạy
  * ------------------------------------------------------------------------- */
+doKhung();
 lamLai();
 vuaKhung();
-addEventListener('resize', vuaKhung);
+/* Cửa sổ đổi cỡ thì khung đổi theo, nhưng KHÔNG thu-vừa-khung lại: người dùng
+   vừa chỉnh xong một bố cục mà kéo cửa sổ một cái là mất sạch thì không ai
+   chịu nổi. Chỉ đo lại khung rồi vẽ. */
+addEventListener('resize', () => { doKhung(); veLai(); });
+
+/* ---------------------------------------------------------------------------
+ * XUẤT GÓC MÁY CHO AI
+ *
+ * MỤC ĐÍCH CỦA CẢ XƯỞNG NÀY nằm ở đây. Bày bối cảnh, chốt góc máy — rồi phải
+ * có đường ĐƯA RA NGOÀI, không thì mọi thứ chỉ chạy quanh trong một cái tab.
+ *
+ * Xuất BA thứ vì công cụ dựng phim bằng AI cần cả ba:
+ *   ① ẢNH tham chiếu — phần lớn công cụ nhận ảnh → video, và ảnh nói về bố cục
+ *     chính xác hơn mọi câu chữ.
+ *   ② CÂU TẢ tiếng Việt — để người dùng đọc lại mà biết mình vừa chốt cái gì.
+ *   ③ CÂU TẢ tiếng Anh — phần lớn công cụ dựng phim hiểu tiếng Anh tốt hơn hẳn.
+ * ------------------------------------------------------------------------- */
+
+const hopXuat = Q('#hop-xuat');
+let anhXuat = null;                     // URL tạm của ảnh vừa chụp
+
+function nhacXuat(cau, hong = false) {
+  const o = Q('#xuat-nhac');
+  o.textContent = cau || '';
+  o.classList.toggle('hong', !!hong);
+}
+
+function moXuat() {
+  const t = taGocMay(canh, boCuc, khungHinh, chonId);
+  Q('#xuat-vi').value = t.cauV;
+  Q('#xuat-en').value = t.cauA;
+  nhacXuat(t.chu && !t.lotTron
+    ? (t.trongKhung ? 'Chủ thể đang bị khung cắt mất một phần — bấm "Vừa khung" nếu không cố ý.'
+      : 'Chủ thể đang NẰM NGOÀI khung. Ảnh xuất ra sẽ không có nó.')
+    : '', !t.lotTron);
+  hopXuat.showModal();
+}
+Q('#xuat-ai').onclick = moXuat;
+
+/* Thu dọn URL tạm khi đóng: mỗi lần chụp đẻ ra một `blob:` sống tới lúc đóng
+   tab. Chụp hai chục lần là hai chục tấm ảnh nằm lại trong bộ nhớ. */
+hopXuat.addEventListener('close', () => {
+  if (anhXuat) { URL.revokeObjectURL(anhXuat); anhXuat = null; }
+});
+
+for (const [nut, o, ten] of [['#chep-vi', '#xuat-vi', 'tiếng Việt'], ['#chep-en', '#xuat-en', 'tiếng Anh']]) {
+  Q(nut).onclick = async () => {
+    const v = Q(o).value;
+    try {
+      await navigator.clipboard.writeText(v);
+      nhacXuat(`Đã chép câu ${ten}.`);
+    } catch (_) {
+      /* Trình duyệt chặn khay nhớ tạm khi trang không chạy trên HTTPS. Bôi đen
+         sẵn để người dùng bấm Ctrl+C — đừng chỉ báo "lỗi" rồi để họ tự xoay. */
+      Q(o).select();
+      nhacXuat('Trình duyệt không cho chép tự động — đã bôi đen sẵn, bấm Ctrl+C.', true);
+    }
+  };
+}
+
+Q('#xuat-chup').onclick = async () => {
+  const nut = Q('#xuat-chup');
+  if (nut.disabled) return;
+  nut.disabled = true;
+  const chuCu = nut.textContent;
+  nut.textContent = 'Đang dựng ảnh…';
+  nhacXuat('Máy chủ đang mở xưởng để chụp — mất vài giây.');
+  try {
+    const tra = await fetch('/api/chup-3d', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ canh }),
+    });
+    if (!tra.ok) {
+      /* Máy chủ gói câu lỗi vào khoá `loi` (xem `router.js`), KHÔNG phải `cau`.
+         Đọc nhầm khoá thì người dùng nhận được "Máy chủ trả lỗi 400" trong khi
+         máy chủ đã nói sẵn phải làm gì — bài kiểm bắt đúng chỗ này. */
+      let cau = `Máy chủ trả lỗi ${tra.status}.`;
+      try { cau = (await tra.json())?.loi || cau; } catch (_) {}
+      throw new Error(cau);
+    }
+    const blob = await tra.blob();
+    if (anhXuat) URL.revokeObjectURL(anhXuat);
+    anhXuat = URL.createObjectURL(blob);
+    const o = Q('#xuat-anh-o');
+    o.textContent = '';
+    const img = document.createElement('img');
+    img.src = anhXuat;
+    img.alt = 'Ảnh tham chiếu của góc máy vừa chốt';
+    o.appendChild(img);
+    const tai = Q('#xuat-tai');
+    tai.href = anhXuat;
+    tai.download = 'boi-canh.png';
+    tai.hidden = false;
+    nhacXuat('Xong. Tải ảnh về rồi đưa cho công cụ dựng phim kèm câu tả bên dưới.');
+  } catch (e) {
+    nhacXuat(String(e.message || e), true);
+  } finally {
+    nut.disabled = false;
+    nut.textContent = chuCu;
+  }
+};
 
 /** Cửa cho bài kiểm và bảng điều khiển trình duyệt soi — cùng kiểu `window.__clip`. */
 window.__bachieu = {
@@ -646,4 +795,22 @@ window.__bachieu = {
   /* Dựng lại sau khi bài kiểm tự nhét cảnh vào — không có cửa này thì bài kiểm
      phải bắt chước từng bước dựng, và nó sẽ trôi khỏi bản thật lúc nào không hay. */
   lamLai,
+  doKhung,
+  /* NẠP CẢ MỘT CẢNH. Dùng cho máy chủ lúc chụp ảnh tham chiếu, và cho bài
+     kiểm. Thay từng mảnh bằng tay thì sót `doKhung()` là ống kính và khung
+     hình giữ nguyên số cũ, ảnh chụp ra khác hẳn thứ người dùng thấy. */
+  napCanh(moi) {
+    if (!moi) return null;
+    canh.mon.length = 0;
+    for (const m of moi.mon || []) canh.mon.push(m);
+    if (moi.may) Object.assign(canh.may, moi.may);
+    if (moi.den) Object.assign(canh.den, moi.den);
+    chonId = null;
+    doKhung();
+    lamLai();
+    return khungHinh;
+  },
+  /* Khung hình hiện tại, theo pixel của khung nhìn — máy chủ cắt ảnh theo số này. */
+  khung: () => ({ ...khungHinh }),
+  taGocMay: () => taGocMay(canh, boCuc, khungHinh, chonId),
 };

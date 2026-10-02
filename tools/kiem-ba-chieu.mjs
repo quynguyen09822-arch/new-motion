@@ -477,10 +477,10 @@ console.log('\n⑦b Cảnh — nhiều món, một máy quay');
   dat('tâm hộp bao nằm giữa món đầu và món cuối',
     b.tamX > c.mon[0].vi.x && b.tamX < c.mon[c.mon.length - 1].vi.x);
 
-  const z = C.thuPhongVua(c, 900, 600);
+  const z = C.thuPhongVua(c, K.boCuc, 900, 600);
   dat('thu phóng vừa khung ra số dùng được', z.ti > 0 && z.ti <= 3, z.ti.toFixed(3));
   dat('cảnh rộng hơn thì phải thu nhỏ hơn',
-    C.thuPhongVua(c, 400, 300).ti < C.thuPhongVua(c, 1800, 1200).ti);
+    C.thuPhongVua(c, K.boCuc, 400, 300).ti < C.thuPhongVua(c, K.boCuc, 1800, 1200).ti);
 
   const n0 = c.mon.length;
   const ban = C.nhanBan(c, c.mon[0].id);
