@@ -14,7 +14,7 @@
  * Chạy thì vẫn chạy, nhưng tới lúc có năm khối trên sân là bắt đầu giật, mà
  * triệu chứng lại giống hệt "máy chủ yếu" — đi sai hướng cả buổi.
  */
-import { matCuaHop, matCuaTru, matCuaCau, phapTuyen, doSang, mauTheoSang, gocTai,
+import { matCuaHop, matCuaTru, matCuaCau, phapTuyen, doSang, mauTheoSang,
   beRongChiem, DEN_MAC_DINH } from './hinhhoc.js';
 import { boCuc, caoTong } from './khoi.js';
 
@@ -72,6 +72,24 @@ export function dung(cha, khoi) {
        được cả một nhân vật mà `ve.js` gần như không phình ra. */
     const sinhMat = con.hinh === 'tru' ? matCuaTru : con.hinh === 'cau' ? matCuaCau : matCuaHop;
     for (const m of sinhMat(con)) {
+      /* BO GÓC — và vì sao núm này là PHẦN TRĂM chứ không phải điểm ảnh.
+       *
+       * Sáu mặt phẳng bo góc thì ở mỗi ĐỈNH khối còn lại một lỗ hụt, to đúng
+       * bằng bán kính bo. Đo thật trên khối 330: bo 20 nhìn mềm và đặc, bo 34
+       * đã thấy hụt, bo 48 thì thủng hẳn — nhìn xuyên qua được.
+       *
+       * Để núm tính bằng điểm ảnh là mời người dùng tự vặn vào vùng hỏng, mà
+       * lỗi lại hiện ra ở đỉnh khuất nên họ không hiểu vì sao hình kỳ. Nên núm
+       * là 0–100 phần trăm của mức an toàn, và mức ấy tính theo chính kích
+       * thước khối: khối to bo được nhiều, thẻ mỏng bo ít.
+       *
+       * Chỉ áp cho mặt khối HỘP. Mặt bên ống trụ và ô khối cầu vốn phải khít
+       * mép nhau; bo vào là hở ra cả vòng lỗ, nhìn như vật bị rỗ.
+       */
+      const laHop = (con.hinh ?? 'hop') === 'hop';
+      const nho = Math.min(con.rong ?? 1e9, con.cao ?? 1e9, con.day ?? 1e9);
+      const lon = Math.max(con.rong ?? 0, con.cao ?? 0, con.day ?? 0);
+      const boGoc = laHop ? ((khoi.bo || 0) / 100) * Math.min(0.5 * nho, 0.08 * lon) : 0;
       const f = the('bc-mat', {
         width: m.w + 'px',
         height: m.h + 'px',
@@ -79,7 +97,8 @@ export function dung(cha, khoi) {
         marginTop: -m.h / 2 + 'px',
         transform: m.bien,
         /* Nắp ống trụ là một hình vuông bo tròn thành đĩa. */
-        ...(m.tron ? { borderRadius: '50%' } : null),
+        ...(m.tron ? { borderRadius: '50%' }
+          : boGoc ? { borderRadius: Math.min(boGoc, Math.min(m.w, m.h) / 2) + 'px' } : null),
       });
       /* Chữ chỉ đặt lên mặt được chỉ định. Logo khối thì đặt lên cả sáu. */
       const chu = con.dauMoiMat ?? con.chuMat?.[m.id];
@@ -105,18 +124,28 @@ export function dung(cha, khoi) {
 }
 
 /**
- * Vẽ khối tại giây `t`.
+ * Vẽ một món theo dáng đang đặt.
  *
- * HÀM THUẦN THEO `t` — không đọc đồng hồ, không giữ biến đếm. Gọi với cùng một
- * `t` hai lần phải ra đúng một hình. Đây là điều kiện để tua được, và để chế độ
- * xuất "vẽ kỹ" ở Giai đoạn 5 chạy được.
+ * Trước đây hàm này nhận thêm giây `t` và tự tính góc quay theo thời gian. Bỏ
+ * rồi: xưởng này để dựng phối cảnh, không phải làm video. Góc quay giờ là một
+ * con số người dùng đặt, đứng yên.
  */
-export function veTai(dat, khoi, t = 0) {
-  const { ngang, doc } = gocTai(khoi, t);
+export function veTai(dat, khoi) {
+  const ngang = khoi.xoayNgang ?? -28;
+  const doc = khoi.xoayDoc ?? 14;
   const den = khoi.den || DEN_MAC_DINH;
   const mau = khoi.mau || '#FF7A2F';
 
-  dat.goc.style.transform = `rotateX(${doc}deg) rotateY(${ngang}deg)`;
+  /* NGHIÊNG (bóp méo): phép trượt — mỗi tầng cao hơn thì lệch sang ngang thêm
+     một chút, như xô một chồng sách. Ma trận của CSS xếp theo CỘT, nên hệ số
+     trượt nằm ở vị trí thứ 5 chứ không phải thứ 2; đặt nhầm chỗ là khối bị
+     trượt theo chiều sâu thay vì chiều ngang.
+     Đèn KHÔNG tính lại theo phép trượt này — nghiêng mạnh quá thì bóng đổ hơi
+     lệch so với hình. Chấp nhận: tính đúng thì phải quay lại pháp tuyến từng
+     mặt, mà mắt gần như không thấy khác ở mức nghiêng thường dùng. */
+  const truot = Math.tan(((khoi.nghieng || 0) * Math.PI) / 180);
+  dat.goc.style.transform = `rotateX(${doc}deg) rotateY(${ngang}deg)`
+    + (truot ? ` matrix3d(1,0,0,0, ${truot.toFixed(4)},1,0,0, 0,0,1,0, 0,0,0,1)` : '');
 
   for (const m of dat.matDS) {
     const s = doSang(phapTuyen(m.n, ngang, doc), den) * m.pha;
@@ -196,8 +225,8 @@ export function dungCanh(cha, canh) {
   return { may, monDS };
 }
 
-/** Vẽ cả cảnh tại giây `t`. Vẫn là hàm thuần của `t` — xem Luật ② ở hinhhoc.js. */
-export function veCanhTai(dat, canh, t = 0) {
+/** Vẽ cả cảnh. */
+export function veCanhTai(dat, canh) {
   const c = canh.may;
   dat.may.style.transform =
     `scale(${c.ti}) rotateX(${c.doc}deg) rotateY(${c.ngang}deg) `
@@ -229,6 +258,6 @@ export function veCanhTai(dat, canh, t = 0) {
        xoay bao nhiêu, không phụ thuộc người xem đứng đâu. Nhờ vậy lia máy sang
        mặt khuất là thấy tối — gắn đèn vào máy thì mặt sáng bám theo mắt người
        xem và vật trông bẹt như dán lên màn hình. */
-    veTai(d, { ...m, den: m.den || canh.den }, t);
+    veTai(d, { ...m, den: m.den || canh.den });
   }
 }

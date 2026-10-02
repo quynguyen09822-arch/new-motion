@@ -11,8 +11,8 @@
  * từ nào trong số đó được xuất hiện ở đây.
  */
 import { KHO_LOAI, BO_PHOI, boCuc } from './khoi.js';
-import { KHO_DONG, gocTuBanDen, banDenTuGoc, taDen, mauTheoSang, DEN_MAC_DINH }
-  from './hinhhoc.js';
+import { gocTuBanDen, banDenTuGoc, taDen, mauTheoSang, keoTrenSan, keoTheoCao,
+  DEN_MAC_DINH } from './hinhhoc.js';
 import { dungCanh, veCanhTai } from './ve.js';
 import { canhMoi, themMon, nhanBan, xoaMon, thuPhongVua, soatCanh, soMatMon } from './canh.js';
 
@@ -21,7 +21,7 @@ const san = Q('#san'), oCanh = Q('#canh3d'), bang = Q('#bang'), dsEl = Q('#ds-mo
 
 let canh = canhMoi('hop');
 let chonId = canh.mon[0].id;
-let dat = null, t = 0, dangChay = false, mocChay = 0;
+let dat = null;
 
 const monChon = () => canh.mon.find((m) => m.id === chonId) || null;
 const kep = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -41,7 +41,7 @@ function lamLai() {
 /** Vẽ lại thôi — đổi máy quay, màu, đèn thì không cần dựng lại thẻ. */
 function veLai() {
   if (!dat) return;
-  veCanhTai(dat, canh, t);
+  veCanhTai(dat, canh);
   for (const d of dat.monDS) d.cho.classList.toggle('chon', d.id === chonId);
   const c = canh.may;
   Q('#goc-may').textContent =
@@ -54,28 +54,56 @@ function veLai() {
  * ------------------------------------------------------------------------- */
 
 let keo = null;
+/* Ô số chỗ đứng, giữ lại để cập nhật NGAY trong lúc kéo. Không cập nhật thì
+   con số đứng im trong khi vật chạy, và người dùng không tin con số nữa. */
+let oSoViTri = null;
+
 san.addEventListener('pointerdown', (e) => {
   const o = e.target.closest?.('[data-mon]');
-  keo = { x: e.clientX, y: e.clientY, ng: canh.may.ngang, dc: canh.may.doc,
-    mon: o?.dataset.mon || null, xa: 0 };
+  const m = o ? canh.mon.find((x) => x.id === o.dataset.mon) : null;
+  if (m && m.id !== chonId) chon(m.id);
+  keo = {
+    /* Bấm trúng vật → DỜI VẬT. Bấm vào nền → XOAY MÁY. Đây là quy ước dễ đoán
+       nhất: thứ nằm dưới ngón tay là thứ sẽ nhúc nhích. */
+    kieu: m ? 'mon' : 'may',
+    id: m?.id || null,
+    x: e.clientX, y: e.clientY, xa: 0,
+    ng: canh.may.ngang, dc: canh.may.doc,
+    vi: m ? { ...m.vi } : null,
+    nangHa: e.shiftKey,
+  };
   san.setPointerCapture(e.pointerId);
   san.classList.add('dangkeo');
 });
+
 san.addEventListener('pointermove', (e) => {
   if (!keo) return;
   const dx = e.clientX - keo.x, dy = e.clientY - keo.y;
   keo.xa = Math.max(keo.xa, Math.hypot(dx, dy));
+
+  if (keo.kieu === 'mon') {
+    const m = canh.mon.find((x) => x.id === keo.id);
+    if (!m) return;
+    if (keo.nangHa) {
+      m.vi = { ...keo.vi, y: Math.round(keo.vi.y + keoTheoCao(dy, canh.may)) };
+    } else {
+      const d = keoTrenSan(dx, dy, canh.may);
+      m.vi = { x: Math.round(keo.vi.x + d.x), y: keo.vi.y, z: Math.round(keo.vi.z + d.z) };
+    }
+    veLai();
+    if (oSoViTri) for (const [k, i] of Object.entries(oSoViTri)) i.value = Math.round(m.vi[k]);
+    return;
+  }
+
   canh.may.ngang = keo.ng + dx * 0.42;
   /* Chặn ở ±85°, không cho qua đỉnh. Qua được thì cảnh lộn ngược và kéo tiếp
      thấy nó đi ngược chiều tay — ai cũng tưởng hỏng. */
   canh.may.doc = kep(keo.dc - dy * 0.42, -85, 85);
   veLai();
 });
+
 const thaKeo = (e) => {
   if (!keo) return;
-  /* Di chuyển dưới 4px thì coi là BẤM chứ không phải kéo. Không có ngưỡng này
-     thì tay run một chút là không chọn được món nào. */
-  if (keo.xa < 4 && keo.mon) { chon(keo.mon); }
   keo = null;
   san.classList.remove('dangkeo');
   san.releasePointerCapture?.(e.pointerId);
@@ -187,13 +215,14 @@ const NUM_THEO_LOAI = {
   'nhan-vat': [['co', 'Độ lớn', 0.3, 2, 0.05]],
 };
 
-function oTruot(nhan, gtri, min, max, buoc, khiDoi, goi) {
+function oTruot(nhan, gtri, min, max, buoc, khiDoi, goi, khoa) {
   const o = el('div', 'o');
   const trai = el('div');
   trai.appendChild(el('label', null, nhan));
   if (goi) trai.appendChild(el('small', 'goi', goi));
   const i = document.createElement('input');
   Object.assign(i, { type: 'range', min, max, step: buoc, value: gtri });
+  if (khoa) i.dataset.khoa = khoa;
   const so = el('span', 'giay', String(gtri));
   i.oninput = () => { so.textContent = i.value; khiDoi(Number(i.value)); };
   const phai = el('div');
@@ -203,11 +232,12 @@ function oTruot(nhan, gtri, min, max, buoc, khiDoi, goi) {
   return o;
 }
 
-function oChu(nhan, gtri, khiDoi) {
+function oChu(nhan, gtri, khiDoi, khoa) {
   const o = el('div', 'o');
   o.appendChild(el('label', null, nhan));
   const i = document.createElement('input');
   Object.assign(i, { type: 'text', value: gtri ?? '' });
+  if (khoa) i.dataset.khoa = khoa;
   i.style.width = '130px';
   i.oninput = () => khiDoi(i.value);
   o.appendChild(i);
@@ -219,20 +249,29 @@ function oChu(nhan, gtri, khiDoi) {
 function oViTri(m) {
   const b = el('div');
   const l = el('div', 'ba-o');
+  const ghi = {};
   for (const [khoa, ten] of [['x', 'ngang'], ['y', 'cao'], ['z', 'sâu']]) {
     const c = el('div');
     c.appendChild(el('span', null, ten));
     const i = document.createElement('input');
     Object.assign(i, { type: 'number', step: 10, value: Math.round(m.vi[khoa]) });
+    i.dataset.khoa = 'vi-' + khoa;
     i.oninput = () => { m.vi[khoa] = Number(i.value) || 0; veLai(); };
+    ghi[khoa] = i;
     c.appendChild(i);
     l.appendChild(c);
   }
+  oSoViTri = ghi;
   b.appendChild(l);
   return b;
 }
 
 function veBang() {
+  const activeEl = document.activeElement;
+  const activeKhoa = activeEl?.dataset?.khoa;
+  const selStart = typeof activeEl?.selectionStart === 'number' ? activeEl.selectionStart : null;
+  const selEnd = typeof activeEl?.selectionEnd === 'number' ? activeEl.selectionEnd : null;
+
   bang.textContent = '';
   const m = monChon();
 
@@ -252,24 +291,17 @@ function veBang() {
     m1.appendChild(oViTri(m));
     bang.appendChild(m1);
 
-    /* ② xoay và chuyển động */
-    const m2 = el('div', 'muc'); m2.appendChild(el('h2', null, 'Xoay và chuyển động'));
+    /* ② đặt dáng — một con số đứng yên, KHÔNG phải chuyển động theo thời gian */
+    const m2 = el('div', 'muc'); m2.appendChild(el('h2', null, 'Đặt dáng'));
     m2.appendChild(oTruot('Xoay ngang', m.xoayNgang, -180, 180, 1,
       (v) => { m.xoayNgang = v; veLai(); }));
     m2.appendChild(oTruot('Ngả trước / sau', m.xoayDoc, -80, 80, 1,
       (v) => { m.xoayDoc = v; veLai(); }));
-    const sel = document.createElement('select');
-    for (const d of KHO_DONG) {
-      const op = document.createElement('option');
-      op.value = d.id; op.textContent = `${d.ten} — ${d.goi}`;
-      op.selected = d.id === m.dong.kieu;
-      sel.appendChild(op);
-    }
-    sel.onchange = () => { m.dong.kieu = sel.value; t = 0; capNhatTua(); veLai(); };
-    sel.style.margin = '4px 0 8px';
-    m2.appendChild(sel);
-    m2.appendChild(oTruot('Một vòng mất mấy giây', m.dong.chuKy, 1, 24, 0.5,
-      (v) => { m.dong.chuKy = v; capNhatTua(); veLai(); }));
+    m2.appendChild(oTruot('Nghiêng (bóp méo)', m.nghieng ?? 0, -45, 45, 1,
+      (v) => { m.nghieng = v; veLai(); }, 'xô lệch cả khối như xô một chồng sách'));
+    m2.appendChild(oTruot('Bo góc', m.bo ?? 0, 0, 100, 1,
+      (v) => { m.bo = v; lamLai(); },
+      '0 là góc vuông, 100 là bo hết mức còn nhìn đặc — không ăn vào món tròn'));
     bang.appendChild(m2);
 
     /* ③ hình dạng */
@@ -279,18 +311,18 @@ function veBang() {
         m3.appendChild(oChu(nhan, (m.cot || []).join(', '), (v) => {
           const so = v.split(',').map((x) => Number(x.trim())).filter(Number.isFinite);
           if (so.length) { m.cot = so.slice(0, 12); lamLai(); }
-        }));
+        }, 'cotChu'));
       } else if (khoa === 'nhanChu') {
         m3.appendChild(oChu(nhan, (m.nhan || []).join(', '),
-          (v) => { m.nhan = v.split(',').map((x) => x.trim()); lamLai(); }));
+          (v) => { m.nhan = v.split(',').map((x) => x.trim()); lamLai(); }, 'nhanChu'));
       } else if (min == null) {
-        m3.appendChild(oChu(nhan, m[khoa], (v) => { m[khoa] = v; lamLai(); }));
+        m3.appendChild(oChu(nhan, m[khoa], (v) => { m[khoa] = v; lamLai(); }, khoa));
       } else if (khoa === 'canh') {
         m3.appendChild(oTruot(nhan, m.rong, min, max, buoc,
-          (v) => { m.rong = m.cao = m.day = v; lamLai(); }));
+          (v) => { m.rong = m.cao = m.day = v; lamLai(); }, null, 'canh'));
       } else {
         m3.appendChild(oTruot(nhan, m[khoa], min, max, buoc,
-          (v) => { m[khoa] = v; lamLai(); }));
+          (v) => { m[khoa] = v; lamLai(); }, null, khoa));
       }
     }
     bang.appendChild(m3);
@@ -316,15 +348,25 @@ function veBang() {
   const m5 = el('div', 'muc'); m5.appendChild(el('h2', null, 'Cả cảnh'));
   m5.appendChild(nutDen());
   m5.appendChild(oTruot('Mặt khuất sáng cỡ nào', Math.round((canh.den.nen ?? 0.42) * 100), 5, 95, 1,
-    (v) => { canh.den.nen = v / 100; veLai(); }, 'kéo về 5 thì mặt khuất đen kịt'));
+    (v) => { canh.den.nen = v / 100; veLai(); }, 'kéo về 5 thì mặt khuất đen kịt', 'nenSang'));
   m5.appendChild(oTruot('Độ mở ống kính', canh.may.xa, 700, 6000, 50,
     (v) => { canh.may.xa = v; san.style.perspective = v + 'px'; veLai(); },
-    'số nhỏ thì phối cảnh mạnh, vật gần phình to'));
+    'số nhỏ thì phối cảnh mạnh, vật gần phình to', 'mayXa'));
   const dem = el('p', 'trong',
     `${canh.mon.filter((x) => !x.an).length} món · `
     + `${canh.mon.filter((x) => !x.an).reduce((s, x) => s + soMatMon(x, boCuc), 0).toLocaleString('vi')} mảnh`);
   m5.appendChild(dem);
   bang.appendChild(m5);
+
+  if (activeKhoa) {
+    const elToFocus = bang.querySelector(`[data-khoa="${CSS.escape(activeKhoa)}"]`);
+    if (elToFocus) {
+      elToFocus.focus();
+      if (selStart !== null && selEnd !== null && elToFocus.setSelectionRange) {
+        try { elToFocus.setSelectionRange(selStart, selEnd); } catch (_) {}
+      }
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------------
@@ -392,42 +434,11 @@ document.addEventListener('pointerdown', (e) => {
 }, true);
 
 /* ---------------------------------------------------------------------------
- * THANH TUA
- * ------------------------------------------------------------------------- */
-
-const thoiLuong = () => {
-  const ds = canh.mon.filter((m) => !m.an && m.dong?.kieu !== 'dung-im');
-  return ds.length ? Math.max(...ds.map((m) => m.dong.chuKy || 6)) : 8;
-};
-function capNhatTua() {
-  const d = thoiLuong();
-  Q('#thanh').max = String(d);
-  Q('#thanh').value = String(Math.min(t, d));
-  Q('#giay').textContent = `${t.toFixed(2).replace('.', ',')} / ${d} s`;
-}
-function vong(now) {
-  if (!dangChay) return;
-  t = ((now - mocChay) / 1000) % thoiLuong();
-  veLai(); capNhatTua();
-  requestAnimationFrame(vong);
-}
-Q('#chay').onclick = () => {
-  dangChay = !dangChay;
-  Q('#chay').textContent = dangChay ? 'Dừng' : 'Chạy';
-  if (dangChay) { mocChay = performance.now() - t * 1000; requestAnimationFrame(vong); }
-};
-Q('#thanh').oninput = (e) => {
-  dangChay = false; Q('#chay').textContent = 'Chạy';
-  t = Number(e.target.value); veLai(); capNhatTua();
-};
-
-/* ---------------------------------------------------------------------------
  * Chạy
  * ------------------------------------------------------------------------- */
 san.style.perspective = canh.may.xa + 'px';
 lamLai();
 vuaKhung();
-capNhatTua();
 addEventListener('resize', vuaKhung);
 
 /** Cửa cho bài kiểm và bảng điều khiển trình duyệt soi — cùng kiểu `window.__clip`. */
@@ -436,7 +447,6 @@ window.__bachieu = {
   get chonId() { return chonId; },
   dat: () => dat,
   chon,
-  seek: (s) => { t = s; veLai(); capNhatTua(); },
   them: (loai) => { const m = themMon(canh, loai); chonId = m.id; lamLai(); return m.id; },
   vuaKhung,
 };

@@ -37,10 +37,36 @@ cảnh cho ra dáng chuyên nghiệp. Nên khung phim bỏ hẳn.
 | | |
 |---|---|
 | Khung nhìn | tự do, không khổ nào gò. Kéo chuột xoay máy quay, lăn chuột phóng to thu nhỏ |
+| Không có thanh thời gian | đây là chỗ dựng phối cảnh, không phải chỗ làm phim |
 | Đơn vị làm việc | **cảnh** gồm nhiều món, không phải một khối |
 | Danh sách món | thêm · ẩn · nhân đôi · bỏ, bấm để chọn |
 | Sàn | lưới **nằm trong cảnh** nên xoay theo máy quay |
 | Món mới | tự xếp vào chỗ trống và **đứng trên sàn** |
+| Dời vật | **kéo thẳng trong khung nhìn**; giữ Shift để nâng hạ |
+| Sửa dáng | xoay ngang · ngả · **nghiêng (bóp méo)** · **bo góc** |
+
+### Kéo vật: đổi từ màn hình hai chiều sang không gian ba chiều
+
+Chuột đi trên mặt phẳng, vật nằm trong không gian — phải đổi theo đúng góc máy
+quay đang đứng. Bỏ qua chuyện đó là xoay máy sang bên, kéo sang phải mà vật
+chạy về phía sau.
+
+Dấu của các trục **đo thật trong trình duyệt**, không suy luận: `+z` hiện LÊN
+TRÊN màn hình, nên kéo chuột xuống thì `z` phải GIẢM, có vậy vật mới bám theo
+ngón tay.
+
+Có **bẫy chia cho 0**: ngả máy về 0° là mặt sàn nhìn đúng ngang tầm, chiều sâu
+bẹp thành số 0 và nhích một pixel là vật văng ra vô cực. Chặn ở `SIN_TOI_THIEU`.
+
+### Bo góc là PHẦN TRĂM, không phải điểm ảnh
+
+Sáu mặt phẳng bo góc thì ở mỗi **đỉnh** khối còn một lỗ hụt, to đúng bằng bán
+kính. Đo trên khối 330: bo 20 còn mềm và đặc, bo 34 đã thấy hụt, **bo 48 thì
+nhìn xuyên qua được**.
+
+Để núm tính bằng điểm ảnh là mời người dùng tự vặn vào vùng hỏng — mà lỗi lại
+hiện ở đỉnh khuất nên họ không hiểu vì sao hình kỳ. Nên núm là 0–100 phần trăm
+của mức an toàn, và mức ấy tính theo chính kích thước khối.
 
 ### Hệ màu lấy theo Blender, và có lý do
 
@@ -137,7 +163,7 @@ duyệt soi bằng mắt, và mỗi lần soi ra một kết luận khác.
 
 ---
 
-## Hai luật, đo được bằng số
+## Luật, đo được bằng số
 
 
 **Luật đếm mảnh.** Luật cũ là "khối không được chiếm quá nửa bề ngang khung
@@ -150,10 +176,13 @@ này — 1.180 mảnh mất 16 ms một khung, tức thừa cho 60 hình/giây. 
 
 *Bỏ một luật thì phải thay bằng luật đúng, không phải bỏ trống.*
 
-**Luật vẽ theo giây — góc quay là hàm thuần của giây.** `gocTai(khoi, t)` không đọc đồng
-hồ, không giữ biến đếm. Hỏng luật này là mất tua, mất chế độ xuất "vẽ kỹ", và
-hai lần xuất ra hai phim khác nhau. Bộ dựng clip đã theo đúng luật này
-(`render(now)`, `seek(s)` chỉ gọi `render(s)`).
+**Không có chuyển động, và đó là chủ ý.** Bản trước có kho chuyển động, thanh
+thời gian và luật "góc quay là hàm thuần của giây" — tất cả sinh ra từ giả định
+xưởng làm một món để nhét vào clip. Anh Quý nói rõ: *"chỗ này để dựng phối cảnh
+và nhân vật 3D chứ không phải ngồi làm video"*.
+
+Nên cả bộ ấy **gỡ hẳn**, không giấu đi. Món vẫn xoay được, nhưng đó là **đặt
+dáng** — một con số đứng yên, không phải chuyển động theo thời gian.
 
 ---
 

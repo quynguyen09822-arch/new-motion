@@ -45,10 +45,7 @@ export function canhMoi(loai = 'hop') {
 
 /** Một món = một khối, cộng chỗ đứng trong cảnh. */
 export function monMoi(loai = 'hop', mauId = 'den-cam') {
-  const k = khoiMoi(loai, mauId);
-  /* Khối đứng một mình thì tự xoay cho đẹp. Trong một cảnh thì KHÔNG: năm món
-     mỗi món tự quay một kiểu là cảnh thành cái chợ. Ai muốn quay thì tự bật. */
-  return { ...k, dong: { kieu: 'dung-im', chuKy: 6 }, vi: { x: 0, y: 0, z: 0 } };
+  return { ...khoiMoi(loai, mauId), vi: { x: 0, y: 0, z: 0 } };
 }
 
 /** Tên cho người đọc, tự đánh số khi trùng. */
@@ -90,8 +87,7 @@ export function nhanBan(canh, id) {
   const g = canh.mon.find((m) => m.id === id);
   if (!g) return null;
   const m = datTen({ ...g, id: 'm' + Math.random().toString(36).slice(2, 8),
-    vi: { ...g.vi }, den: g.den ? { ...g.den } : undefined,
-    dong: { ...g.dong } }, canh.mon);
+    vi: { ...g.vi }, den: g.den ? { ...g.den } : undefined }, canh.mon);
   m.vi.x += Math.round(rongMon(g) + 60);
   canh.mon.push(m);
   return m;

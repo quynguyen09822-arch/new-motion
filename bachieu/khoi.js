@@ -68,37 +68,32 @@ export function khoiMoi(loai = 'hop', mauId = 'den-cam') {
     mau: bo.mau.accent,
     den: { ...DEN_MAC_DINH },
     xoayNgang: -28,
-    xoayDoc: 14,
-    dong: { kieu: 'xoay-vong', chuKy: 8 },
+    xoayDoc: 14
   };
   switch (loai) {
     case 'the-lat':
       return { ...chung, rong: 430, cao: 270, day: 12,
-        chu: 'Trước', chuSau: 'Sau', dong: { kieu: 'lat-the', chuKy: 5 }, xoayNgang: 0, xoayDoc: 6 };
+        chu: 'Trước', chuSau: 'Sau', xoayNgang: 0, xoayDoc: 6 };
     case 'chu-noi':
       return { ...chung, chu: 'MẮT BÃO', coChu: 118, soLop: 20,
-        rong: 460, cao: 140, day: 52, dong: { kieu: 'lac-nhe', chuKy: 6 }, xoayNgang: -26, xoayDoc: 12 };
+        rong: 460, cao: 140, day: 52, xoayNgang: -26, xoayDoc: 12 };
     case 'gia-may-chu':
-      return { ...chung, rong: 300, cao: 62, day: 210, tang: 5, khe: 16,
-        dong: { kieu: 'lia-quanh', chuKy: 12 }, xoayNgang: -32, xoayDoc: 18 };
+      return { ...chung, rong: 300, cao: 62, day: 210, tang: 5, khe: 16, xoayNgang: -32, xoayDoc: 18 };
     case 'logo-khoi':
       return { ...chung, rong: 280, cao: 280, day: 280, chu: '◆', coChu: 118 };
     case 'tru':
-      return { ...chung, ban: 130, cao: 330, soMat: 28,
-        dong: { kieu: 'xoay-vong', chuKy: 10 }, xoayNgang: 0, xoayDoc: 16 };
+      return { ...chung, ban: 130, cao: 330, soMat: 28, xoayNgang: 0, xoayDoc: 16 };
     case 'nhan-vat':
       /* Ánh nền CAO (0,72) chứ không dùng mức mặc định 0,42. Linh vật là đồ
          nhựa bóng chụp trong hộp sáng, không phải tượng đá ngoài trời — để ánh
          nền thấp thì mặt và áo tối sầm, và nó thành một cục đất sét đỏ. */
       return { ...chung, co: 1.35,
-        den: { ngang: -30, cao: 34, nen: 0.72 },
-        dong: { kieu: 'lac-nhe', chuKy: 7 }, xoayNgang: -14, xoayDoc: 6 };
+        den: { ngang: -30, cao: 34, nen: 0.72 }, xoayNgang: -14, xoayDoc: 6 };
     case 'bieu-do':
       /* Bốn cột tăng dần: đây là hình hay dùng nhất trong clip quảng bá, nên
          bày sẵn đúng dáng ấy thay vì bốn cột bằng nhau. */
       return { ...chung, cot: [38, 56, 74, 100], nhan: ['T1', 'T2', 'T3', 'T4'],
-        rongCot: 72, khe: 26, caoMax: 300, day: 72,
-        dong: { kieu: 'lac-nhe', chuKy: 7 }, xoayNgang: -24, xoayDoc: 14 };
+        rongCot: 72, khe: 26, caoMax: 300, day: 72, xoayNgang: -24, xoayDoc: 14 };
     default:
       return { ...chung, rong: 330, cao: 330, day: 330, chu: '' };
   }

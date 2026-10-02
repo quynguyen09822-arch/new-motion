@@ -9,12 +9,14 @@
  *
  * Để ở đây thì `tools/kiem-ba-chieu.mjs` gọi thẳng bằng Node, đo bằng số.
  *
- * LUẬT ĐÃ ĐO ĐƯỢC (xem `docs/LO-TRINH-3D.md` mục 2) và file này canh:
+ * KHÔNG CÓ CHUYỂN ĐỘNG Ở ĐÂY. Bản trước có kho chuyển động và luật "góc quay
+ * là hàm thuần của giây" — sinh ra từ giả định xưởng làm một món để nhét vào
+ * clip. Anh Quý nói rõ: chỗ này để DỰNG PHỐI CẢNH và NHÂN VẬT, không phải ngồi
+ * làm video. Nên cả bộ ấy đã gỡ, không giấu đi: mã không ai gọi tới còn tệ hơn
+ * mã không có.
  *
- *   · Góc quay phải là HÀM THUẦN CỦA GIÂY. Bộ dựng clip đã theo luật này
- *     (`render(now)`, `seek(s)` chỉ gọi `render(s)`). Nếu khối tự quay bằng đồng
- *     hồ riêng thì tua không được, xuất chậm không được, và hai lần xuất ra hai
- *     phim khác nhau.
+ * Món vẫn xoay được — nhưng đó là ĐẶT DÁNG, một con số đứng yên, không phải
+ * chuyển động theo thời gian.
  *
  * HỆ TRỤC. Theo đúng CSS, không đổi cho "dễ nghĩ": +x sang phải, **+y xuống
  * dưới**, +z hướng về phía người xem. Đổi quy ước ở đây là tự tay tạo ra một
@@ -22,9 +24,6 @@
  */
 
 const rad = (d) => (d * Math.PI) / 180;
-
-/** Làm mượt hai đầu — dùng cho cú lật, để nó không dừng đột ngột. */
-export const muot = (x) => x * x * (3 - 2 * x);
 
 /* ---------------------------------------------------------------------------
  * SÁU MẶT CỦA MỘT KHỐI HỘP
@@ -256,50 +255,6 @@ export function mauTheoSang(mau, s) {
 }
 
 /* ---------------------------------------------------------------------------
- * CHUYỂN ĐỘNG — hàm thuần của giây (Luật ②)
- * ------------------------------------------------------------------------- */
-
-/** Kho chuyển động. `ten` là thứ người dùng đọc, không phải tên công thức. */
-export const KHO_DONG = [
-  { id: 'dung-im',   ten: 'Đứng im',           goi: 'để khoe một góc đẹp đã chọn sẵn' },
-  { id: 'xoay-vong', ten: 'Xoay một vòng',     goi: 'khoe hết các mặt — hợp logo, hộp sản phẩm' },
-  { id: 'lac-nhe',   ten: 'Lắc nhẹ qua lại',   goi: 'có sức sống mà không hút mắt khỏi chữ' },
-  { id: 'lia-quanh', ten: 'Lia quanh vật',     goi: 'như máy quay đi vòng — hợp giá máy chủ' },
-  { id: 'lat-the',   ten: 'Lật mặt rồi lật lại', goi: 'trước / sau khi dùng dịch vụ' },
-];
-
-/**
- * Góc quay tại giây `t`. HÀM THUẦN: cùng `t` luôn ra cùng kết quả.
- *
- * Không đọc `Date.now()`, không giữ biến đếm, không `requestAnimationFrame`.
- * Đây là điều kiện để tua được và để chế độ xuất "vẽ kỹ" ở Giai đoạn 5 chạy được.
- */
-export function gocTai(khoi = {}, t = 0) {
-  const ngang0 = khoi.xoayNgang ?? -28;
-  const doc0 = khoi.xoayDoc ?? 14;
-  const d = khoi.dong || {};
-  const chuKy = Math.max(0.2, d.chuKy || 6);
-  /* `t` âm vẫn phải ra đúng — thanh tua kéo ngược về trước mốc 0 là chuyện thường. */
-  const p = ((((t % chuKy) + chuKy) % chuKy)) / chuKy;
-
-  switch (d.kieu) {
-    case 'xoay-vong':
-      return { ngang: ngang0 + 360 * p, doc: doc0 };
-    case 'lac-nhe':
-      return { ngang: ngang0 + (d.bienDo ?? 22) * Math.sin(2 * Math.PI * p), doc: doc0 };
-    case 'lia-quanh':
-      return { ngang: ngang0 + 360 * p, doc: doc0 + 8 * Math.sin(2 * Math.PI * p) };
-    case 'lat-the': {
-      /* Đi 0 → 180 rồi quay về 0, êm cả hai đầu. */
-      const nua = p < 0.5 ? p * 2 : 2 - p * 2;
-      return { ngang: ngang0 + 180 * muot(nua), doc: doc0 };
-    }
-    default:
-      return { ngang: ngang0, doc: doc0 };
-  }
-}
-
-/* ---------------------------------------------------------------------------
  * BỀ NGANG MỘT MÓN
  *
  * Trước đây đây là "Luật ①": khối không được chiếm quá nửa bề ngang KHUNG PHIM.
@@ -333,4 +288,51 @@ export function beRongChiem(khoi = {}) {
     return Math.hypot(rongNgang, khoi.day ?? 60);
   }
   return Math.hypot(khoi.rong ?? 220, khoi.day ?? 220);
+}
+
+/* ---------------------------------------------------------------------------
+ * KÉO VẬT TRÊN MẶT SÀN
+ *
+ * Chuột đi trên MÀN HÌNH hai chiều, còn vật nằm trong không gian ba chiều. Phải
+ * đổi từ cái này sang cái kia, và đổi theo đúng góc máy quay đang đứng — nếu
+ * không thì xoay máy sang bên rồi kéo sang phải, vật lại chạy về phía sau.
+ *
+ * Quy ước: kéo trên MẶT SÀN (y giữ nguyên). Đó là kiểu dời hay dùng nhất khi
+ * bày cảnh; muốn nâng hạ thì giữ phím Shift, hoặc gõ thẳng con số.
+ *
+ * Phép tính đi ngược đường mà máy quay dựng ra hình:
+ *   quay quanh trục đứng `a` → ngả `b` → phóng `ti`
+ * nên muốn biết chuột đi 1 pixel thì vật phải đi bao nhiêu, cứ giải ngược lại.
+ * ------------------------------------------------------------------------- */
+
+/** Nhìn gần như ngang tầm thì chiều sâu bẹp lại, kéo một pixel vật văng rất xa. */
+export const SIN_TOI_THIEU = 0.18;
+
+/**
+ * Chuột đi (dx, dy) pixel → vật đi bao nhiêu trên mặt sàn.
+ * @returns {{x:number, z:number}}
+ */
+export function keoTrenSan(dx, dy, { ngang = 0, doc = 28, ti = 1 } = {}) {
+  const a = rad(ngang);
+  const t = Math.max(0.02, Math.abs(ti));
+  /* Chặn mẫu số: ngả máy về 0 là mặt sàn nhìn đúng ngang tầm, chiều sâu bẹp
+     thành số 0 và phép chia nổ ra vô cực — vật văng ra ngoài vũ trụ chỉ vì
+     nhích chuột một pixel. */
+  const sb = Math.sin(rad(doc));
+  const sbAn = Math.sign(sb || 1) * Math.max(SIN_TOI_THIEU, Math.abs(sb));
+  const u = dx / t;            // theo chiều ngang màn hình
+  const w = -dy / (t * sbAn);  // theo chiều sâu của sàn
+  return {
+    x: u * Math.cos(a) - w * Math.sin(a),
+    z: u * Math.sin(a) + w * Math.cos(a),
+  };
+}
+
+/** Chuột đi dọc (dy) pixel → vật nâng hạ bao nhiêu. */
+export function keoTheoCao(dy, { doc = 28, ti = 1 } = {}) {
+  const t = Math.max(0.02, Math.abs(ti));
+  const cb = Math.cos(rad(doc));
+  /* Ngả máy tới 90° là nhìn thẳng từ nóc xuống, lúc ấy chiều cao bẹp mất —
+     cùng kiểu bẫy chia-cho-0 như trên, chặn theo cách tương tự. */
+  return -dy / (t * Math.max(SIN_TOI_THIEU, Math.abs(cb)));
 }

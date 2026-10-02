@@ -89,12 +89,6 @@
     font-weight:900;letter-spacing:-.03em;white-space:nowrap;user-select:none;line-height:1}
   .bc-cho.chon .bc-mat{outline:1px solid rgba(49,217,117,.55);outline-offset:-1px}
 
-  /* ---------- thanh dưới ---------- */
-  .tua{display:flex;align-items:center;gap:11px;padding:10px 18px;
-    border-top:1px solid var(--vien);flex:none}
-  .tua input[type=range]{flex:1;accent-color:var(--nhan)}
-  .tua .giay{font-variant-numeric:tabular-nums;color:var(--mo);font-size:12px;min-width:70px;text-align:right}
-
   /* ---------- bên phải ---------- */
   .phai{border-left:1px solid var(--vien);display:flex;flex-direction:column;min-height:0}
   @media (max-width:860px){.phai{border-left:0;border-top:1px solid var(--vien)}}
@@ -175,14 +169,9 @@
            chúng, và trang chết ngay từ lần dựng đầu tiên. -->
       <div id="canh3d" style="position:absolute;inset:0;transform-style:preserve-3d"></div>
       <div id="goc-may"></div>
-      <div id="chi-dan">kéo chuột để xoay · lăn để phóng to thu nhỏ</div>
+      <div id="chi-dan">kéo vật để dời · giữ Shift để nâng hạ · kéo nền để xoay máy · lăn để phóng</div>
     </div>
 
-    <div class="tua">
-      <button id="chay" class="nut chinh" type="button" style="min-width:80px">Chạy</button>
-      <input type="range" id="thanh" min="0" max="8" step="0.02" value="0">
-      <span class="giay" id="giay">0,00 / 8 s</span>
-    </div>
   </div>
 
   <div class="phai">

@@ -10,10 +10,10 @@
  * Nên toàn bộ phép tính nằm ở `bachieu/hinhhoc.js`, không chạm DOM, và bài này
  * đo bằng SỐ.
  *
- * Ba thứ được canh, theo thứ tự quan trọng:
- *   ⑤ Vẽ theo giây — hỏng cái này là mất tua và mất chế độ xuất "vẽ kỹ".
- *   ⑥ Bề ngang    — hỏng cái này là người dùng chỉ biết lúc phim đã giật.
- *   ⑧ Câu chữ     — hỏng cái này là từ kỹ thuật lọt ra màn hình người dùng.
+ * Thứ được canh, theo thứ tự quan trọng:
+ *   ①–④ Hình học và đèn — sai thì "hình nhìn kỳ kỳ", không ai truy ra.
+ *   ⑦b–⑦c Cảnh và độ nặng — hỏng thì món chồng lên nhau, hoặc kéo chuột ì tay.
+ *   ⑧  Câu chữ — hỏng thì từ kỹ thuật lọt ra màn hình người dùng.
  *
  *   node tools/kiem-ba-chieu.mjs
  */
@@ -247,30 +247,60 @@ console.log('\n④ Nhuộm màu theo độ sáng');
     H.mauTheoSang('xanh lá', 0.5) === 'xanh lá');
 }
 
-console.log('\n⑤ LUẬT ② — vẽ theo giây, không theo đồng hồ riêng');
+console.log('\n⑤ Kéo chuột để dời vật — đổi từ màn hình hai chiều sang không gian ba chiều');
 {
-  const k = { xoayNgang: 10, xoayDoc: 5, dong: { kieu: 'xoay-vong', chuKy: 8 } };
-  dat('cùng một giây, gọi hai lần ra đúng một kết quả',
-    JSON.stringify(H.gocTai(k, 3.37)) === JSON.stringify(H.gocTai(k, 3.37)));
-  /* Hết một vòng phải về ĐÚNG chỗ cũ. Lệch một chút thôi là clip lặp bị giật
-     một cái ở mỗi mối nối — rất khó truy vì nó chỉ hiện khi xem đủ lâu. */
-  const vong = (a, b) => gan(((a - b) % 360 + 360) % 360, 0, 1e-9) || gan(((a - b) % 360 + 360) % 360, 360, 1e-9);
-  dat('hết một vòng thì về đúng góc cũ', vong(H.gocTai(k, 8).ngang, H.gocTai(k, 0).ngang));
-  dat('giây 3 và giây 11 trùng nhau (cùng pha)', vong(H.gocTai(k, 11).ngang, H.gocTai(k, 3).ngang));
-  dat('kéo thanh tua về trước mốc 0 vẫn đúng', vong(H.gocTai(k, -2).ngang, H.gocTai(k, 6).ngang));
-  dat('"Đứng im" thì giây nào cũng y hệt', (() => {
-    const d = { xoayNgang: 10, xoayDoc: 5, dong: { kieu: 'dung-im', chuKy: 8 } };
-    return [0, 1.7, 99].every((t) => H.gocTai(d, t).ngang === 10 && H.gocTai(d, t).doc === 5);
-  })());
+  const may = (ngang, doc = 28, ti = 1) => ({ ngang, doc, ti });
+
+  /* Máy nhìn thẳng: kéo sang phải thì vật đi sang phải, không đi đâu khác. */
   {
-    const l = { xoayNgang: 0, xoayDoc: 0, dong: { kieu: 'lat-the', chuKy: 4 } };
-    dat('lật thẻ: đầu vòng úp mặt trước', gan(H.gocTai(l, 0).ngang, 0));
-    dat('lật thẻ: giữa vòng quay đúng 180°', gan(H.gocTai(l, 2).ngang, 180));
-    dat('lật thẻ: cuối vòng lật về như cũ', gan(H.gocTai(l, 4).ngang, 0, 1e-9));
+    const d = H.keoTrenSan(100, 0, may(0));
+    dat('máy nhìn thẳng, kéo phải → vật sang phải', d.x > 0 && gan(d.z, 0, 1e-9),
+      `x ${d.x.toFixed(0)} z ${d.z.toFixed(0)}`);
   }
-  dat('chu kỳ 0 không làm chia cho 0', Number.isFinite(H.gocTai({ dong: { kieu: 'xoay-vong', chuKy: 0 } }, 1).ngang));
-  dat('không khai gì thì vẫn ra góc dùng được',
-    Number.isFinite(H.gocTai().ngang) && Number.isFinite(H.gocTai().doc));
+  /* Đo thật trong trình duyệt: trục +z hiện LÊN TRÊN màn hình. Nên kéo chuột
+     XUỐNG thì z phải GIẢM, có vậy vật mới bám theo ngón tay. Lộn dấu chỗ này
+     là kéo xuống mà vật chạy lên — không ai dùng nổi. */
+  {
+    const d = H.keoTrenSan(0, 100, may(0));
+    dat('kéo chuột xuống → vật đi ra xa, bám theo tay', d.z < 0 && gan(d.x, 0, 1e-9),
+      `z ${d.z.toFixed(0)}`);
+  }
+  /* Xoay máy rồi kéo thì phải đi theo MẮT, không theo trục thế giới. Bỏ qua
+     chuyện này là xoay máy sang bên, kéo sang phải mà vật chạy về phía sau. */
+  {
+    const d = H.keoTrenSan(100, 0, may(90));
+    dat('xoay máy 90° rồi kéo phải → vật đi theo mắt, không theo trục cũ',
+      gan(d.x, 0, 1e-9) && d.z > 0, `x ${d.x.toFixed(0)} z ${d.z.toFixed(0)}`);
+  }
+  /* Kéo đi rồi kéo về đúng chừng ấy thì phải trở lại chỗ cũ. */
+  for (const g of [0, 37, -128, 215]) {
+    const a = H.keoTrenSan(80, 45, may(g)), b = H.keoTrenSan(-80, -45, may(g));
+    dat(`máy ở ${g}°: kéo đi rồi kéo về thì trở lại chỗ cũ`,
+      gan(a.x + b.x, 0, 1e-9) && gan(a.z + b.z, 0, 1e-9));
+  }
+  /* Phóng to gấp đôi thì cùng một quãng chuột phải dời vật ít đi một nửa —
+     không thì phóng to xong kéo nhẹ là vật bay mất khỏi màn hình. */
+  dat('phóng to gấp đôi thì vật dời ít đi một nửa',
+    gan(H.keoTrenSan(100, 0, may(0, 28, 2)).x * 2, H.keoTrenSan(100, 0, may(0, 28, 1)).x, 1e-9));
+
+  /* BẪY CHIA CHO 0: ngả máy về 0 là mặt sàn nhìn đúng ngang tầm, chiều sâu bẹp
+     thành số 0. Không chặn thì nhích một pixel là vật văng ra vô cực. */
+  for (const dc of [0, 0.5, -0.3, 90, -90]) {
+    const d = H.keoTrenSan(10, 10, may(0, dc));
+    dat(`ngả máy ${dc}° vẫn ra số hữu hạn`,
+      Number.isFinite(d.x) && Number.isFinite(d.z) && Math.abs(d.z) < 1e4,
+      `z ${d.z.toFixed(0)}`);
+  }
+  dat('ngả máy 0 thì bị chặn đúng ngưỡng đã khai',
+    gan(Math.abs(H.keoTrenSan(0, 1, may(0, 0)).z), 1 / H.SIN_TOI_THIEU, 1e-9));
+  dat('thu nhỏ hết cỡ cũng không chia cho 0',
+    Number.isFinite(H.keoTrenSan(10, 10, may(0, 28, 0)).x));
+
+  /* Nâng hạ: kéo chuột LÊN thì vật phải LÊN. */
+  dat('Shift + kéo lên → vật nâng lên', H.keoTheoCao(-100, { doc: 28, ti: 1 }) > 0);
+  dat('Shift + kéo xuống → vật hạ xuống', H.keoTheoCao(100, { doc: 28, ti: 1 }) < 0);
+  dat('nhìn thẳng từ nóc xuống cũng không nổ',
+    Number.isFinite(H.keoTheoCao(100, { doc: 90, ti: 1 })));
 }
 
 console.log('\n⑥ Bề ngang một món — dùng để xếp món vào chỗ trống');
@@ -400,10 +430,6 @@ console.log('\n⑦b Cảnh — nhiều món, một máy quay');
      món chìm một nửa xuống đất. */
   dat('món mới đứng trên sàn, không chìm một nửa',
     gan(c.mon[0].vi.y, K.caoTong(c.mon[0]) / 2), `y = ${c.mon[0].vi.y}`);
-  /* Món đứng một mình thì tự quay cho đẹp; trong một cảnh thì KHÔNG — năm món
-     mỗi món quay một kiểu là cảnh thành cái chợ. */
-  dat('món trong cảnh mặc định đứng im', c.mon[0].dong.kieu === 'dung-im');
-
   C.themMon(c, 'tru'); C.themMon(c, 'hop');
   dat('thêm được món', c.mon.length === 3);
   /* Tên trùng phải tự đánh số, không thì danh sách có hai dòng "Hộp" và không
@@ -468,15 +494,12 @@ console.log('\n⑧ Câu chữ — không để lọt tiếng máy ra màn hình'
 
   const loi = [];
   for (const l of K.KHO_LOAI) if (CAM.test(l.ten + ' ' + l.mo)) loi.push(l.ten);
-  for (const d of H.KHO_DONG) if (CAM.test(d.ten + ' ' + d.goi)) loi.push(d.ten);
-  dat('tên loại khối và tên chuyển động sạch tiếng máy', loi.length === 0, loi.join(', '));
+  dat('tên loại khối sạch tiếng máy', loi.length === 0, loi.join(', '));
 
   dat('loại khối nào cũng có câu giải thích cho người đọc',
     K.KHO_LOAI.every((l) => l.mo && l.mo.length > 12));
-  dat('chuyển động nào cũng nói rõ dùng khi nào',
-    H.KHO_DONG.every((d) => d.goi && d.goi.length > 10));
   dat('tên nào cũng là tiếng Việt có dấu',
-    [...K.KHO_LOAI, ...H.KHO_DONG].every((x) => /[àáạảãăâêôơưđèéẹẻíìỉòóõốồổúùụưứừử]/i.test(x.ten + x.mo + (x.goi || ''))));
+    K.KHO_LOAI.every((x) => /[àáạảãăâêôơưđèéẹẻíìỉòóõốồổúùụưứừử]/i.test(x.ten + x.mo)));
 
   /* Chữ hiện trên trang: bóc hết thẻ, bỏ phần style và script. */
   const html = readFileSync(path.join(M, 'bachieu', 'index.html'), 'utf8')
