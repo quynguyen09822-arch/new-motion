@@ -148,71 +148,89 @@ export function boCuc(khoi = {}) {
       ] };
 
     case 'nhan-vat': {
-      /* LINH VẬT GHÉP TỪ KHỐI CƠ BẢN.
+      /* LINH VẬT MẮT BÃO — ghép từ khối cơ bản.
        *
-       * Nói thẳng điều này ra: đây KHÔNG phải bản sao của hình gốc. Hình gốc là
-       * mặt cong hữu cơ, thứ mà ghép mặt phẳng không nặn lại được. Đây là bản
-       * 3D kiểu ĐỒ CHƠI — giữ đúng tỉ lệ, dáng và màu, nên nhận ra ngay là ai,
-       * nhưng mềm mại thì không bằng.
+       * KHÔNG phải bản sao của hình gốc; hình gốc là bản dựng mặt cong hữu cơ.
+       * Đây là bản kiểu đồ chơi. Nhưng lần dựng đầu nhìn ra "quả bóng đỏ" chứ
+       * không ra người đội mũ, vì thiếu ba thứ — nay đã có:
        *
-       * Tỉ lệ chibi: đầu chiếm gần một nửa chiều cao. Đo từ ảnh gốc chứ không
-       * ước lượng — sai tỉ lệ đầu/thân là mất ngay cái "dễ thương".
+       *   · MŨ TRÙM KHOÉT LỖ (`khoet`). Cầu kín thì mặt đặt bên trong bị che
+       *     sạch, muốn thấy mặt phải đẩy nó thò ra — và thế là thành quả bóng.
+       *     Khoét 36° thì vành mũ ôm lấy khuôn mặt, đúng dáng gốc.
+       *   · BẦU DỤC (`phong`). Hình gốc không có khối nào tròn đều: đầu bẹt,
+       *     mặt bè ngang, thân thon trên phình dưới.
+       *   · XOAY TỪNG BỘ PHẬN (`xoay`). Áo choàng phải rủ và xoè ra sau; không
+       *     xoay được thì nó chìa ngang như hai tấm ván.
        *
-       * Số mặt chia theo ĐỘ TO TRÊN MÀN HÌNH, không chia đều: mũ trùm 12×7 vì
-       * nó to nhất, con mắt 7×4 vì chia mịn hơn cũng không ai thấy, chỉ tốn thẻ.
+       * TOẠ ĐỘ ĐO TỪ ẢNH GỐC rồi quy đổi, không ước lượng bằng mắt: ảnh 800px,
+       * lấy đáy giày làm mốc rồi dời tâm về giữa người. Sai tỉ lệ đầu/thân là
+       * mất ngay cái "dễ thương", mà nhìn thì không chỉ ra được sai ở đâu.
        */
       const M = MAU_LINH_VAT;
       const k = khoi.co ?? 1;
-      const C = (x, y, z, ban, mau, vong, tang, pha) =>
-        ({ id: `c${x}-${y}-${ban}`, hinh: 'cau', x: x * k, y: y * k, z: z * k,
-          ban: ban * k, vong, tang, mauRieng: mau, ...(pha ? { pha } : null) });
-      const T = (id, x, y, z, ban, cao, mau, vong) =>
-        ({ id, hinh: 'tru', x: x * k, y: y * k, z: z * k,
-          ban: ban * k, cao: cao * k, soMat: vong, mauRieng: mau });
-      const H = (id, x, y, z, rong, cao, day, mau, chu, mauChu) =>
-        ({ id, hinh: 'hop', x: x * k, y: y * k, z: z * k,
-          rong: rong * k, cao: cao * k, day: day * k, mauRieng: mau,
-          ...(chu ? { chuMat: { truoc: chu }, mauChu: mauChu || null } : null) });
+      /* cầu: tâm, bán kính, màu, độ chia, rồi bóp/xoay/khoét nếu cần */
+      const C = (id, x, y, z, ban, mau, vong, tang, them = {}) =>
+        ({ id, hinh: 'cau', x: x * k, y: y * k, z: z * k, ban: ban * k,
+          vong, tang, mauRieng: mau, ...them });
+      const T = (id, x, y, z, ban, cao, mau, vong, them = {}) =>
+        ({ id, hinh: 'tru', x: x * k, y: y * k, z: z * k, ban: ban * k,
+          cao: cao * k, soMat: vong, mauRieng: mau, ...them });
+      const H = (id, x, y, z, rong, cao, day, mau, them = {}) =>
+        ({ id, hinh: 'hop', x: x * k, y: y * k, z: z * k, rong: rong * k,
+          cao: cao * k, day: day * k, mauRieng: mau, ...them });
 
       return { kieu: 'hop', khoiCon: [
-        /* --- áo choàng: dựng TRƯỚC để nó nằm sau lưng trong thứ tự vẽ --- */
-        H('choang-trai', -140, -96, -98, 156, 282, 14, M.xanhDen),
-        H('choang-phai', 140, -96, -98, 156, 282, 14, M.xanhDen),
+        /* --- ÁO CHOÀNG: dựng TRƯỚC để nằm sau lưng trong thứ tự vẽ.
+               Hai tà rủ xuống, nghiêng ra ngoài và vẹt về sau. --- */
+        H('choang-trai', -74, -196, -84, 118, 272, 8, M.xanhDen,
+          { bo: 55, xoay: { ngang: 48, lan: -16 } }),
+        H('choang-phai', 74, -196, -84, 118, 272, 8, M.xanhDen,
+          { bo: 55, xoay: { ngang: -48, lan: 16 } }),
 
-        /* --- chân và giày --- */
-        T('chan-trai', -52, -208, 0, 30, 104, M.doChan, 10),
-        T('chan-phai', 52, -208, 0, 30, 104, M.doChan, 10),
-        H('giay-trai', -56, -276, 14, 88, 58, 118, M.xanhDen),
-        H('giay-phai', 56, -276, 14, 88, 58, 118, M.xanhDen),
+        /* --- CHÂN VÀ GIÀY --- */
+        T('chan-trai', -33, -275, 0, 22, 62, M.doChan, 10),
+        T('chan-phai', 33, -275, 0, 22, 62, M.doChan, 10),
+        H('giay-trai', -38, -322, 18, 74, 56, 96, M.xanhDen, { bo: 14 }),
+        H('giay-phai', 38, -322, 18, 74, 56, 96, M.xanhDen, { bo: 14 }),
 
-        /* --- thân --- */
-        C(0, -118, 0, 108, M.doTuoi, 14, 8),          // bụng dưới, đỏ tươi
-        C(0, -36, 0, 130, M.doSam, 16, 9),            // ngực, đỏ sẫm
-        T('that-lung', 0, -74, 0, 124, 26, M.thatLung, 20),
-        H('khoa', 0, -74, 118, 52, 38, 14, M.vang),
-        /* Dấu xoáy trên ngực: đặt bằng CHỮ trên một tấm mỏng, không vẽ hình —
-           vẽ xoáy bằng mặt phẳng thì tốn cả trăm thẻ cho một chi tiết bé. */
-        H('dau-nguc', 0, -14, 132, 78, 78, 4, M.doSam, '◉', '#FFFFFF'),
+        /* --- THÂN: thon trên, phình dưới. Một quả cầu duy nhất thì ra hình
+               thùng; hai quả bóp khác nhau mới ra dáng. --- */
+        C('bung', 0, -208, 0, 112, M.doTuoi, 16, 10, { phong: [1.02, 0.56, 0.88] }),
+        C('nguc', 0, -100, 0, 112, M.doSam, 18, 11, { phong: [0.98, 0.70, 0.90] }),
+        T('that-lung', 0, -178, 0, 110, 26, M.thatLung, 22),
+        H('khoa', 0, -178, 100, 48, 26, 12, M.vang, { bo: 18 }),
+        /* Dấu xoáy: đĩa trắng mỏng áp lên ngực. */
+        T('dau-nguc', 0, -112, 100, 28, 7, '#FFFFFF', 22, { xoay: { doc: 90 } }),
 
-        /* --- tay --- */
-        C(-152, -20, 10, 46, M.xanhDen, 10, 6),
-        C(152, -20, 10, 46, M.xanhDen, 10, 6),
+        /* --- TAY: găng đen tròn hai bên --- */
+        C('gang-trai', -126, -150, 14, 36, M.xanhDen, 11, 7, { phong: [0.95, 1.12, 1] }),
+        C('gang-phai', 126, -150, 14, 36, M.xanhDen, 11, 7, { phong: [0.95, 1.12, 1] }),
 
-        /* --- đầu --- */
-        C(0, 150, 0, 150, M.doTuoi, 18, 10),           // mũ trùm
-        C(-146, 146, -6, 46, M.doTuoi, 10, 6),         // chụp tai trái
-        C(146, 146, -6, 46, M.doTuoi, 10, 6),          // chụp tai phải
-        C(0, 124, 62, 104, M.da, 16, 10),              // mặt, đẩy ra trước
-        C(-40, 150, 142, 33, M.trangMat, 10, 6),
-        C(40, 150, 142, 33, M.trangMat, 10, 6),
-        C(-43, 146, 167, 15, M.trongMat, 8, 5),
-        C(43, 146, 167, 15, M.trongMat, 8, 5),
-        H('may-trai', -44, 182, 130, 62, 14, 9, M.longMay),
-        H('may-phai', 44, 182, 130, 62, 14, 9, M.longMay),
+        /* --- MŨ TRÙM: bầu dục bè ngang, KHOÉT LỖ phía trước --- */
+        C('mu', 0, 118, 0, 190, M.doTuoi, 30, 17,
+          { phong: [1.14, 0.92, 1.0], khoet: 45 }),
+        C('chup-tai-trai', -206, 78, -6, 54, M.doTuoi, 12, 8, { phong: [0.78, 1.05, 0.95] }),
+        C('chup-tai-phai', 206, 78, -6, 54, M.doTuoi, 12, 8, { phong: [0.78, 1.05, 0.95] }),
 
-        /* --- chóp mũ --- */
-        T('can-chop', 0, 322, 0, 5, 42, M.doTuoi, 8),
-        C(0, 352, 0, 16, M.doTuoi, 8, 5),
+        /* --- KHUÔN MẶT: bầu dục bè ngang, nằm GỌN trong lỗ mũ --- */
+        C('mat', 0, 106, 88, 128, M.da, 22, 14, { phong: [1.17, 0.94, 0.80] }),
+
+        /* --- MẮT: to, chiếm gần hết bề ngang mặt — đây là nét nhận dạng
+               mạnh nhất của linh vật, lần trước tôi làm bé quá. --- */
+        C('mat-trai', -90, 98, 161, 50, M.trangMat, 14, 10, { phong: [0.9, 1.06, 0.45] }),
+        C('mat-phai', 90, 98, 161, 50, M.trangMat, 14, 10, { phong: [0.9, 1.06, 0.45] }),
+        C('trong-trai', -82, 94, 185, 27, M.trongMat, 12, 8, { phong: [1, 1, 0.38] }),
+        C('trong-phai', 82, 94, 185, 27, M.trongMat, 12, 8, { phong: [1, 1, 0.38] }),
+
+        /* --- LÔNG MÀY: dày, cau vào trong (đuôi trong thấp hơn) --- */
+        H('may-trai', -82, 166, 150, 92, 20, 12, M.longMay,
+          { bo: 40, xoay: { lan: 13 } }),
+        H('may-phai', 82, 166, 150, 92, 20, 12, M.longMay,
+          { bo: 40, xoay: { lan: -13 } }),
+
+        /* --- CHÓP MŨ --- */
+        T('can-chop', 0, 268, 0, 5, 54, M.doTuoi, 8),
+        C('chop', 0, 303, 0, 17, M.doTuoi, 10, 6),
       ] };
     }
 

@@ -40,6 +40,31 @@ function lamLai() {
   veBang();
 }
 
+/**
+ * Dựng lại HÌNH nhưng GIỮ NGUYÊN bảng vặn.
+ *
+ * VÌ SAO CÓ HÀM NÀY. Vặn một núm hình dạng thì phải dựng lại khối — nhưng
+ * `lamLai()` dựng lại cả bảng vặn, nghĩa là đập chính cái núm đang cầm đi rồi
+ * tạo lại cái mới. Hậu quả: kéo thanh trượt được một nhịp là đứt tay, gõ chữ
+ * được một ký tự là rớt con trỏ.
+ *
+ * Trước đó chỗ này được vá bằng cách NHỚ ô đang gõ rồi trả con trỏ về sau khi
+ * dựng lại. Vá ấy chữa được ô gõ chữ, nhưng thanh trượt vẫn đứt: con trỏ rơi
+ * về `body` ngay từ cú bấm xuống, trước cả lúc có gì để nhớ. Đo được bằng
+ * chuột thật.
+ *
+ * Nên chữa đúng gốc: ĐỪNG ĐẬP BẢNG. Bảng chỉ cần dựng lại khi đổi món đang
+ * chọn hoặc đổi danh sách — vặn núm thì không. Thứ duy nhất trong bảng đổi
+ * theo hình dạng là con số đếm mảnh và lời nhắc nặng, nên cập nhật riêng hai
+ * thứ đó tại chỗ.
+ */
+function lamLaiHinh() {
+  dat = dungCanh(oCanh, canh);
+  veLai();
+  veDanhSach();
+  capNhatDem();
+}
+
 /** Vẽ lại thôi — đổi máy quay, màu, đèn thì không cần dựng lại thẻ. */
 function veLai() {
   if (!dat) return;
@@ -290,14 +315,27 @@ const NUM_THEO_LOAI = {
   'nhan-vat': [['co', 'Độ lớn', 0.3, 2, 0.05]],
 };
 
-function oTruot(nhan, gtri, min, max, buoc, khiDoi, goi, khoa) {
+/**
+ * KHOÁ TỰ SINH TỪ NHÃN khi chỗ gọi không khai.
+ *
+ * Bảng vặn dựng lại mỗi lần cảnh đổi hình, nên mọi ô phải có khoá để tìm lại
+ * và trả con trỏ về đúng chỗ. Bắt chỗ gọi tự khai thì sớm muộn có người quên —
+ * và đã quên thật: núm "Bo góc" thiếu khoá, kéo nó là con trỏ rơi về `body`,
+ * thanh kéo đứt giữa chừng. Lỗi ấy không nổ, không báo, chỉ khó chịu.
+ *
+ * Sinh từ nhãn thì KHÔNG THỂ quên: nhãn nào cũng có, và trong một bảng thì
+ * nhãn không trùng nhau.
+ */
+const khoaTuNhan = (nhan) => 'n-' + String(nhan).trim().toLowerCase().replace(/\s+/g, '-');
+
+function oTruot(nhan, gtri, min, max, buoc, khiDoi, goi, khoa = khoaTuNhan(nhan)) {
   const o = el('div', 'o');
   const trai = el('div');
   trai.appendChild(el('label', null, nhan));
   if (goi) trai.appendChild(el('small', 'goi', goi));
   const i = document.createElement('input');
   Object.assign(i, { type: 'range', min, max, step: buoc, value: gtri });
-  if (khoa) i.dataset.khoa = khoa;
+  i.dataset.khoa = khoa;
   const so = el('span', 'giay', String(gtri));
   i.oninput = () => { so.textContent = i.value; khiDoi(Number(i.value)); };
   const phai = el('div');
@@ -307,12 +345,12 @@ function oTruot(nhan, gtri, min, max, buoc, khiDoi, goi, khoa) {
   return o;
 }
 
-function oChu(nhan, gtri, khiDoi, khoa) {
+function oChu(nhan, gtri, khiDoi, khoa = khoaTuNhan(nhan)) {
   const o = el('div', 'o');
   o.appendChild(el('label', null, nhan));
   const i = document.createElement('input');
   Object.assign(i, { type: 'text', value: gtri ?? '' });
-  if (khoa) i.dataset.khoa = khoa;
+  i.dataset.khoa = khoa;
   i.style.width = '130px';
   i.oninput = () => khiDoi(i.value);
   o.appendChild(i);
@@ -351,14 +389,12 @@ function veBang() {
   const m = monChon();
 
   /* --- nhắc về độ nặng của cảnh --- */
-  const nhac = soatCanh(canh, boCuc);
-  if (nhac.length) {
-    const n = el('div', null, nhac[0]);
-    n.style.cssText = 'font-size:12px;line-height:1.5;color:#ffd0a8;'
-      + 'background:rgba(255,122,47,.09);border:1px solid rgba(255,122,47,.3);'
-      + 'border-radius:9px;padding:9px 11px;margin-bottom:14px';
-    bang.appendChild(n);
-  }
+  const n = el('div');
+  n.id = 'nhac-nang';
+  n.style.cssText = 'font-size:12px;line-height:1.5;color:#ffd0a8;'
+    + 'background:rgba(255,122,47,.09);border:1px solid rgba(255,122,47,.3);'
+    + 'border-radius:9px;padding:9px 11px;margin-bottom:14px';
+  bang.appendChild(n);
 
   if (m) {
     /* ① chỗ đứng */
@@ -375,7 +411,7 @@ function veBang() {
     m2.appendChild(oTruot('Nghiêng (bóp méo)', m.nghieng ?? 0, -45, 45, 1,
       (v) => { m.nghieng = v; veLai(); }, 'xô lệch cả khối như xô một chồng sách'));
     m2.appendChild(oTruot('Bo góc', m.bo ?? 0, 0, 100, 1,
-      (v) => { m.bo = v; lamLai(); },
+      (v) => { m.bo = v; lamLaiHinh(); },
       '0 là góc vuông, 100 là bo hết mức còn nhìn đặc — không ăn vào món tròn'));
     bang.appendChild(m2);
 
@@ -385,19 +421,19 @@ function veBang() {
       if (khoa === 'cotChu') {
         m3.appendChild(oChu(nhan, (m.cot || []).join(', '), (v) => {
           const so = v.split(',').map((x) => Number(x.trim())).filter(Number.isFinite);
-          if (so.length) { m.cot = so.slice(0, 12); lamLai(); }
+          if (so.length) { m.cot = so.slice(0, 12); lamLaiHinh(); }
         }, 'cotChu'));
       } else if (khoa === 'nhanChu') {
         m3.appendChild(oChu(nhan, (m.nhan || []).join(', '),
-          (v) => { m.nhan = v.split(',').map((x) => x.trim()); lamLai(); }, 'nhanChu'));
+          (v) => { m.nhan = v.split(',').map((x) => x.trim()); lamLaiHinh(); }, 'nhanChu'));
       } else if (min == null) {
-        m3.appendChild(oChu(nhan, m[khoa], (v) => { m[khoa] = v; lamLai(); }, khoa));
+        m3.appendChild(oChu(nhan, m[khoa], (v) => { m[khoa] = v; lamLaiHinh(); }, khoa));
       } else if (khoa === 'canh') {
         m3.appendChild(oTruot(nhan, m.rong, min, max, buoc,
-          (v) => { m.rong = m.cao = m.day = v; lamLai(); }, null, 'canh'));
+          (v) => { m.rong = m.cao = m.day = v; lamLaiHinh(); }, null, 'canh'));
       } else {
         m3.appendChild(oTruot(nhan, m[khoa], min, max, buoc,
-          (v) => { m[khoa] = v; lamLai(); }, null, khoa));
+          (v) => { m[khoa] = v; lamLaiHinh(); }, null, khoa));
       }
     }
     bang.appendChild(m3);
@@ -427,11 +463,11 @@ function veBang() {
   m5.appendChild(oTruot('Độ mở ống kính', canh.may.xa, 700, 6000, 50,
     (v) => { canh.may.xa = v; san.style.perspective = v + 'px'; veLai(); },
     'số nhỏ thì phối cảnh mạnh, vật gần phình to', 'mayXa'));
-  const dem = el('p', 'trong',
-    `${canh.mon.filter((x) => !x.an).length} món · `
-    + `${canh.mon.filter((x) => !x.an).reduce((s, x) => s + soMatMon(x, boCuc), 0).toLocaleString('vi')} mảnh`);
+  const dem = el('p', 'trong');
+  dem.id = 'dem-manh';
   m5.appendChild(dem);
   bang.appendChild(m5);
+  capNhatDem();
 
   if (activeKhoa) {
     const elToFocus = bang.querySelector(`[data-khoa="${CSS.escape(activeKhoa)}"]`);
@@ -441,6 +477,20 @@ function veBang() {
         try { elToFocus.setSelectionRange(selStart, selEnd); } catch (_) {}
       }
     }
+  }
+}
+
+/** Cập nhật con số và lời nhắc TẠI CHỖ — không đập bảng. */
+function capNhatDem() {
+  const hien = canh.mon.filter((x) => !x.an);
+  const mat = hien.reduce((s, x) => s + soMatMon(x, boCuc), 0);
+  const d = document.getElementById('dem-manh');
+  if (d) d.textContent = `${hien.length} món · ${mat.toLocaleString('vi')} mảnh`;
+  const n = document.getElementById('nhac-nang');
+  if (n) {
+    const nhac = soatCanh(canh, boCuc);
+    n.textContent = nhac[0] || '';
+    n.style.display = nhac.length ? '' : 'none';
   }
 }
 

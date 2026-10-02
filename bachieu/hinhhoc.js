@@ -105,11 +105,16 @@ export function matCuaTru({ ban = 110, cao = 240, soMat = 24 } = {}) {
  * vì các bộ phận luôn cắm vào nhau che mất cực — và bịt cực tử tế thì phải
  * dựng ô tam giác, tức thêm một nhánh vẽ chỉ để lo hai cái chấm.
  */
-export function matCuaCau({ ban = 100, vong = 12, tang = 8 } = {}) {
+export function matCuaCau({ ban = 100, vong = 12, tang = 8, khoet = 0 } = {}) {
   const N = Math.max(4, Math.min(32, Math.round(vong)));
   const M = Math.max(2, Math.min(20, Math.round(tang)));
   const mat = [];
   const caoVanh = 2 * ban * Math.sin(Math.PI / (2 * M)) + 1;
+  /* KHOÉT MỘT LỖ ở mặt trước — bỏ những ô hướng về phía người xem.
+     Đây là thứ biến quả cầu thành cái MŨ TRÙM: không khoét thì cầu kín, khuôn
+     mặt đặt bên trong bị che sạch, và muốn thấy mặt thì phải đẩy nó thò ra —
+     lúc ấy nhân vật thành quả bóng chứ không ra người đội mũ. */
+  const cosKhoet = khoet > 0 ? Math.cos(rad(Math.min(88, khoet))) : 2;
   for (let j = 0; j < M; j++) {
     /* Tâm vành, tính theo độ cao so với xích đạo: +90 là đỉnh, -90 là đáy. */
     const e = 90 - (180 * (j + 0.5)) / M;
@@ -118,10 +123,12 @@ export function matCuaCau({ ban = 100, vong = 12, tang = 8 } = {}) {
     for (let i = 0; i < N; i++) {
       const g = (i * 360) / N;
       const a = rad(g), b = rad(e);
+      const n = [Math.cos(b) * Math.sin(a), -Math.sin(b), Math.cos(b) * Math.cos(a)];
+      if (n[2] > cosKhoet) continue;        // ô này nằm trong lỗ khoét
       mat.push({
         id: `o-${j}-${i}`,
         /* Khớp đúng thứ tự CSS bên dưới: rotateY rồi rotateX rồi đẩy ra. */
-        n: [Math.cos(b) * Math.sin(a), -Math.sin(b), Math.cos(b) * Math.cos(a)],
+        n,
         w: rongO, h: caoVanh,
         bien: `rotateY(${g}deg) rotateX(${e}deg) translateZ(${ban}px)`,
       });

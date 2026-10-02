@@ -152,6 +152,37 @@ trắng. Bài kiểm dựng thử cả 8 loại, kể cả khi AI chỉ khai m�
 
 ---
 
+## Vặn núm thì đừng đập bảng vặn
+
+`lamLai()` dựng lại cả bảng, nên vặn một núm là **đập chính cái núm đang cầm**
+rồi tạo cái mới: kéo thanh trượt được một nhịp là đứt tay, gõ chữ được một ký
+tự là rớt con trỏ.
+
+Chỗ này từng được vá bằng cách **nhớ ô đang gõ rồi trả con trỏ về** sau khi
+dựng lại. Vá ấy chữa được ô gõ chữ, nhưng **thanh trượt vẫn đứt**: đo bằng
+chuột thật thì con trỏ rơi về `body` ngay từ cú bấm xuống — trước cả lúc có gì
+để nhớ.
+
+Nên chữa đúng gốc — tách làm hai:
+
+| Hàm | Làm gì | Dùng khi |
+|---|---|---|
+| `lamLai()` | dựng lại hình **và** bảng vặn | đổi món đang chọn, thêm/xoá món |
+| `lamLaiHinh()` | dựng lại hình, **giữ nguyên bảng** | vặn núm, gõ chữ |
+
+Con số đếm mảnh và lời nhắc cảnh nặng cập nhật **tại chỗ** (`capNhatDem`), chứ
+không phải dựng lại cả bảng mới thấy.
+
+Khoá nhận diện ô nhập **sinh tự động từ nhãn**. Bắt mỗi chỗ gọi tự khai thì sớm
+muộn có người quên — và đã quên thật ở đúng núm "Bo góc".
+
+Mục ⑦d của bài kiểm canh LUẬT chứ không canh một núm: *hàm chạy khi người dùng
+đang cầm một núm thì không được gọi `lamLai`*. Nó quét mọi chỗ gọi
+`oTruot`/`oChu`, đếm ngoặc để lấy đúng khối thân hàm. Đã thử bẻ 5 kiểu, bắt
+được cả 5.
+
+---
+
 ## Tám loại khối
 
 | Loại | Dùng khi |
@@ -242,7 +273,7 @@ dáng** — một con số đứng yên, không phải chuyển động theo th�
 node tools/kiem-ba-chieu.mjs     # hoặc: npm run kiem -- ba-chieu
 ```
 
-Mười mục. Đã **thử bẻ gãy 10 kiểu** để chắc không có mục nào xanh dễ dãi — và
+Mười hai mục. Đã **thử bẻ gãy 15 kiểu** để chắc không có mục nào xanh dễ dãi — và
 lần thử ấy bắt được một chỗ xanh giả thật: mọi phép thử pháp tuyến đều dùng
 vector có `x = 0`, nên một lỗi đảo dấu ở đúng số hạng chứa `x` thì không ai
 thấy. Nay đã có phép thử "quay đi rồi quay về phải trở lại chỗ cũ".

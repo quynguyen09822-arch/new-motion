@@ -408,12 +408,28 @@ console.log('\n⑦ Bố cục năm loại khối');
       && trai.every((t) => phai.some((f) => gan(f.x, -t.x) && gan(f.y, t.y) && gan(f.ban, t.ban))),
       `${trai.length} bên trái / ${phai.length} bên phải`);
     /* Mặt phải NẰM TRONG mũ trùm. Lọt ra ngoài là mất hẳn dáng mũ. */
-    dat('nhân vật: khuôn mặt nằm gọn trong mũ trùm', (() => {
-      const mu = con.find((c) => c.mauRieng === K.MAU_LINH_VAT.doTuoi && c.ban > 150);
-      const mt = con.find((c) => c.mauRieng === K.MAU_LINH_VAT.da);
+    /* Tìm bộ phận bằng TÊN, không bằng màu + kích thước. Bản trước dò "màu đỏ
+       tươi và bán kính > 150" để lấy mũ trùm — rồi cái BỤNG lớn lên và cũng
+       lọt vào điều kiện đó, nên phép kiểm so nhầm mặt với bụng và đỏ oan. */
+    const bo = Object.fromEntries(con.map((c) => [c.id, c]));
+    dat('nhân vật: khuôn mặt nằm gọn trong lỗ mũ trùm', (() => {
+      const mu = bo.mu, mt = bo.mat;
       if (!mu || !mt) return false;
-      return mt.ban < mu.ban && Math.abs(mt.y - mu.y) < mu.ban;
+      /* Lỗ khoét rộng bao nhiêu, và khuôn mặt có lấp vừa không. Mặt to hơn lỗ
+         thì đâm xuyên qua vành mũ; bé quá thì hở, nhìn thấu vào trong đầu. */
+      const lo = mu.ban * Math.sin((mu.khoet * Math.PI) / 180) * (mu.phong?.[0] ?? 1);
+      const rongMat = mt.ban * (mt.phong?.[0] ?? 1);
+      return rongMat <= lo && rongMat > lo * 0.8;
+    })(), (() => {
+      const lo = bo.mu.ban * Math.sin((bo.mu.khoet * Math.PI) / 180) * bo.mu.phong[0];
+      return `lỗ rộng ${Math.round(lo)}, mặt rộng ${Math.round(bo.mat.ban * bo.mat.phong[0])}`;
     })());
+    /* Mắt phải nằm TRƯỚC khuôn mặt, không chìm vào trong. Chìm thì nhìn thẳng
+       vẫn thấy lờ mờ nhưng xoay ngang là biến mất — đã sập đúng kiểu này. */
+    dat('nhân vật: mắt nổi trước khuôn mặt', (() => {
+      const mat = bo.mat, m1 = bo['mat-trai'], tr = bo['trong-trai'];
+      return m1.z > mat.z && tr.z > m1.z;
+    })(), `mặt z=${Math.round(bo.mat.z)} · mắt z=${Math.round(bo['mat-trai'].z)} · tròng z=${Math.round(bo['trong-trai'].z)}`);
   }
   dat('thẻ lật thì mỏng, không thành hộp', K.boCuc(K.khoiMoi('the-lat')).khoiCon[0].day <= 16);
   dat('logo khối đặt dấu hiệu lên cả sáu mặt',
@@ -486,6 +502,53 @@ console.log('\n⑦c Luật MỚI thay luật khung phim: đếm mảnh, không �
   /* Món bị ẩn thì không vẽ, nên không được tính vào độ nặng. */
   for (const m of c.mon) if (m.loai === 'nhan-vat') m.an = true;
   dat('món đang ẩn thì không tính vào độ nặng', C.soatCanh(c, K.boCuc).length === 0);
+}
+
+console.log('\n⑦d Vặn núm thì ĐỪNG đập bảng vặn');
+{
+  /* LỖI ĐÃ XẢY RA THẬT. `lamLai()` dựng lại cả bảng vặn, nên vặn một núm là
+     đập chính cái núm đang cầm rồi tạo cái mới: kéo thanh trượt được một nhịp
+     là đứt tay, gõ chữ được một ký tự là rớt con trỏ.
+     Đo bằng chuột thật: kéo núm "Bo góc" thì `document.activeElement` rơi về
+     `body` ngay từ cú bấm xuống. Lỗi không nổ, không báo, chỉ khó chịu — nên
+     canh bằng máy, không trông vào việc nhớ.
+     Luật: hàm chạy khi người dùng ĐANG CẦM một núm thì không được gọi `lamLai`. */
+  const src = readFileSync(path.join(M, 'bachieu', 'giaodien.js'), 'utf8');
+
+  dat('có hàm dựng lại hình mà giữ bảng', /function lamLaiHinh\(/.test(src));
+  /* Và nó KHÔNG được đụng tới bảng vặn. */
+  const than = src.slice(src.indexOf('function lamLaiHinh('));
+  dat('hàm ấy không dựng lại bảng vặn',
+    !/veBang\(\)/.test(than.slice(0, than.indexOf('\n}'))));
+
+  /* Quét mọi chỗ gọi `oTruot(`/`oChu(`: thân hàm gọi lại không được chứa
+     `lamLai()`. Đếm ngoặc để lấy đúng khối, không cắt theo dòng. */
+  const xau = [];
+  for (const m of src.matchAll(/\b(oTruot|oChu)\(/g)) {
+    let i = m.index + m[0].length, sau = 1;
+    while (i < src.length && sau > 0) {
+      if (src[i] === '(') sau++;
+      else if (src[i] === ')') sau--;
+      i++;
+    }
+    const khoi = src.slice(m.index, i);
+    if (/\blamLai\(\)/.test(khoi)) {
+      xau.push(khoi.slice(0, 48).replace(/\s+/g, ' '));
+    }
+  }
+  dat('không núm nào đập bảng khi đang được vặn', xau.length === 0, xau.join(' | '));
+
+  /* Con số đếm mảnh phải cập nhật TẠI CHỖ, không phải dựng lại cả bảng mới
+     thấy — nếu không thì vặn núm xong con số đứng im và người dùng hết tin. */
+  dat('con số đếm mảnh cập nhật tại chỗ', /function capNhatDem\(/.test(src)
+    && /getElementById\('dem-manh'\)/.test(src));
+  dat('lời nhắc nặng cũng cập nhật tại chỗ', /getElementById\('nhac-nang'\)/.test(src));
+
+  /* Mọi ô nhập đều phải có khoá để tìm lại được. Sinh từ nhãn nên không quên
+     được — bắt chỗ gọi tự khai thì đã quên một lần rồi. */
+  dat('khoá ô nhập sinh tự động từ nhãn', /const khoaTuNhan = /.test(src));
+  dat('không còn chỗ nào khai khoá kiểu "có thì mới gán"',
+    !/if \(khoa\) i\.dataset\.khoa/.test(src));
 }
 
 console.log('\n⑧ Câu chữ — không để lọt tiếng máy ra màn hình');

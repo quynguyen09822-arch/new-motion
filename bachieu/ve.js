@@ -63,8 +63,21 @@ export function dung(cha, khoi) {
   }
 
   for (const con of bc.khoiCon) {
+    /* BA PHÉP cho từng bộ phận, và thứ tự quan trọng: dời tới chỗ → xoay →
+       bóp. Bóp trước khi xoay thì khối bị méo theo trục đã quay, ra hình kỳ
+       quặc không ai đoán được.
+       · `xoay` — để áo choàng rủ xuống chứ không chìa ngang như tấm ván, để
+         lông mày cau lại.
+       · `phong` — bóp quả cầu thành BẦU DỤC. Đây là thứ thiếu nhất: đầu, thân,
+         khuôn mặt của linh vật đều là bầu dục, không cái nào tròn đều. Bóp cả
+         cụm thì rẻ hơn nhiều so với sinh riêng hình bầu dục, và mắt không phân
+         biệt được. */
+    const x = con.xoay || null;
+    const ph = con.phong || null;
     const hop = the('bc-hop', {
-      transform: `translate3d(${con.x}px, ${-con.y}px, ${con.z}px)`,
+      transform: `translate3d(${con.x}px, ${-con.y}px, ${con.z}px)`
+        + (x ? ` rotateY(${x.ngang || 0}deg) rotateX(${x.doc || 0}deg) rotateZ(${x.lan || 0}deg)` : '')
+        + (ph ? ` scale3d(${ph[0]}, ${ph[1]}, ${ph[2]})` : ''),
     });
     /* Hộp, ống trụ hay khối cầu — chỉ khác nhau ở BỘ MẶT. Phần dựng thẻ, chiếu
        đèn và nhuộm màu dùng chung hết, nên thêm hình mới chỉ là thêm một hàm
