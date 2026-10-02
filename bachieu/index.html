@@ -3,44 +3,83 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Xưởng khối nổi — Motion</title>
+<title>Xưởng 3D — Motion</title>
 <style>
   :root{
-    --nen:#0b0d12; --tam:#141821; --vien:#242b39; --chu:#e8ecf3; --mo:#8b95a8;
-    --nhan:#FF7A2F; --do:#ff5d5d;
+    --nen:#101216; --san:#3d4046; --tam:#191c22; --vien:#2b303a; --chu:#e8ecf3;
+    --mo:#8b95a8; --nhan:#FF7A2F; --chon:#31d975;
     --font:'Be Vietnam Pro',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   }
   *{box-sizing:border-box}
+  html,body{height:100%}
   body{margin:0;background:var(--nen);color:var(--chu);font-family:var(--font);
-    display:grid;grid-template-columns:1fr 340px;height:100vh;overflow:hidden}
-  @media (max-width:880px){body{grid-template-columns:1fr;grid-template-rows:1fr auto;overflow:auto;height:auto}}
+    display:grid;grid-template-columns:1fr 322px;overflow:hidden}
+  @media (max-width:860px){body{grid-template-columns:1fr;grid-template-rows:1fr auto;overflow:auto;height:auto}}
 
-  /* ---- bên trái: sân ---- */
-  .trai{display:flex;flex-direction:column;min-width:0}
-  .dinh{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--vien);flex:none}
-  .dinh h1{font-size:15px;margin:0;font-weight:700;letter-spacing:-.01em}
-  /* Xưởng vào được từ trang chào của Motion, nên phải có đường lui — vào một
-     trang không có lối ra là bắt người dùng bấm nút back của trình duyệt. */
-  .dinh .ve{color:var(--mo);text-decoration:none;font-size:13px;padding:6px 11px;
+  /* ---------- bên trái ---------- */
+  .trai{display:flex;flex-direction:column;min-width:0;min-height:0}
+  .dinh{display:flex;align-items:center;gap:12px;padding:11px 18px;
+    border-bottom:1px solid var(--vien);flex:none}
+  .dinh a.ve{color:var(--mo);text-decoration:none;font-size:13px;padding:6px 11px;
     border:1px solid var(--vien);border-radius:8px;white-space:nowrap}
-  .dinh .ve:hover{color:var(--chu);border-color:var(--nhan)}
-  .dinh .phu{font-size:12px;color:var(--mo)}
-  .dinh .day{margin-left:auto;display:flex;gap:6px}
-  .khung-chon button{background:var(--tam);border:1px solid var(--vien);color:var(--mo);
-    border-radius:7px;padding:5px 11px;font:inherit;font-size:12px;cursor:pointer}
-  .khung-chon button[aria-pressed=true]{background:var(--nhan);border-color:var(--nhan);color:#1a0f06;font-weight:700}
+  .dinh a.ve:hover{color:var(--chu);border-color:var(--nhan)}
+  .dinh h1{font-size:15px;margin:0;font-weight:700;letter-spacing:-.01em}
+  .dinh .phu{font-size:11.5px;color:var(--mo)}
+  .dinh .day{margin-left:auto;display:flex;gap:7px;align-items:center}
+  .nut{background:var(--tam);border:1px solid var(--vien);color:var(--chu);
+    border-radius:8px;padding:7px 13px;font:inherit;font-size:12.5px;cursor:pointer}
+  .nut:hover{border-color:var(--nhan)}
+  .nut.chinh{background:var(--nhan);border-color:var(--nhan);color:#1a0f06;font-weight:700}
 
-  .san-bao{flex:1;display:grid;place-items:center;padding:24px;min-height:360px}
-  #khung{position:relative;background:#000;border:1px solid var(--vien);border-radius:10px;
-    overflow:hidden;box-shadow:0 18px 60px rgba(0,0,0,.5)}
-  /* Vạch mốc: quá vạch này là lúc xuất phim sẽ giật. Cho NHÌN THẤY thay vì chỉ cảnh báo bằng chữ. */
-  #moc{position:absolute;top:0;bottom:0;left:25%;width:50%;border-left:1px dashed rgba(255,122,47,.38);
-    border-right:1px dashed rgba(255,122,47,.38);pointer-events:none}
-  #moc::after{content:'mốc 50% — quá vạch là xuất phim sẽ giật';position:absolute;top:6px;left:50%;
-    transform:translateX(-50%);font-size:10px;color:rgba(255,122,47,.6);white-space:nowrap}
-  #san{position:absolute;inset:0;display:grid;place-items:center;perspective:1200px}
+  /* KHUNG NHÌN — không khung phim nào gò, đây là chỗ anh Quý yêu cầu đổi */
+  /* NỀN XÁM TRUNG TÍNH, không phải đen.
+     Nền gần đen thì vật tối (áo choàng, giày đen) chìm mất và lưới không đọc
+     được — anh Quý gặp đúng chuyện này. Blender cố ý để xám trung tính vì mắt
+     cần một mức sáng ở GIỮA để so: nền đen thì chỉ thấy được vật sáng, nền
+     trắng thì chỉ thấy được vật tối.
+     Chuyển sắc nhẹ từ trên xuống cho ra chiều sâu, không để phẳng lì. */
+  #san{flex:1;position:relative;min-height:380px;overflow:hidden;cursor:grab;
+    background:linear-gradient(180deg,#4a4e55 0%,#3d4046 46%,#303338 100%);
+    perspective:2200px;touch-action:none}
+  #san.dangkeo{cursor:grabbing}
+  /* SÀN nằm TRONG cảnh nên xoay theo máy quay — cho mắt bám vào mà biết mình
+     đang đứng đâu. Vẽ bằng hình nền của khung nhìn thì nó đứng im lúc xoay, và
+     phá luôn ảo giác ba chiều. */
+  /* LƯỚI HAI CẤP như Blender: ô nhỏ 120, ô lớn 600. Một cấp thôi thì lúc thu
+     nhỏ các vạch dính thành một mảng xám, lúc phóng to lại thưa đến mức mất
+     cảm giác khoảng cách. */
+  .bc-san{position:absolute;left:50%;top:50%;width:6000px;height:6000px;
+    margin:-3000px 0 0 -3000px;pointer-events:none;
+    /* Vạch TỐI HƠN nền, không sáng hơn. Trên nền xám thì vạch trắng mờ gần như
+       biến mất, còn vạch tối thì đọc được ngay — đây đúng là cách Blender vẽ.
+       Vạch sáng chỉ hợp với nền đen, mà nền đen thì đã bỏ. */
+    background-image:
+      linear-gradient(rgba(0,0,0,.16) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,0,0,.16) 1px, transparent 1px),
+      linear-gradient(rgba(0,0,0,.30) 2px, transparent 2px),
+      linear-gradient(90deg, rgba(0,0,0,.30) 2px, transparent 2px);
+    background-size:120px 120px, 120px 120px, 600px 600px, 600px 600px;
+    -webkit-mask-image:radial-gradient(circle at 50% 50%, #000 14%, transparent 48%);
+            mask-image:radial-gradient(circle at 50% 50%, #000 18%, transparent 54%)}
+  /* HAI TRỤC có màu, cũng theo Blender: đỏ chạy ngang, xanh lá chạy vào sâu.
+     Không có chúng thì lưới đối xứng hoàn toàn và xoay máy một lúc là mất
+     phương hướng, không biết mình đang nhìn từ phía nào. */
+  .bc-truc{position:absolute;left:50%;top:50%;pointer-events:none}
+  .bc-truc-ngang{width:6000px;height:2.5px;margin:-1.25px 0 0 -3000px;
+    background:linear-gradient(90deg,transparent,rgba(190,62,62,.85) 22%,rgba(190,62,62,.85) 78%,transparent)}
+  .bc-truc-sau{width:2.5px;height:6000px;margin:-3000px 0 0 -1.25px;
+    background:linear-gradient(180deg,transparent,rgba(86,150,62,.85) 22%,rgba(86,150,62,.85) 78%,transparent)}
+  /* BÓNG ĐỔ dưới chân mỗi món. Không có nó thì vật lơ lửng, mắt không đoán
+     được nó đứng ở đâu trên sàn — đây là thứ làm cảnh "có thật" nhiều nhất,
+     mà rẻ hơn tính bóng thật cả ngàn lần. */
+  .bc-bong{position:absolute;left:50%;top:50%;pointer-events:none;border-radius:50%}
+  #goc-may{position:absolute;left:14px;bottom:12px;font-size:11px;color:rgba(255,255,255,.52);
+    font-variant-numeric:tabular-nums;pointer-events:none}
+  #chi-dan{position:absolute;right:14px;bottom:12px;font-size:11px;color:rgba(255,255,255,.52);pointer-events:none}
 
-  /* ---- khối nổi ---- */
+  /* ---------- khối ---------- */
+  .bc-may{transform-style:preserve-3d;position:absolute;left:50%;top:50%;will-change:transform}
+  .bc-cho{transform-style:preserve-3d;position:absolute;left:0;top:0}
   .bc-goc{transform-style:preserve-3d;position:relative;will-change:transform}
   .bc-hop{transform-style:preserve-3d;position:absolute;left:0;top:0}
   .bc-mat{position:absolute;left:0;top:0;backface-visibility:hidden;
@@ -48,70 +87,70 @@
   .bc-chu{font-weight:800;letter-spacing:-.02em;color:rgba(0,0,0,.55);user-select:none}
   .bc-lop{position:absolute;left:50%;top:50%;transform-origin:50% 50%;
     font-weight:900;letter-spacing:-.03em;white-space:nowrap;user-select:none;line-height:1}
+  .bc-cho.chon .bc-mat{outline:1px solid rgba(49,217,117,.55);outline-offset:-1px}
 
-  /* ---- thanh tua ---- */
-  .tua{display:flex;align-items:center;gap:12px;padding:12px 20px;border-top:1px solid var(--vien);flex:none}
-  .tua button{background:var(--nhan);border:0;color:#1a0f06;font:inherit;font-weight:700;
-    border-radius:8px;padding:8px 16px;cursor:pointer;min-width:84px}
+  /* ---------- thanh dưới ---------- */
+  .tua{display:flex;align-items:center;gap:11px;padding:10px 18px;
+    border-top:1px solid var(--vien);flex:none}
   .tua input[type=range]{flex:1;accent-color:var(--nhan)}
-  .tua .giay{font-variant-numeric:tabular-nums;color:var(--mo);font-size:12px;min-width:64px;text-align:right}
+  .tua .giay{font-variant-numeric:tabular-nums;color:var(--mo);font-size:12px;min-width:70px;text-align:right}
 
-  /* ---- bên phải: bảng vặn ---- */
-  .phai{border-left:1px solid var(--vien);overflow-y:auto;padding:16px 16px 40px}
-  @media (max-width:880px){.phai{border-left:0;border-top:1px solid var(--vien)}}
-  .muc{margin-bottom:20px}
-  .muc > h2{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--mo);
-    margin:0 0 9px;font-weight:700}
-  .o{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
-  .o label{font-size:13px;color:var(--chu)}
+  /* ---------- bên phải ---------- */
+  .phai{border-left:1px solid var(--vien);display:flex;flex-direction:column;min-height:0}
+  @media (max-width:860px){.phai{border-left:0;border-top:1px solid var(--vien)}}
+  .khoi-ds{flex:none;max-height:38vh;overflow-y:auto;border-bottom:1px solid var(--vien);padding:11px}
+  .khoi-bang{flex:1;overflow-y:auto;padding:13px 13px 40px}
+  h2{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--mo);
+    margin:0 0 8px;font-weight:700}
+  .muc{margin-bottom:17px}
+  .mon-hang{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:7px;
+    cursor:pointer;font-size:13px}
+  .mon-hang:hover{background:var(--tam)}
+  .mon-hang[aria-selected=true]{background:rgba(49,217,117,.12);
+    box-shadow:inset 0 0 0 1px rgba(49,217,117,.45)}
+  .mon-hang .cham{width:11px;height:11px;border-radius:3px;flex:none}
+  .mon-hang .ten{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mon-hang button{background:none;border:0;color:var(--mo);cursor:pointer;
+    font:inherit;font-size:12px;padding:2px 5px;border-radius:5px}
+  .mon-hang button:hover{color:var(--chu);background:var(--vien)}
+  .o{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-bottom:8px}
+  .o label{font-size:12.5px}
   .o .goi{font-size:11px;color:var(--mo);display:block;margin-top:1px}
-  .o input[type=range]{width:150px;accent-color:var(--nhan)}
-  .o input[type=number]{width:66px}
-  select,input[type=number],input[type=text]{background:var(--tam);border:1px solid var(--vien);
-    color:var(--chu);border-radius:7px;padding:6px 9px;font:inherit;font-size:13px}
+  .o input[type=range]{width:132px;accent-color:var(--nhan)}
+  select,input[type=text],input[type=number]{background:var(--tam);border:1px solid var(--vien);
+    color:var(--chu);border-radius:7px;padding:6px 9px;font:inherit;font-size:12.5px}
   select{width:100%}
-  .the-loai{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-  .the-loai button{background:var(--tam);border:1px solid var(--vien);color:var(--chu);
-    border-radius:9px;padding:9px 8px;font:inherit;font-size:12.5px;cursor:pointer;text-align:left;line-height:1.3}
-  .the-loai button[aria-pressed=true]{border-color:var(--nhan);background:rgba(255,122,47,.1)}
-  .the-loai small{display:block;color:var(--mo);font-size:10.5px;margin-top:2px}
+  .ba-o{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .ba-o input{width:100%}
+  .ba-o span{font-size:10.5px;color:var(--mo);text-align:center;display:block;margin-bottom:3px}
   .mau-day{display:flex;gap:7px;flex-wrap:wrap}
-  .mau-day button{width:34px;height:34px;border-radius:9px;border:2px solid var(--vien);cursor:pointer;padding:0}
+  .mau-day button{width:32px;height:32px;border-radius:9px;border:2px solid var(--vien);cursor:pointer;padding:0}
   .mau-day button[aria-pressed=true]{border-color:var(--chu)}
-  /* ---- bàn đèn: bấm ra một cái đèn rồi kéo ---- */
-  .den-boc{position:relative;margin-bottom:10px}
+  .trong{color:var(--mo);font-size:12px;line-height:1.5}
+
+  /* ---------- bàn đèn ---------- */
+  .den-boc{position:relative;margin-bottom:9px}
   .den-nut{display:flex;align-items:center;gap:10px;width:100%;background:var(--tam);
     border:1px solid var(--vien);color:var(--chu);border-radius:9px;padding:8px 11px;
-    font:inherit;font-size:13px;cursor:pointer;text-align:left}
-  .den-nut:hover{border-color:var(--nhan)}
-  .den-boc.mo .den-nut{border-color:var(--nhan)}
-  .den-xem{width:26px;height:26px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.35)}
+    font:inherit;font-size:12.5px;cursor:pointer;text-align:left}
+  .den-nut:hover,.den-boc.mo .den-nut{border-color:var(--nhan)}
+  .den-xem{width:25px;height:25px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.35)}
   .den-ta{color:var(--mo)}
-  .den-bang{display:none;position:absolute;z-index:20;top:calc(100% + 7px);left:0;right:0;
-    background:var(--tam);border:1px solid var(--nhan);border-radius:12px;padding:14px;
+  .den-bang{display:none;position:absolute;z-index:30;top:calc(100% + 7px);left:0;right:0;
+    background:var(--tam);border:1px solid var(--nhan);border-radius:12px;padding:13px;
     box-shadow:0 16px 44px rgba(0,0,0,.6)}
   .den-boc.mo .den-bang{display:block}
-  .den-ban{position:relative;width:176px;height:176px;margin:0 auto;border-radius:50%;
+  .den-ban{position:relative;width:168px;height:168px;margin:0 auto;border-radius:50%;
     background:
       radial-gradient(circle at 50% 50%, rgba(255,255,255,.055), transparent 72%),
       repeating-conic-gradient(from 0deg, rgba(255,255,255,.028) 0deg 3deg, transparent 3deg 15deg);
     border:1px dashed var(--vien);cursor:grab;touch-action:none}
-  .den-ban:active{cursor:grabbing}
-  .den-cau{position:absolute;left:50%;top:50%;width:92px;height:92px;margin:-46px 0 0 -46px;
+  .den-cau{position:absolute;left:50%;top:50%;width:88px;height:88px;margin:-44px 0 0 -44px;
     border-radius:50%;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.4)}
-  .den-tay{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;
+  .den-tay{position:absolute;width:25px;height:25px;margin:-12px 0 0 -12px;border-radius:50%;
     border:2px solid #fff;background:#ffe9b8;cursor:grab;padding:0;
     box-shadow:0 0 0 4px rgba(255,233,184,.22), 0 0 18px 4px rgba(255,210,120,.6)}
-  .den-tay:active{cursor:grabbing}
-  .den-ghi{color:var(--mo);font-size:11.5px;text-align:center;margin-top:11px;line-height:1.5}
-
-  #nhac{font-size:12px;line-height:1.5;color:#ffd0a8;background:rgba(255,122,47,.09);
-    border:1px solid rgba(255,122,47,.3);border-radius:9px;padding:9px 11px;margin-bottom:16px}
-  #nhac:empty{display:none}
-  .chep{width:100%;background:var(--tam);border:1px solid var(--vien);color:var(--chu);
-    border-radius:9px;padding:10px;font:inherit;font-size:13px;cursor:pointer}
-  .chep:hover{border-color:var(--nhan)}
-  .ghi{font-size:11px;color:var(--mo);line-height:1.5;margin-top:9px}
+  .den-ghi{color:var(--mo);font-size:11px;text-align:center;margin-top:10px;line-height:1.5}
 </style>
 </head>
 <body>
@@ -119,28 +158,40 @@
     <div class="dinh">
       <a class="ve" href="/" title="Về trang chính Motion">← Motion</a>
       <div>
-        <h1>Xưởng khối nổi</h1>
-        <div class="phu">Dựng hình nổi bằng chính trình duyệt — không mượn thư viện nào</div>
+        <h1>Xưởng 3D</h1>
+        <div class="phu">Dựng cảnh ba chiều — không mượn thư viện nào</div>
       </div>
-      <div class="day khung-chon" id="khung-chon">
-        <button data-k="9:16" aria-pressed="true">Dọc 9:16</button>
-        <button data-k="16:9">Ngang 16:9</button>
-        <button data-k="1:1">Vuông 1:1</button>
+      <div class="day">
+        <select id="chon-loai" style="width:auto"></select>
+        <button id="them" class="nut chinh" type="button">+ Thêm món</button>
+        <button id="vua-khung" class="nut" type="button">Vừa khung</button>
       </div>
     </div>
 
-    <div class="san-bao">
-      <div id="khung"><div id="moc"></div><div id="san"></div></div>
+    <div id="san">
+      <!-- Chỗ vẽ cảnh phải là thẻ RIÊNG, không vẽ thẳng vào #san: phần dựng
+           xoá sạch nội dung chỗ vẽ mỗi lần dựng lại, mà lưới sàn với dòng chỉ
+           số máy quay cũng là con của #san — vẽ thẳng vào đó là xoá luôn
+           chúng, và trang chết ngay từ lần dựng đầu tiên. -->
+      <div id="canh3d" style="position:absolute;inset:0;transform-style:preserve-3d"></div>
+      <div id="goc-may"></div>
+      <div id="chi-dan">kéo chuột để xoay · lăn để phóng to thu nhỏ</div>
     </div>
 
     <div class="tua">
-      <button id="chay">Chạy</button>
-      <input type="range" id="thanh" min="0" max="12" step="0.02" value="0">
-      <span class="giay" id="giay">0,00 / 12 s</span>
+      <button id="chay" class="nut chinh" type="button" style="min-width:80px">Chạy</button>
+      <input type="range" id="thanh" min="0" max="8" step="0.02" value="0">
+      <span class="giay" id="giay">0,00 / 8 s</span>
     </div>
   </div>
 
-  <div class="phai" id="bang"></div>
+  <div class="phai">
+    <div class="khoi-ds">
+      <h2>Món trong cảnh</h2>
+      <div id="ds-mon"></div>
+    </div>
+    <div class="khoi-bang" id="bang"></div>
+  </div>
 
   <script type="module" src="./giaodien.js"></script>
 </body>

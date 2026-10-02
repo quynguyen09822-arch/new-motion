@@ -31,6 +31,7 @@ const ganVec = (a, b, sai = 1e-9) => a.every((x, i) => gan(x, b[i], sai));
 
 const H = await import(path.join(M, 'bachieu', 'hinhhoc.js'));
 const K = await import(path.join(M, 'bachieu', 'khoi.js'));
+const C = await import(path.join(M, 'bachieu', 'canh.js'));
 
 console.log('\n① Sáu mặt của khối hộp');
 {
@@ -272,20 +273,17 @@ console.log('\n⑤ LUẬT ② — vẽ theo giây, không theo đồng hồ riê
     Number.isFinite(H.gocTai().ngang) && Number.isFinite(H.gocTai().doc));
 }
 
-console.log('\n⑥ LUẬT ① — chiếm quá nửa khung thì phải báo TRƯỚC');
+console.log('\n⑥ Bề ngang một món — dùng để xếp món vào chỗ trống');
 {
-  /* Khối quay tới 45° thì chỗ rộng nhất là đường chéo đáy, không phải bề ngang.
-     Đo bằng bề ngang là lúc xuất phim mới thấy hình bị cắt hai bên. */
-  dat('đo bằng đường chéo đáy, không phải bề ngang',
+  /* Luật "quá nửa khung phim" đã bỏ cùng với khung phim (xem ⑦c). Phép ĐO bề
+     ngang thì giữ, vì `canh.js` cần nó để xếp món mới khỏi chồng lên món cũ. */
+  dat('khối hộp: đo bằng đường chéo đáy, không bằng bề ngang',
     gan(H.beRongChiem({ rong: 300, day: 400 }), 500));
-  dat('khối nhỏ thì im lặng', H.soatBeRong({ rong: 300, day: 300 }, 1080).length === 0);
-  const b = H.soatBeRong({ rong: 800, day: 800 }, 1080);
-  dat('khối to thì báo', b.length === 1);
-  dat('nói rõ đang chiếm bao nhiêu phần trăm', /\d+%/.test(b[0] || ''), b[0]);
-  dat('nói luôn cách đi tiếp', /thu nhỏ|vẽ kỹ/i.test(b[0] || ''));
-  dat('lời nhắc không lọt chữ kỹ thuật',
-    !/WebGL|GPU|fps|render|shader|mesh/i.test(b[0] || ''), b[0]);
-  dat('ngưỡng đúng con số đã đo (50%)', H.NGUONG_CHIEM === 0.5);
+  dat('ống trụ tròn xoay: đo bằng đường kính',
+    gan(H.beRongChiem({ loai: 'tru', ban: 150 }), 300));
+  dat('biểu đồ: tính cả khe hở giữa các cột',
+    H.beRongChiem({ loai: 'bieu-do', cot: [1, 2, 3], rongCot: 60, khe: 20, day: 60 }) > 220);
+  dat('không khai gì thì vẫn ra số dùng được', Number.isFinite(H.beRongChiem()));
 }
 
 console.log('\n⑦ Bố cục năm loại khối');
@@ -295,8 +293,9 @@ console.log('\n⑦ Bố cục năm loại khối');
     const bc = K.boCuc(k);
     dat(`"${l.ten}" sinh ra đã dựng được`,
       bc.kieu === 'chu' ? bc.lop >= 2 : (bc.khoiCon?.length ?? 0) >= 1);
-    dat(`"${l.ten}" mới tạo đã nằm gọn trong khung dọc`,
-      H.soatBeRong(k, 1080).length === 0, `rộng ${Math.round(H.beRongChiem(k))}`);
+    dat(`"${l.ten}" mới tạo có bề ngang đo được`,
+      H.beRongChiem(k) > 0 && Number.isFinite(H.beRongChiem(k)),
+      `rộng ${Math.round(H.beRongChiem(k))}`);
   }
   {
     const g = K.khoiMoi('gia-may-chu');
@@ -361,11 +360,9 @@ console.log('\n⑦ Bố cục năm loại khối');
       [...new Set(con.map((c) => c.hinh))].join(' '));
     /* Mới sinh ra đã phải nằm trong luật 50% của chính nó. Để nó ra đời đã vượt
        mốc thì lời nhắc kêu ngay lần đầu mở, và người dùng học cách bỏ qua. */
-    dat('nhân vật: cỡ mặc định nằm trong mốc 50%',
-      H.soatBeRong(nv, 1080).length === 0,
-      `${Math.round(H.beRongChiem(nv))}px = ${Math.round(H.beRongChiem(nv) / 1080 * 100)}% khung`);
-    dat('nhân vật: kéo to lên thì lời nhắc kêu',
-      H.soatBeRong({ ...nv, co: 2 }, 1080).length === 1);
+    dat('nhân vật: bề ngang theo đúng hệ số to nhỏ',
+      gan(H.beRongChiem({ ...nv, co: 2 }) / H.beRongChiem(nv), 2 / nv.co, 1e-9),
+      `${Math.round(H.beRongChiem(nv))}px ở cỡ ${nv.co}`);
     dat('nhân vật: núm độ lớn ăn vào mọi bộ phận', (() => {
       const to = K.boCuc({ ...nv, co: 2 }).khoiCon;
       return to.every((c, i) => {
@@ -393,6 +390,76 @@ console.log('\n⑦ Bố cục năm loại khối');
     Boolean(K.boCuc(K.khoiMoi('logo-khoi')).khoiCon[0].dauMoiMat));
   dat('chữ nổi: số lớp bị kẹp trong khoảng dùng được',
     K.boCuc({ loai: 'chu-noi', soLop: 500 }).lop <= 40 && K.boCuc({ loai: 'chu-noi', soLop: 0 }).lop >= 2);
+}
+
+console.log('\n⑦b Cảnh — nhiều món, một máy quay');
+{
+  const c = C.canhMoi('hop');
+  dat('cảnh mới có đúng một món', c.mon.length === 1);
+  /* Món phải ĐỨNG TRÊN SÀN (mặt y = 0), không lơ lửng ở tâm. Để y = 0 là mỗi
+     món chìm một nửa xuống đất. */
+  dat('món mới đứng trên sàn, không chìm một nửa',
+    gan(c.mon[0].vi.y, K.caoTong(c.mon[0]) / 2), `y = ${c.mon[0].vi.y}`);
+  /* Món đứng một mình thì tự quay cho đẹp; trong một cảnh thì KHÔNG — năm món
+     mỗi món quay một kiểu là cảnh thành cái chợ. */
+  dat('món trong cảnh mặc định đứng im', c.mon[0].dong.kieu === 'dung-im');
+
+  C.themMon(c, 'tru'); C.themMon(c, 'hop');
+  dat('thêm được món', c.mon.length === 3);
+  /* Tên trùng phải tự đánh số, không thì danh sách có hai dòng "Hộp" và không
+     ai biết dòng nào là món nào. */
+  dat('tên trùng thì tự đánh số',
+    new Set(c.mon.map((m) => m.ten)).size === 3, c.mon.map((m) => m.ten).join(' · '));
+  /* Thả đúng gốc toạ độ thì món mới chồng khít lên món cũ, và người dùng tưởng
+     bấm hụt. Đây là lỗi hay gặp nhất ở mọi trình dựng cảnh. */
+  dat('món mới tự xếp sang chỗ trống, không chồng lên món cũ', (() => {
+    for (let i = 1; i < c.mon.length; i++) {
+      const a = c.mon[i - 1], b = c.mon[i];
+      if (b.vi.x - a.vi.x < (C.rongMon(a) + C.rongMon(b)) / 2) return false;
+    }
+    return true;
+  })(), c.mon.map((m) => `${m.ten}@${m.vi.x}`).join(' '));
+
+  const b = C.hopBao(c);
+  dat('hộp bao ôm hết các món',
+    b.rong >= C.rongMon(c.mon[0]) && b.rong > 0 && b.cao > 0,
+    `rộng ${Math.round(b.rong)} cao ${Math.round(b.cao)}`);
+  dat('tâm hộp bao nằm giữa món đầu và món cuối',
+    b.tamX > c.mon[0].vi.x && b.tamX < c.mon[c.mon.length - 1].vi.x);
+
+  const z = C.thuPhongVua(c, 900, 600);
+  dat('thu phóng vừa khung ra số dùng được', z.ti > 0 && z.ti <= 3, z.ti.toFixed(3));
+  dat('cảnh rộng hơn thì phải thu nhỏ hơn',
+    C.thuPhongVua(c, 400, 300).ti < C.thuPhongVua(c, 1800, 1200).ti);
+
+  const n0 = c.mon.length;
+  const ban = C.nhanBan(c, c.mon[0].id);
+  dat('nhân đôi ra món mới, không dùng chung chỗ đứng',
+    c.mon.length === n0 + 1 && ban.vi !== c.mon[0].vi && ban.vi.x !== c.mon[0].vi.x);
+  dat('xoá được món', C.xoaMon(c, ban.id) && c.mon.length === n0);
+  dat('xoá món không có thì không nổ', C.xoaMon(c, 'khong-co-that') === false);
+}
+
+console.log('\n⑦c Luật MỚI thay luật khung phim: đếm mảnh, không đếm bề ngang');
+{
+  /* Bỏ khung phim thì luật "quá nửa bề ngang" hết nghĩa. Nhưng LÝ DO sinh ra
+     nó vẫn còn: máy chủ không có chip đồ hoạ riêng. Nên đo lại đúng thứ thật
+     sự tốn — tổng số mảnh. Bỏ một luật thì phải thay bằng luật đúng. */
+  const c = C.canhMoi('hop');
+  dat('một khối hộp thì im', C.soatCanh(c, K.boCuc).length === 0);
+  dat('đếm đúng số mảnh của khối hộp', C.soMatMon(c.mon[0], K.boCuc) === 6);
+  dat('đếm được cả món ghép nhiều bộ phận',
+    C.soMatMon(K.khoiMoi('nhan-vat'), K.boCuc) > 900);
+  for (let i = 0; i < 4; i++) C.themMon(c, 'nhan-vat');
+  const nhac = C.soatCanh(c, K.boCuc);
+  dat('cảnh nặng thì nhắc', nhac.length === 1);
+  dat('nói rõ đang có bao nhiêu mảnh', /\d/.test(nhac[0] || ''), nhac[0]);
+  dat('và chỉ cách làm nhẹ đi', /bớt món|hạ độ mịn/i.test(nhac[0] || ''));
+  dat('lời nhắc không lọt chữ kỹ thuật',
+    !/DOM|GPU|fps|render|mesh|polygon/i.test(nhac[0] || ''));
+  /* Món bị ẩn thì không vẽ, nên không được tính vào độ nặng. */
+  for (const m of c.mon) if (m.loai === 'nhan-vat') m.an = true;
+  dat('món đang ẩn thì không tính vào độ nặng', C.soatCanh(c, K.boCuc).length === 0);
 }
 
 console.log('\n⑧ Câu chữ — không để lọt tiếng máy ra màn hình');

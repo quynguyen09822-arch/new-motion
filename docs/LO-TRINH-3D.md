@@ -1,7 +1,17 @@
 # Lộ trình 3D cho Motion — bản để duyệt trước khi làm
 
-> Trạng thái: **Giai đoạn 1 đã làm xong** (01/10/2026) — xem `bachieu/`, mở ở
-> `/ba-chieu/`. Giai đoạn 2 trở đi còn chờ quyết ở mục 5.
+> Trạng thái: **Giai đoạn 1 xong, và hướng đi đã đổi** (02/10/2026).
+>
+> Lộ trình này viết với giả định xưởng 3D làm ra MỘT MÓN để nhét vào clip — nên
+> mới có "Luật ①: khối là một món trong cảnh, không phải cái nền". Anh Quý nói
+> rõ không muốn thế: muốn nó **như Blender**, dựng nhanh được cảnh cho ra dáng
+> chuyên nghiệp, không bị khung clip gò.
+>
+> Nên khung phim đã bỏ, và xưởng thành **trình dựng cảnh**: nhiều món, máy quay
+> xoay quanh được, sàn thật, danh sách món. Luật ① thay bằng phép **đếm mảnh**
+> — đo đúng thứ thật sự tốn máy. Xem `bachieu/README.md`.
+>
+> Giai đoạn 2 trở đi còn chờ quyết ở mục 5.
 > Mọi con số trong đây là đo thật trên chính máy chủ này, không phải ước lượng.
 
 ---

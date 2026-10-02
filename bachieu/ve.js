@@ -15,8 +15,8 @@
  * triệu chứng lại giống hệt "máy chủ yếu" — đi sai hướng cả buổi.
  */
 import { matCuaHop, matCuaTru, matCuaCau, phapTuyen, doSang, mauTheoSang, gocTai,
-  DEN_MAC_DINH } from './hinhhoc.js';
-import { boCuc } from './khoi.js';
+  beRongChiem, DEN_MAC_DINH } from './hinhhoc.js';
+import { boCuc, caoTong } from './khoi.js';
 
 const the = (lop, kieu) => {
   const n = document.createElement('div');
@@ -132,5 +132,103 @@ export function veTai(dat, khoi, t = 0) {
       ? doSang(phapTuyen([0, 0, 1], ngang, doc), den)
       : (den.nen ?? DEN_MAC_DINH.nen) * (1 - c.sau * 0.45);
     c.el.style.color = mauTheoSang(mau, s);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * CẢNH — nhiều món, một máy quay
+ * ------------------------------------------------------------------------- */
+
+/**
+ * Dựng cả cảnh. Trả về thứ `veCanhTai()` cần.
+ *
+ * BA TẦNG THẺ, mỗi tầng đúng một việc — gộp lại là không gỡ ra được:
+ *
+ *   .bc-may   máy quay: xoay quanh cảnh, thu phóng
+ *     .bc-cho   chỗ đứng của một món
+ *       .bc-goc   món tự xoay quanh tâm nó
+ *
+ * Thứ tự trong câu lệnh CSS đọc từ TRÁI sang PHẢI là từ NGOÀI vào TRONG, nên
+ * `scale(...) rotateX(...) rotateY(...) translate3d(...)` nghĩa là: dời cảnh về
+ * tâm trước, rồi mới xoay, rồi mới phóng. Đảo thứ tự là máy quay quanh một
+ * điểm nào đó ngoài cảnh, kéo chuột thấy cảnh văng đi chứ không xoay tại chỗ.
+ */
+export function dungCanh(cha, canh) {
+  cha.textContent = '';
+  const may = the('bc-may');
+  cha.appendChild(may);
+
+  /* SÀN THẬT, nằm trong cảnh nên xoay theo máy quay.
+     Bản trước vẽ lưới bằng hình nền phẳng của khung nhìn — nó ĐỨNG IM khi kéo
+     chuột, nên thay vì giúp định hướng thì nó phá luôn ảo giác ba chiều: mắt
+     thấy vật xoay mà sàn không nhúc nhích. Sàn giả còn tệ hơn không có sàn. */
+  const san = the('bc-san');
+  san.style.transform = 'rotateX(90deg)';
+  may.appendChild(san);
+
+  /* Hai trục có màu nằm trên mặt sàn. Lưới trơn thì đối xứng hoàn toàn, xoay
+     máy một lúc là mất phương hướng — không biết mình đang nhìn từ phía nào. */
+  for (const lop of ['bc-truc-ngang', 'bc-truc-sau']) {
+    const tr = the('bc-truc ' + lop);
+    tr.style.transform = 'rotateX(90deg)';
+    may.appendChild(tr);
+  }
+
+  const monDS = [];
+  for (const m of canh.mon) {
+    if (m.an) continue;
+
+    /* BÓNG ĐỔ: một vệt tối nằm bẹp trên sàn, ngay dưới chân món. Không tính
+       bóng thật — chỉ cần mắt biết món đứng ở đâu. Mẹo cũ, rẻ hơn bóng thật
+       cả ngàn lần, mà thiếu nó thì mọi vật đều lơ lửng. */
+    const bong = the('bc-bong');
+    may.appendChild(bong);
+
+    const cho = the('bc-cho');
+    may.appendChild(cho);
+    const d = dung(cho, m);
+    /* Nhớ id lên THẺ để bấm vào khối trong khung nhìn là chọn đúng món. Dò
+       ngược bằng chỉ số mảng thì xoá một món là lệch hết. */
+    d.goc.dataset.mon = m.id;
+    for (const f of d.matDS) f.el.dataset.mon = m.id;
+    monDS.push({ id: m.id, cho, bong, ...d });
+  }
+  return { may, monDS };
+}
+
+/** Vẽ cả cảnh tại giây `t`. Vẫn là hàm thuần của `t` — xem Luật ② ở hinhhoc.js. */
+export function veCanhTai(dat, canh, t = 0) {
+  const c = canh.may;
+  dat.may.style.transform =
+    `scale(${c.ti}) rotateX(${c.doc}deg) rotateY(${c.ngang}deg) `
+    + `translate3d(${-c.tamX}px, ${c.tamY}px, 0)`;
+
+  for (const d of dat.monDS) {
+    const m = canh.mon.find((x) => x.id === d.id);
+    if (!m) continue;
+    d.cho.style.transform = `translate3d(${m.vi.x}px, ${-m.vi.y}px, ${m.vi.z}px)`;
+
+    if (d.bong) {
+      /* Món càng cao khỏi mặt đất thì bóng càng loe và càng nhạt — đúng như
+         ngoài đời. Không làm vậy thì nâng một món lên cao mà bóng vẫn đậm y
+         nguyên, và mắt tưởng nó vẫn chạm đất. */
+      const w = beRongChiem(m);
+      const cach = Math.max(0, m.vi.y - caoTong(m) / 2);
+      const loe = 1 + Math.min(1.2, cach / Math.max(80, w));
+      const dam = 0.42 / loe;
+      const r = (w * 0.62 * loe);
+      Object.assign(d.bong.style, {
+        width: r * 2 + 'px', height: r * 1.3 + 'px',
+        margin: `${-r * 0.65}px 0 0 ${-r}px`,
+        transform: `translate3d(${m.vi.x}px, 0px, ${m.vi.z}px) rotateX(90deg)`,
+        background: `radial-gradient(ellipse at 50% 50%, rgba(0,0,0,${dam.toFixed(3)}) 0%, `
+          + `rgba(0,0,0,${(dam * 0.55).toFixed(3)}) 42%, transparent 72%)`,
+      });
+    }
+    /* Đèn gắn vào THẾ GIỚI, không gắn vào máy quay: độ sáng chỉ phụ thuộc món
+       xoay bao nhiêu, không phụ thuộc người xem đứng đâu. Nhờ vậy lia máy sang
+       mặt khuất là thấy tối — gắn đèn vào máy thì mặt sáng bám theo mắt người
+       xem và vật trông bẹt như dán lên màn hình. */
+    veTai(d, { ...m, den: m.den || canh.den }, t);
   }
 }

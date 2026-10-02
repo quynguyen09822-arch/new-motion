@@ -54,15 +54,34 @@ const don = () => { try { execFileSync('docker', ['rm', '-f', TEN], { stdio: 'ig
 process.on('exit', don);
 process.on('uncaughtException', (e) => { don(); console.error(e); process.exit(1); });
 
-let san = false;
-for (let i = 0; i < 40; i++) {
-  try { execFileSync('docker', ['exec', TEN, 'pg_isready', '-q'], { stdio: 'ignore' }); san = true; break; }
-  catch { await new Promise((r) => setTimeout(r, 1000)); }
-}
-if (!san) { console.error('❌ Postgres không lên kịp.'); don(); process.exit(1); }
-
 const { docDiaChi, moKetNoi, voiCSDL } = await import(path.join(M, 'server', 'pg.js'));
 const U = `postgres://postgres:${MK}@127.0.0.1:${CONG}/motion_kiem`;
+
+/*
+ * CHỜ CHO POSTGRES THẬT SỰ SẴN SÀNG — và `pg_isready` KHÔNG đủ.
+ *
+ * Bẫy kinh điển của Postgres trong Docker: lúc khởi tạo lần đầu, ảnh chạy một
+ * máy chủ TẠM chỉ mở socket nội bộ để dựng cơ sở dữ liệu, rồi TẮT nó đi và
+ * khởi động lại cho thật. `pg_isready` chạy trong container nối qua socket ấy
+ * nên báo "sẵn sàng" ngay giữa giai đoạn tạm — ta nối vào, và vài giây sau bị
+ * cắt với câu "Máy chủ CSDL đóng kết nối".
+ *
+ * Đã xảy ra thật: bài này đỏ trong lượt chạy cả bộ, mà chạy riêng lại xanh.
+ * Loại đỏ chập chờn đó tệ hơn không có bài kiểm — người ta học cách bỏ qua
+ * màu đỏ, rồi bỏ qua luôn lần nó đỏ thật.
+ *
+ * Nên chờ bằng thứ duy nhất chứng minh được: HỎI THẬT một câu qua đúng đường
+ * mà bài kiểm sẽ dùng, và chỉ tin khi nó trả lời.
+ */
+let san = false;
+for (let i = 0; i < 60; i++) {
+  try {
+    await voiCSDL(U, async (db) => db.hoi('select 1'));
+    san = true;
+    break;
+  } catch { await new Promise((r) => setTimeout(r, 1000)); }
+}
+if (!san) { console.error('❌ Postgres không lên kịp.'); don(); process.exit(1); }
 
 try {
   console.log('\n① Nối, đăng nhập, hỏi');

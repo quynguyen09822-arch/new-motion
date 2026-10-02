@@ -9,13 +9,9 @@
  *
  * Để ở đây thì `tools/kiem-ba-chieu.mjs` gọi thẳng bằng Node, đo bằng số.
  *
- * HAI LUẬT ĐÃ ĐO ĐƯỢC (xem `docs/LO-TRINH-3D.md` mục 2) và file này canh:
+ * LUẬT ĐÃ ĐO ĐƯỢC (xem `docs/LO-TRINH-3D.md` mục 2) và file này canh:
  *
- *   ① Khối nổi chiếm quá NỬA bề ngang khung thì lúc xuất phim sẽ giật — máy chủ
- *     không có card đồ hoạ, đo được 18,7 hình/giây khi phủ kín, 60 khi chiếm
- *     nửa. `soatBeRong()` báo trước, không để tới lúc xuất mới biết.
- *
- *   ② Góc quay phải là HÀM THUẦN CỦA GIÂY. Bộ dựng clip đã theo luật này
+ *   · Góc quay phải là HÀM THUẦN CỦA GIÂY. Bộ dựng clip đã theo luật này
  *     (`render(now)`, `seek(s)` chỉ gọi `render(s)`). Nếu khối tự quay bằng đồng
  *     hồ riêng thì tua không được, xuất chậm không được, và hai lần xuất ra hai
  *     phim khác nhau.
@@ -304,11 +300,16 @@ export function gocTai(khoi = {}, t = 0) {
 }
 
 /* ---------------------------------------------------------------------------
- * LUẬT ① — bề ngang chiếm bao nhiêu khung
+ * BỀ NGANG MỘT MÓN
+ *
+ * Trước đây đây là "Luật ①": khối không được chiếm quá nửa bề ngang KHUNG PHIM.
+ * Luật ấy đã bỏ cùng với khung phim — xưởng nay dựng cảnh tự do, không gò vào
+ * khổ clip nào. Nhưng LÝ DO sinh ra nó thì vẫn còn, nên nó được thay bằng phép
+ * đếm mảnh trong `canh.js` (`soatCanh`): đo đúng thứ thật sự tốn máy.
+ *
+ * Phép đo bề ngang thì GIỮ LẠI, vì `canh.js` cần nó để xếp món mới vào chỗ
+ * trống thay vì chồng lên món cũ.
  * ------------------------------------------------------------------------- */
-
-/** Đo được: phủ kín khung dọc → 18,7 hình/giây; chiếm nửa → 60. */
-export const NGUONG_CHIEM = 0.5;
 
 /**
  * Chỗ rộng nhất khối quét qua khi quay.
@@ -332,14 +333,4 @@ export function beRongChiem(khoi = {}) {
     return Math.hypot(rongNgang, khoi.day ?? 60);
   }
   return Math.hypot(khoi.rong ?? 220, khoi.day ?? 220);
-}
-
-/** Trả danh sách lời nhắc; rỗng là ổn. Chỉ NHẮC, không bao giờ chặn. */
-export function soatBeRong(khoi = {}, khungRong = 1080) {
-  const ti = beRongChiem(khoi) / khungRong;
-  if (ti <= NGUONG_CHIEM) return [];
-  return [`Khối đang chiếm ${Math.round(ti * 100)}% bề ngang khung. `
-    + `Trên ${Math.round(NGUONG_CHIEM * 100)}% thì lúc xuất phim sẽ giật `
-    + `(máy chủ dựng phim không có chip đồ hoạ riêng). `
-    + `Thu nhỏ lại, hoặc chấp nhận xuất kiểu vẽ kỹ — chậm hơn khoảng 5 phút.`];
 }

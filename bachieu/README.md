@@ -22,16 +22,62 @@ dựng). Đây là phần thứ ba, và nó **cố ý không dính vào hai ph�
 ### Nối với Motion
 
 Vào bằng nút trên trang chào (dashboard), ra bằng nút “← Motion”. Chỉ là đường
-dẫn qua lại — trang sửa clip **không nạp một dòng mã nào** của xưởng này, nên
-xưởng hỏng thì clip vẫn chạy.
+dẫn qua lại — trang sửa clip **không nạp một dòng mã nào** của xưởng này.
 
 Chiều ngược lại, xưởng mượn đúng một thứ của Motion: bảng màu `web/phoimau.js`.
-Không chép sang cho "sạch hẳn" vì hai nơi cùng nói về một thứ thì sớm muộn lệch
-nhau, rồi bài kiểm đọc một nơi còn người dùng nhận nơi kia.
 
 ---
 
-## Bảy loại khối
+## Đây là trình DỰNG CẢNH, không phải trình làm một món cho clip
+
+Bản đầu nhốt mọi thứ trong **khung phim 9:16** và mỗi lần chỉ dựng được **một
+khối**. Anh Quý nói rõ không muốn thế: muốn nó **như Blender**, dựng nhanh được
+cảnh cho ra dáng chuyên nghiệp. Nên khung phim bỏ hẳn.
+
+| | |
+|---|---|
+| Khung nhìn | tự do, không khổ nào gò. Kéo chuột xoay máy quay, lăn chuột phóng to thu nhỏ |
+| Đơn vị làm việc | **cảnh** gồm nhiều món, không phải một khối |
+| Danh sách món | thêm · ẩn · nhân đôi · bỏ, bấm để chọn |
+| Sàn | lưới **nằm trong cảnh** nên xoay theo máy quay |
+| Món mới | tự xếp vào chỗ trống và **đứng trên sàn** |
+
+### Hệ màu lấy theo Blender, và có lý do
+
+Bản đầu để nền gần đen. Anh Quý phản hồi là **khó nhìn** — và đúng: vật tối (áo
+choàng, giày đen của linh vật) chìm mất, lưới sàn không đọc được.
+
+Blender cố ý dùng **xám trung tính**, không dùng đen. Mắt cần một mức sáng ở
+GIỮA để so: nền đen thì chỉ thấy được vật sáng, nền trắng thì chỉ thấy được vật
+tối.
+
+| Chỗ | Màu | Vì sao |
+|---|---|---|
+| Nền khung nhìn | chuyển sắc `#4a4e55 → #303338` | xám trung tính, hơi tối dần xuống dưới cho ra chiều sâu |
+| Vạch lưới | **đen mờ**, không phải trắng mờ | trên nền xám thì vạch sáng gần như biến mất; vạch tối đọc được ngay |
+| Lưới hai cấp | ô 120 và ô 600 | một cấp thôi thì thu nhỏ là dính thành mảng xám, phóng to lại quá thưa |
+| Trục ngang | đỏ `#BE3E3E` | lưới trơn thì đối xứng hoàn toàn, xoay một lúc là mất phương hướng |
+| Trục sâu | xanh lá `#56963E` | cùng lý do, và cùng quy ước màu với Blender |
+| Máy quay mở ra | nhìn xuống **28°** | dưới 20° thì sàn bẹt thành vệt mỏng, trên 50° thì vật mất dáng |
+
+**Bóng đổ dưới chân** là thứ làm cảnh "có thật" nhiều nhất mà rẻ nhất: chỉ là
+một vệt tối nằm bẹp trên sàn, không tính bóng thật. Món càng nâng cao khỏi đất
+thì bóng càng loe và càng nhạt — không làm vậy thì nâng món lên mà bóng vẫn đậm
+y nguyên, mắt tưởng nó còn chạm đất.
+
+### Ba thứ tách bạch — chỗ bản đầu làm lẫn
+
+- **Món** — đứng ở đâu, xoay bao nhiêu, to nhỏ ra sao.
+- **Máy quay** — người xem đứng ở đâu nhìn vào. KHÔNG phải xoay cái cảnh.
+- **Đèn** — gắn vào **thế giới**, không gắn vào máy quay.
+
+Lẫn máy quay với xoay vật là cái bẫy kinh điển: lia máy một vòng mà mặt sáng cứ
+bám theo mắt người xem, thành ra vật trông bẹt như dán lên màn hình. Tách ra thì
+lia tới mặt khuất là thấy tối — đúng như ngoài đời.
+
+---
+
+## Tám loại khối
 
 | Loại | Dùng khi |
 |---|---|
@@ -75,14 +121,15 @@ Hai chỗ dễ sai, đều có bài kiểm canh:
 
 ---
 
-## Bốn file
+## Năm file
 
 | File | Việc | Chạm DOM? |
 |---|---|---|
-| `hinhhoc.js` | mọi phép tính: góc quay, pháp tuyến, đèn, màu | **không** — nên kiểm được bằng Node |
-| `khoi.js` | khối nổi là gì, năm loại, bố cục | không |
+| `hinhhoc.js` | mọi phép tính: mặt của hộp/trụ/cầu, góc quay, đèn, màu | **không** — kiểm được bằng Node |
+| `khoi.js` | một món là gì, tám loại, bố cục từng loại | **không** |
+| `canh.js` | một cảnh là gì: nhiều món, máy quay, đếm độ nặng | **không** |
 | `ve.js` | dựng ra thẻ và vẽ tại giây `t` | có |
-| `giaodien.js` | bảng vặn | có |
+| `giaodien.js` | khung nhìn, danh sách món, bảng vặn | có |
 
 Chia vậy vì lỗi 3D hay nằm ở **phép tính**, mà triệu chứng lại là "hình nhìn kỳ
 kỳ" — không có lỗi, không có vệt đỏ. Để lẫn với mã dựng DOM thì phải mở trình
@@ -92,12 +139,18 @@ duyệt soi bằng mắt, và mỗi lần soi ra một kết luận khác.
 
 ## Hai luật, đo được bằng số
 
-**Luật ① — khối không được chiếm quá nửa bề ngang khung.** Máy chủ dựng phim
-không có chip đồ hoạ riêng. Đo thật: 3D phủ kín khung dọc 1080×1920 →
-**18,7 hình/giây** (phim cần 30, tức sẽ giật). Chiếm nửa khung → **60**. Bảng
-vặn báo ngay khi vượt mốc, và sân vẽ sẵn **vạch 50%** cho nhìn thấy.
 
-**Luật ② — góc quay là hàm thuần của giây.** `gocTai(khoi, t)` không đọc đồng
+**Luật đếm mảnh.** Luật cũ là "khối không được chiếm quá nửa bề ngang khung
+phim". Bỏ khung phim thì luật ấy hết nghĩa — nhưng **lý do** sinh ra nó vẫn còn:
+máy chủ dựng phim không có chip đồ hoạ riêng.
+
+Nên đo lại đúng thứ thật sự tốn: **tổng số mảnh trong cảnh**. Đo trên chính máy
+này — 1.180 mảnh mất 16 ms một khung, tức thừa cho 60 hình/giây. Ngưỡng nhắc:
+**3.500 mảnh** là chạm 30 hình/giây, **6.000** là bắt đầu ì tay.
+
+*Bỏ một luật thì phải thay bằng luật đúng, không phải bỏ trống.*
+
+**Luật vẽ theo giây — góc quay là hàm thuần của giây.** `gocTai(khoi, t)` không đọc đồng
 hồ, không giữ biến đếm. Hỏng luật này là mất tua, mất chế độ xuất "vẽ kỹ", và
 hai lần xuất ra hai phim khác nhau. Bộ dựng clip đã theo đúng luật này
 (`render(now)`, `seek(s)` chỉ gọi `render(s)`).
